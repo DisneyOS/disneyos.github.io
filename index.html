@@ -101,8 +101,8 @@
               <strong id="current-crowd">Checking…</strong>
             </div>
             <div>
-              <span class="metric-label">Park capacity</span>
-              <strong id="park-capacity">Checking…</strong>
+              <span class="metric-label">Park status</span>
+              <strong id="park-status">Checking…</strong>
             </div>
           </div>
 
@@ -124,51 +124,11 @@
           </div>
 
           <div class="schedule-card-list" id="schedule-card-list">
-            <article class="schedule-card">
-              <button class="schedule-card-toggle" type="button" aria-expanded="false">
-                <span class="schedule-card-icon">🎭</span>
-                <span class="schedule-card-copy">
-                  <span class="card-label">Stage show</span>
-                  <strong data-schedule-title>Loading schedule…</strong>
-                  <small data-schedule-next>Checking remaining times</small>
-                </span>
-                <span class="schedule-chevron">›</span>
-              </button>
-              <div class="schedule-card-details" hidden>
-                <p class="card-label">Remaining today</p>
-                <div data-schedule-times></div>
-              </div>
-            </article>
-
-            <article class="schedule-card">
-              <button class="schedule-card-toggle" type="button" aria-expanded="false">
-                <span class="schedule-card-icon">🎉</span>
-                <span class="schedule-card-copy">
-                  <span class="card-label">Parade</span>
-                  <strong data-schedule-title>Loading schedule…</strong>
-                  <small data-schedule-next>Checking remaining times</small>
-                </span>
-                <span class="schedule-chevron">›</span>
-              </button>
-              <div class="schedule-card-details" hidden>
-                <p class="card-label">Remaining today</p>
-                <div data-schedule-times></div>
-              </div>
-            </article>
-
-            <article class="schedule-card">
-              <button class="schedule-card-toggle" type="button" aria-expanded="false">
-                <span class="schedule-card-icon">🎆</span>
-                <span class="schedule-card-copy">
-                  <span class="card-label">Nighttime spectacular</span>
-                  <strong data-schedule-title>Loading schedule…</strong>
-                  <small data-schedule-next>Checking remaining times</small>
-                </span>
-                <span class="schedule-chevron">›</span>
-              </button>
-              <div class="schedule-card-details" hidden>
-                <p class="card-label">Remaining today</p>
-                <div data-schedule-times></div>
+            <article class="schedule-loading-card" id="schedule-loading-card">
+              <div class="loading-spinner" aria-hidden="true"></div>
+              <div>
+                <strong>Loading today’s entertainment</strong>
+                <p>Checking remaining showtimes for the selected park.</p>
               </div>
             </article>
           </div>
@@ -183,21 +143,33 @@
           </div>
 
           <div class="home-info-grid">
-            <article class="home-info-card">
-              <div class="compact-card-icon">🌦️</div>
-              <div>
-                <p class="card-label">Weather</p>
-                <h3 id="weather-summary-title">Current forecast</h3>
-                <p class="secondary-detail" id="weather-summary-detail">Weather details will appear here.</p>
+            <article class="home-info-card expandable-info-card" id="weather-card">
+              <button class="info-card-toggle" type="button" aria-expanded="false">
+                <span class="compact-card-icon" id="weather-card-icon">🌦️</span>
+                <span class="info-card-copy">
+                  <span class="card-label">Weather</span>
+                  <strong id="weather-summary-title">Loading forecast…</strong>
+                  <small id="weather-summary-detail">Checking current conditions</small>
+                </span>
+                <span class="schedule-chevron">›</span>
+              </button>
+              <div class="info-card-details" hidden>
+                <div class="weather-detail-grid" id="weather-detail-grid"></div>
               </div>
             </article>
 
-            <article class="home-info-card">
-              <div class="compact-card-icon">🚝</div>
-              <div>
-                <p class="card-label">Transportation</p>
-                <h3 id="transportation-title">Park transportation</h3>
-                <p class="secondary-detail" id="transportation-detail">Available options will appear here.</p>
+            <article class="home-info-card expandable-info-card" id="transportation-card">
+              <button class="info-card-toggle" type="button" aria-expanded="false">
+                <span class="compact-card-icon">🚝</span>
+                <span class="info-card-copy">
+                  <span class="card-label">Transportation</span>
+                  <strong id="transportation-title">Loading options…</strong>
+                  <small id="transportation-detail">Checking routes for this park</small>
+                </span>
+                <span class="schedule-chevron">›</span>
+              </button>
+              <div class="info-card-details" hidden>
+                <div class="transportation-list" id="transportation-list"></div>
               </div>
             </article>
           </div>
