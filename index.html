@@ -74,300 +74,201 @@
         data-page="home"
       >
 
-        <section class="hero-card">
+        <section class="hero-card home-hero-card">
 
           <div class="hero-card-top">
-
             <div>
-              <p class="card-label">
-                Preferred park
-              </p>
-
-              <h2 id="current-park">
-                Magic Kingdom
-              </h2>
+              <p class="card-label">Today at</p>
+              <button class="park-selector-button" type="button" id="home-park-selector" aria-haspopup="listbox">
+                <span id="current-park">Magic Kingdom</span>
+                <span aria-hidden="true">⌄</span>
+              </button>
             </div>
 
-            <span class="feature-state-badge live">
-              Live
-            </span>
-
+            <div class="weather-summary" aria-label="Current weather">
+              <span class="weather-icon" id="hero-weather-icon">☀️</span>
+              <span id="hero-temperature">--°</span>
+            </div>
           </div>
 
-          <div class="hero-live-content">
-
+          <div class="hero-status-grid">
             <div>
-              <span class="metric-label">
-                Available now
-              </span>
-
-              <strong>
-                Live attraction wait times
-              </strong>
+              <span class="metric-label">Park hours</span>
+              <strong id="park-hours">Checking…</strong>
             </div>
+            <div>
+              <span class="metric-label">Current crowd</span>
+              <strong id="current-crowd">Checking…</strong>
+            </div>
+            <div>
+              <span class="metric-label">Park capacity</span>
+              <strong id="park-capacity">Checking…</strong>
+            </div>
+          </div>
 
-            <button
-              class="primary-button hero-action-button"
-              type="button"
-              data-action="open-wait-times"
-            >
-              View wait times
+          <div class="park-selector-panel" id="park-selector-panel" hidden>
+            <button type="button" data-home-park="Magic Kingdom">Magic Kingdom</button>
+            <button type="button" data-home-park="EPCOT">EPCOT</button>
+            <button type="button" data-home-park="Hollywood Studios">Hollywood Studios</button>
+            <button type="button" data-home-park="Animal Kingdom">Animal Kingdom</button>
+          </div>
+
+        </section>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Today in the park</p>
+              <h2>What’s next</h2>
+            </div>
+          </div>
+
+          <div class="schedule-card-list" id="schedule-card-list">
+            <article class="schedule-card">
+              <button class="schedule-card-toggle" type="button" aria-expanded="false">
+                <span class="schedule-card-icon">🎭</span>
+                <span class="schedule-card-copy">
+                  <span class="card-label">Stage show</span>
+                  <strong data-schedule-title>Loading schedule…</strong>
+                  <small data-schedule-next>Checking remaining times</small>
+                </span>
+                <span class="schedule-chevron">›</span>
+              </button>
+              <div class="schedule-card-details" hidden>
+                <p class="card-label">Remaining today</p>
+                <div data-schedule-times></div>
+              </div>
+            </article>
+
+            <article class="schedule-card">
+              <button class="schedule-card-toggle" type="button" aria-expanded="false">
+                <span class="schedule-card-icon">🎉</span>
+                <span class="schedule-card-copy">
+                  <span class="card-label">Parade</span>
+                  <strong data-schedule-title>Loading schedule…</strong>
+                  <small data-schedule-next>Checking remaining times</small>
+                </span>
+                <span class="schedule-chevron">›</span>
+              </button>
+              <div class="schedule-card-details" hidden>
+                <p class="card-label">Remaining today</p>
+                <div data-schedule-times></div>
+              </div>
+            </article>
+
+            <article class="schedule-card">
+              <button class="schedule-card-toggle" type="button" aria-expanded="false">
+                <span class="schedule-card-icon">🎆</span>
+                <span class="schedule-card-copy">
+                  <span class="card-label">Nighttime spectacular</span>
+                  <strong data-schedule-title>Loading schedule…</strong>
+                  <small data-schedule-next>Checking remaining times</small>
+                </span>
+                <span class="schedule-chevron">›</span>
+              </button>
+              <div class="schedule-card-details" hidden>
+                <p class="card-label">Remaining today</p>
+                <div data-schedule-times></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">At a glance</p>
+              <h2>Park information</h2>
+            </div>
+          </div>
+
+          <div class="home-info-grid">
+            <article class="home-info-card">
+              <div class="compact-card-icon">🌦️</div>
+              <div>
+                <p class="card-label">Weather</p>
+                <h3 id="weather-summary-title">Current forecast</h3>
+                <p class="secondary-detail" id="weather-summary-detail">Weather details will appear here.</p>
+              </div>
+            </article>
+
+            <article class="home-info-card">
+              <div class="compact-card-icon">🚝</div>
+              <div>
+                <p class="card-label">Transportation</p>
+                <h3 id="transportation-title">Park transportation</h3>
+                <p class="secondary-detail" id="transportation-detail">Available options will appear here.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">One tap</p>
+              <h2>Quick actions</h2>
+            </div>
+          </div>
+
+          <div class="quick-action-grid">
+            <button class="quick-action-card" type="button" data-action="open-wait-times">
+              <span>⏱️</span>
+              <strong>Wait Times</strong>
             </button>
-
+            <button class="quick-action-card" type="button" id="park-map-button">
+              <span>🗺️</span>
+              <strong>Park Map</strong>
+            </button>
           </div>
-
         </section>
 
         <section class="section-block">
-
           <div class="section-heading">
-
             <div>
-              <p class="eyebrow">
-                Your day
-              </p>
-
-              <h2>
-                Trip planning
-              </h2>
+              <p class="eyebrow">Your day</p>
+              <h2>Trip planning</h2>
             </div>
-
           </div>
 
-          <div class="card-grid">
-
-            <article class="info-card coming-soon-surface">
-
-              <div class="card-icon lightning-icon">
-                ⚡
-              </div>
-
-              <div class="card-content">
-
-                <div class="card-heading-row">
-
-                  <div>
-                    <p class="card-label">
-                      Planning feature
-                    </p>
-
-                    <h3>
-                      Lightning Lane
-                    </h3>
-                  </div>
-
-                  <span class="feature-state-badge coming-soon">
-                    Coming Soon
-                  </span>
-
+          <article class="info-card coming-soon-surface">
+            <div class="card-icon">📅</div>
+            <div class="card-content">
+              <div class="card-heading-row">
+                <div>
+                  <p class="card-label">Your Disney Day</p>
+                  <h3>Plans, reservations, and reminders</h3>
                 </div>
-
-                <p class="secondary-detail">
-                  Reservation details and return-window reminders.
-                </p>
-
+                <span class="feature-state-badge coming-soon">Coming Soon</span>
               </div>
-
-            </article>
-
-            <article class="info-card coming-soon-surface">
-
-              <div class="card-icon dining-icon">
-                🍽️
-              </div>
-
-              <div class="card-content">
-
-                <div class="card-heading-row">
-
-                  <div>
-                    <p class="card-label">
-                      Planning feature
-                    </p>
-
-                    <h3>
-                      Dining
-                    </h3>
-                  </div>
-
-                  <span class="feature-state-badge coming-soon">
-                    Coming Soon
-                  </span>
-
-                </div>
-
-                <p class="secondary-detail">
-                  Reservations, mobile ordering, and dining reminders.
-                </p>
-
-              </div>
-
-            </article>
-
-          </div>
-
+              <p class="secondary-detail">A complete daily timeline built around your park plans, dining, and Lightning Lane reservations.</p>
+            </div>
+          </article>
         </section>
 
         <section class="section-block">
-
           <div class="section-heading">
-
             <div>
-              <p class="eyebrow">
-                DisneyOS intelligence
-              </p>
-
-              <h2>
-                What to do next
-              </h2>
+              <p class="eyebrow">DisneyOS intelligence</p>
+              <h2>What to do next</h2>
             </div>
-
           </div>
 
           <article class="recommendation-card coming-soon-surface">
-
             <div class="recommendation-main">
-
-              <div class="recommendation-icon">
-                ✨
-              </div>
-
+              <div class="recommendation-icon">✨</div>
               <div>
                 <div class="card-heading-row">
                   <div>
-                    <p class="card-label">
-                      Recommendation engine
-                    </p>
-
-                    <h3>
-                      Personalized suggestions
-                    </h3>
+                    <p class="card-label">Smart recommendations</p>
+                    <h3>Personalized suggestions</h3>
                   </div>
-
-                  <span class="feature-state-badge coming-soon">
-                    Coming Soon
-                  </span>
+                  <span class="feature-state-badge coming-soon">Coming Soon</span>
                 </div>
-
-                <p class="secondary-detail">
-                  Suggestions based on wait times, location, plans, and preferences.
-                </p>
+                <p class="secondary-detail">Suggestions based on wait times, weather, location, schedules, plans, and preferences.</p>
               </div>
-
             </div>
-
           </article>
-
-        </section>
-
-        <section class="section-block">
-
-          <div class="section-heading">
-
-            <div>
-              <p class="eyebrow">
-                At a glance
-              </p>
-
-              <h2>
-                Park information
-              </h2>
-            </div>
-
-          </div>
-
-          <div class="compact-grid">
-
-            <article class="compact-card coming-soon-surface">
-
-              <div class="compact-card-icon">
-                🌦️
-              </div>
-
-              <div class="coming-soon-card-copy">
-                <p class="card-label">
-                  Weather
-                </p>
-
-                <h3>
-                  Park forecasts
-                </h3>
-              </div>
-
-              <span class="feature-state-badge coming-soon">
-                Coming Soon
-              </span>
-
-            </article>
-
-            <article class="compact-card coming-soon-surface">
-
-              <div class="compact-card-icon">
-                🚝
-              </div>
-
-              <div class="coming-soon-card-copy">
-                <p class="card-label">
-                  Transportation
-                </p>
-
-                <h3>
-                  Travel guidance
-                </h3>
-              </div>
-
-              <span class="feature-state-badge coming-soon">
-                Coming Soon
-              </span>
-
-            </article>
-
-            <article class="compact-card coming-soon-surface">
-
-              <div class="compact-card-icon">
-                📷
-              </div>
-
-              <div class="coming-soon-card-copy">
-                <p class="card-label">
-                  PhotoPass
-                </p>
-
-                <h3>
-                  Photo access
-                </h3>
-              </div>
-
-              <span class="feature-state-badge coming-soon">
-                Coming Soon
-              </span>
-
-            </article>
-
-            <article class="compact-card coming-soon-surface">
-
-              <div class="compact-card-icon">
-                🎭
-              </div>
-
-              <div class="coming-soon-card-copy">
-                <p class="card-label">
-                  Entertainment
-                </p>
-
-                <h3>
-                  Show schedules
-                </h3>
-              </div>
-
-              <span class="feature-state-badge coming-soon">
-                Coming Soon
-              </span>
-
-            </article>
-
-          </div>
-
         </section>
 
       </section>
@@ -411,10 +312,6 @@
                       Magic Kingdom
                     </h3>
                   </div>
-
-                  <span class="feature-state-badge live">
-                    Live
-                  </span>
                 </div>
 
                 <p class="secondary-detail">
@@ -449,10 +346,6 @@
                       EPCOT
                     </h3>
                   </div>
-
-                  <span class="feature-state-badge live">
-                    Live
-                  </span>
                 </div>
 
                 <p class="secondary-detail">
@@ -487,10 +380,6 @@
                       Hollywood Studios
                     </h3>
                   </div>
-
-                  <span class="feature-state-badge live">
-                    Live
-                  </span>
                 </div>
 
                 <p class="secondary-detail">
@@ -525,10 +414,6 @@
                       Animal Kingdom
                     </h3>
                   </div>
-
-                  <span class="feature-state-badge live">
-                    Live
-                  </span>
                 </div>
 
                 <p class="secondary-detail">
@@ -826,10 +711,6 @@
               <span>
                 <strong>DisneyOS version</strong>
                 <small>1.2.0 Preview</small>
-              </span>
-
-              <span class="feature-state-badge live">
-                Live
               </span>
             </div>
 
