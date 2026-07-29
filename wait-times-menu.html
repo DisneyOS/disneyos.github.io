@@ -45,6 +45,7 @@
 
       width: 44px;
       height: 44px;
+      padding: 0;
 
       border: 1px solid var(--border-strong);
       border-radius: 14px;
@@ -54,19 +55,27 @@
       color: var(--text-primary);
       font-size: 1.55rem;
       line-height: 1;
+      cursor: pointer;
     }
 
     .utility-page-main {
       width: min(100%, var(--content-width));
       margin: 0 auto;
-      padding: 0 var(--space-5) var(--space-8);
+      padding:
+        0
+        var(--space-5)
+        calc(var(--space-8) + env(safe-area-inset-bottom));
     }
 
-    .park-choice-link {
-      text-decoration: none;
+    .park-choice-button {
+      width: 100%;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
     }
 
-    .park-choice-link:active {
+    .park-choice-button:active {
       transform: scale(0.975);
     }
 
@@ -127,97 +136,65 @@
 
       <div class="menu-card-list">
 
-        <a
-          class="menu-card park-choice-link"
-          href="wait-times.html?park=magic-kingdom"
+        <button
+          class="menu-card park-choice-button"
+          type="button"
+          data-park="magic-kingdom"
         >
-          <span class="menu-card-icon">
-            🏰
-          </span>
+          <span class="menu-card-icon">🏰</span>
 
           <span>
-            <strong>
-              Magic Kingdom
-            </strong>
-
-            <small>
-              View live attraction waits
-            </small>
+            <strong>Magic Kingdom</strong>
+            <small>View live attraction waits</small>
           </span>
 
-          <span class="menu-card-arrow">
-            ›
-          </span>
-        </a>
+          <span class="menu-card-arrow">›</span>
+        </button>
 
-        <a
-          class="menu-card park-choice-link"
-          href="wait-times.html?park=epcot"
+        <button
+          class="menu-card park-choice-button"
+          type="button"
+          data-park="epcot"
         >
-          <span class="menu-card-icon">
-            🌐
-          </span>
+          <span class="menu-card-icon">🌐</span>
 
           <span>
-            <strong>
-              EPCOT
-            </strong>
-
-            <small>
-              View live attraction waits
-            </small>
+            <strong>EPCOT</strong>
+            <small>View live attraction waits</small>
           </span>
 
-          <span class="menu-card-arrow">
-            ›
-          </span>
-        </a>
+          <span class="menu-card-arrow">›</span>
+        </button>
 
-        <a
-          class="menu-card park-choice-link"
-          href="wait-times.html?park=hollywood-studios"
+        <button
+          class="menu-card park-choice-button"
+          type="button"
+          data-park="hollywood-studios"
         >
-          <span class="menu-card-icon">
-            🎬
-          </span>
+          <span class="menu-card-icon">🎬</span>
 
           <span>
-            <strong>
-              Hollywood Studios
-            </strong>
-
-            <small>
-              View live attraction waits
-            </small>
+            <strong>Hollywood Studios</strong>
+            <small>View live attraction waits</small>
           </span>
 
-          <span class="menu-card-arrow">
-            ›
-          </span>
-        </a>
+          <span class="menu-card-arrow">›</span>
+        </button>
 
-        <a
-          class="menu-card park-choice-link"
-          href="wait-times.html?park=animal-kingdom"
+        <button
+          class="menu-card park-choice-button"
+          type="button"
+          data-park="animal-kingdom"
         >
-          <span class="menu-card-icon">
-            🌳
-          </span>
+          <span class="menu-card-icon">🌳</span>
 
           <span>
-            <strong>
-              Animal Kingdom
-            </strong>
-
-            <small>
-              View live attraction waits
-            </small>
+            <strong>Animal Kingdom</strong>
+            <small>View live attraction waits</small>
           </span>
 
-          <span class="menu-card-arrow">
-            ›
-          </span>
-        </a>
+          <span class="menu-card-arrow">›</span>
+        </button>
 
       </div>
 
@@ -226,10 +203,24 @@
   </div>
 
   <script>
+    const disneyOSRoot = "https://disneyos.github.io/";
+
     document
       .getElementById("back-button")
       .addEventListener("click", () => {
-        window.location.href = "index.html";
+        window.location.assign(disneyOSRoot);
+      });
+
+    document
+      .querySelectorAll("[data-park]")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const park = button.dataset.park;
+
+          window.location.assign(
+            `${disneyOSRoot}wait-times.html?park=${encodeURIComponent(park)}`
+          );
+        });
       });
   </script>
 
