@@ -8,24 +8,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL =
     "https://disneyos-api.disneyosplanner.workers.dev";
 
-  const parkTitle = document.getElementById("park-title");
-  const parkSelect = document.getElementById("park-select");
-  const sortSelect = document.getElementById("sort-select");
-  const refreshButton = document.getElementById("refresh-button");
-  const closeButton = document.getElementById("close-button");
+  const parkTitle =
+    document.getElementById("park-title");
 
-  const statusMain = document.getElementById("status-main");
-  const statusDetail = document.getElementById("status-detail");
+  const parkSelect =
+    document.getElementById("park-select");
 
-  const summaryRow = document.getElementById("summary-row");
-  const openCount = document.getElementById("open-count");
-  const averageWait = document.getElementById("average-wait");
-  const longestWait = document.getElementById("longest-wait");
+  const refreshButton =
+    document.getElementById("refresh-button");
 
-  const waitList = document.getElementById("wait-list");
+  const updatedTime =
+    document.getElementById("updated-time");
 
-  const errorPanel = document.getElementById("error-panel");
-  const errorMessage = document.getElementById("error-message");
+  const waitList =
+    document.getElementById("wait-list");
+
+  const errorPanel =
+    document.getElementById("error-panel");
+
+  const errorMessage =
+    document.getElementById("error-message");
 
   const parkConfiguration = {
     "magic-kingdom": {
@@ -46,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   let currentParkKey = "magic-kingdom";
-  let currentAttractions = [];
 
   /**
    * Read the selected park from the page URL.
@@ -59,7 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.search
     );
 
-    const requestedPark = parameters.get("park");
+    const requestedPark =
+      parameters.get("park");
 
     if (
       requestedPark &&
@@ -72,14 +74,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Update the park parameter without reloading the page.
+   * Keep the selected park in the page URL.
    */
   function updateParkUrl(parkKey) {
-    const newUrl = new URL(window.location.href);
+    const newUrl =
+      new URL(window.location.href);
 
-    newUrl.searchParams.set("park", parkKey);
+    newUrl.searchParams.set(
+      "park",
+      parkKey
+    );
 
-    window.history.replaceState({}, "", newUrl);
+    window.history.replaceState(
+      {},
+      "",
+      newUrl
+    );
+  }
+
+  /**
+   * Format an ISO timestamp using the device's local time.
+   */
+  function formatUpdatedTime(timestamp) {
+    if (!timestamp) {
+      return "Time unavailable";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Time unavailable";
+    }
+
+    return new Intl.DateTimeFormat(
+      "en-US",
+      {
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    ).format(date);
   }
 
   /**
@@ -87,17 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function showLoadingState(parkName) {
     refreshButton.disabled = true;
-    refreshButton.textContent = "Loading…";
+    refreshButton.textContent = "…";
 
-    statusMain.textContent =
-      `Loading ${parkName} wait times…`;
+    parkTitle.textContent = parkName;
 
-    statusDetail.textContent =
-      "Retrieving the latest attraction information.";
+    if (updatedTime) {
+      updatedTime.textContent =
+        "Updating…";
+    }
 
     waitList.innerHTML = "";
 
-    summaryRow.classList.add("hidden");
     errorPanel.classList.add("hidden");
   }
 
@@ -106,46 +139,27 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function showError(message) {
     refreshButton.disabled = false;
-    refreshButton.textContent = "Try again";
+    refreshButton.textContent = "↻";
 
-    statusMain.textContent =
-      "Live data is temporarily unavailable.";
+    if (updatedTime) {
+      updatedTime.textContent =
+        "Update unavailable";
+    }
 
-    statusDetail.textContent =
-      "DisneyOS could not retrieve the current wait times.";
-
-    summaryRow.classList.add("hidden");
     waitList.innerHTML = "";
 
     errorMessage.textContent = message;
+
     errorPanel.classList.remove("hidden");
-  }
-
-  /**
-   * Format an ISO timestamp using the device's local time.
-   */
-  function formatUpdatedTime(timestamp) {
-    if (!timestamp) {
-      return "Update time unavailable";
-    }
-
-    const date = new Date(timestamp);
-
-    if (Number.isNaN(date.getTime())) {
-      return "Update time unavailable";
-    }
-
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "2-digit"
-    }).format(date);
   }
 
   /**
    * Create one attraction card.
    */
   function createAttractionCard(attraction) {
-    const article = document.createElement("article");
+    const article =
+      document.createElement("article");
+
     article.className = "ride-card";
 
     const attractionInformation =
@@ -155,30 +169,39 @@ document.addEventListener("DOMContentLoaded", () => {
       document.createElement("h2");
 
     attractionName.className = "ride-name";
-    attractionName.textContent = attraction.name;
+    attractionName.textContent =
+      attraction.name;
 
     const attractionLand =
       document.createElement("p");
 
     attractionLand.className = "ride-land";
 
-    attractionLand.textContent = attraction.isOpen
-      ? attraction.land
-      : `${attraction.land} · Currently closed`;
+    attractionLand.textContent =
+      attraction.isOpen
+        ? attraction.land
+        : `${attraction.land} · Currently closed`;
 
     attractionInformation.append(
       attractionName,
       attractionLand
     );
 
-    const waitDisplay = document.createElement("div");
+    const waitDisplay =
+      document.createElement("div");
+
     waitDisplay.className = "wait-display";
 
     if (attraction.isOpen) {
       const waitNumber =
         document.createElement("span");
 
+      /*
+       * Wait times remain neutral until DisneyOS
+       * has attraction-specific historical averages.
+       */
       waitNumber.className = "wait-number";
+
       waitNumber.textContent = String(
         attraction.waitMinutes
       );
@@ -193,12 +216,17 @@ document.addEventListener("DOMContentLoaded", () => {
           ? "minute"
           : "minutes";
 
-      waitDisplay.append(waitNumber, waitUnit);
+      waitDisplay.append(
+        waitNumber,
+        waitUnit
+      );
     } else {
       const closedLabel =
         document.createElement("span");
 
-      closedLabel.className = "closed-label";
+      closedLabel.className =
+        "closed-label";
+
       closedLabel.textContent = "Closed";
 
       waitDisplay.append(closedLabel);
@@ -213,41 +241,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Render the wait-time summary.
-   */
-  function renderSummary(summary) {
-    openCount.textContent = String(
-      summary.openAttractions ?? 0
-    );
-
-    averageWait.textContent =
-      `${summary.averageWaitMinutes ?? 0}m`;
-
-    longestWait.textContent =
-      `${summary.longestWaitMinutes ?? 0}m`;
-
-    summaryRow.classList.remove("hidden");
-  }
-
-  /**
    * Render the normalized DisneyOS API response.
    */
   function renderWaitTimes(data) {
-    currentAttractions = Array.isArray(
-      data.attractions
-    )
-      ? data.attractions
-      : [];
+    const attractions =
+      Array.isArray(data.attractions)
+        ? data.attractions
+        : [];
 
     waitList.innerHTML = "";
 
-    currentAttractions.forEach((attraction) => {
+    attractions.forEach((attraction) => {
       waitList.appendChild(
         createAttractionCard(attraction)
       );
     });
-
-    renderSummary(data.summary || {});
 
     const selectedPark =
       parkConfiguration[currentParkKey];
@@ -256,16 +264,15 @@ document.addEventListener("DOMContentLoaded", () => {
       data.park?.name ||
       selectedPark.name;
 
-    statusMain.textContent =
-      `${data.summary?.openAttractions ?? 0} attractions currently open`;
-
-    statusDetail.textContent =
-      `Latest reported update: ${
-        formatUpdatedTime(data.updated)
-      }`;
+    if (updatedTime) {
+      updatedTime.textContent =
+        `Updated ${formatUpdatedTime(
+          data.updated
+        )}`;
+    }
 
     refreshButton.disabled = false;
-    refreshButton.textContent = "Refresh";
+    refreshButton.textContent = "↻";
 
     errorPanel.classList.add("hidden");
   }
@@ -287,8 +294,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     currentParkKey = parkKey;
 
-    parkSelect.value = parkKey;
-    parkTitle.textContent = selectedPark.name;
+    if (parkSelect) {
+      parkSelect.value = parkKey;
+    }
 
     updateParkUrl(parkKey);
     showLoadingState(selectedPark.name);
@@ -298,17 +306,24 @@ document.addEventListener("DOMContentLoaded", () => {
       `?park=${encodeURIComponent(parkKey)}`;
 
     try {
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          Accept: "application/json"
-        },
-        cache: "no-store"
-      });
+      const response = await fetch(
+        endpoint,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json"
+          },
+          cache: "no-store"
+        }
+      );
 
-      const responseData = await response.json();
+      const responseData =
+        await response.json();
 
-      if (!response.ok || !responseData.success) {
+      if (
+        !response.ok ||
+        !responseData.success
+      ) {
         const apiMessage =
           responseData?.error?.message;
 
@@ -329,7 +344,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      renderWaitTimes(responseData.data);
+      renderWaitTimes(
+        responseData.data
+      );
     } catch (error) {
       console.error(
         "DisneyOS wait-time request failed:",
@@ -338,44 +355,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showError(
         error.message ||
-        "Check your internet connection, then tap Try Again."
+        "Check your internet connection and try again."
       );
     }
   }
 
-  /**
-   * Attempt to dismiss the page.
-   */
-  function closeWaitTimes() {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    window.close();
+  if (parkSelect) {
+    parkSelect.addEventListener(
+      "change",
+      () => {
+        loadWaitTimes(
+          parkSelect.value
+        );
+      }
+    );
   }
 
-  parkSelect.addEventListener("change", () => {
-    loadWaitTimes(parkSelect.value);
-  });
-
-  sortSelect.addEventListener("change", () => {
-    /*
-     * Sorting is now performed by the DisneyOS API.
-     * This temporary control will be removed next.
-     */
-  });
-
-  refreshButton.addEventListener("click", () => {
-    loadWaitTimes(currentParkKey);
-  });
-
-  closeButton.addEventListener(
+  refreshButton.addEventListener(
     "click",
-    closeWaitTimes
+    () => {
+      loadWaitTimes(
+        currentParkKey
+      );
+    }
   );
 
-  currentParkKey = getParkFromUrl();
+  currentParkKey =
+    getParkFromUrl();
 
   loadWaitTimes(currentParkKey);
 });
