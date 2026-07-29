@@ -10,74 +10,41 @@
 
   <meta
     name="description"
-    content="Live Walt Disney World attraction wait times."
+    content="Choose a Walt Disney World park to view live wait times."
   >
 
   <meta name="theme-color" content="#07111f">
 
-  <title>DisneyOS Wait Times</title>
+  <title>Wait Times | DisneyOS</title>
 
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/styles.css">
 
+  <link
+    rel="icon"
+    type="image/png"
+    href="assets/icons/icon-192.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/icons/icon-192.png"
+  >
+
   <style>
-    :root {
-      color-scheme: dark;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(56, 128, 255, 0.16),
-          transparent 32rem
-        ),
-        #07111f;
-      color: #f6f8fc;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-    }
-
-    button {
-      font: inherit;
-    }
-
-    .wait-times-shell {
-      width: min(100%, 760px);
-      margin: 0 auto;
-      padding:
-        max(20px, env(safe-area-inset-top))
-        16px
-        calc(
-          var(--navigation-height) +
-          env(safe-area-inset-bottom) +
-          42px
-        );
-    }
-
-    .wait-times-header {
+    .utility-page-header {
       display: flex;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 8px;
+      gap: var(--space-4);
     }
 
-    .back-button {
+    .utility-back-button {
       display: grid;
       flex: 0 0 auto;
       place-items: center;
 
       width: 44px;
       height: 44px;
-      padding: 0;
 
       border: 1px solid var(--border-strong);
       border-radius: 14px;
@@ -87,326 +54,182 @@
       color: var(--text-primary);
       font-size: 1.55rem;
       line-height: 1;
-      cursor: pointer;
     }
 
-    .wait-times-title {
-      margin: 0;
-      font-size: clamp(1.8rem, 8vw, 2.6rem);
-      line-height: 1.05;
+    .utility-page-main {
+      width: min(100%, var(--content-width));
+      margin: 0 auto;
+      padding: 0 var(--space-5) var(--space-8);
     }
 
-    .refresh-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 4px 0 18px;
-    }
-
-    .updated-time {
-      color: #9eb1ca;
-      font-size: 0.9rem;
-    }
-
-    .refresh-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: transparent;
-      color: #ffffff;
-      font-size: 1.5rem;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .refresh-icon:disabled {
-      cursor: wait;
-      opacity: 0.55;
-    }
-
-    .wait-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .ride-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 14px;
-      padding: 15px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 17px;
-      background: rgba(17, 31, 51, 0.93);
-    }
-
-    .ride-name {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.3;
-    }
-
-    .ride-land {
-      margin: 5px 0 0;
-      color: #9eb1ca;
-      font-size: 0.78rem;
-    }
-
-    .wait-display {
-      min-width: 68px;
-      text-align: right;
-    }
-
-    .wait-number {
-      display: block;
-      color: #f6f8fc;
-      font-size: 1.55rem;
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .wait-unit {
-      display: block;
-      margin-top: 4px;
-      color: #9eb1ca;
-      font-size: 0.72rem;
-    }
-
-    .closed-label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 32px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      color: #b8c6d9;
-      font-size: 0.75rem;
-      font-weight: 800;
-    }
-
-    .error-panel {
-      padding: 18px;
-      border: 1px solid rgba(255, 107, 107, 0.32);
-      border-radius: 17px;
-      background: rgba(255, 107, 107, 0.08);
-    }
-
-    .error-panel strong {
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .error-panel p {
-      margin: 0;
-      color: #d9e1ec;
-      font-size: 0.9rem;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .source-note {
-      margin: 20px 4px 0;
-      color: #7589a3;
-      font-size: 0.7rem;
-      line-height: 1.5;
-      text-align: center;
-    }
-
-    .standalone-nav-button {
+    .park-choice-link {
       text-decoration: none;
+    }
+
+    .park-choice-link:active {
+      transform: scale(0.975);
+    }
+
+    @media (min-width: 560px) {
+      .utility-page-main {
+        padding-right: var(--space-7);
+        padding-left: var(--space-7);
+      }
+    }
+
+    @media (max-width: 370px) {
+      .utility-page-main {
+        padding-right: var(--space-4);
+        padding-left: var(--space-4);
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <main class="wait-times-shell">
+  <div class="app-shell">
 
-    <header class="wait-times-header">
+    <header class="app-header">
 
-      <button
-        class="back-button"
-        id="back-button"
-        type="button"
-        aria-label="Return to park selection"
-        title="Return to park selection"
-      >
-        ‹
-      </button>
+      <div class="header-content utility-page-header">
 
-      <h1
-        class="wait-times-title"
-        id="park-title"
-      >
-        Wait Times
-      </h1>
+        <button
+          class="utility-back-button"
+          type="button"
+          id="back-button"
+          aria-label="Return to DisneyOS Shortcuts"
+        >
+          ‹
+        </button>
+
+        <div>
+          <p class="eyebrow">
+            DisneyOS Shortcuts
+          </p>
+
+          <h1>
+            Wait Times
+          </h1>
+        </div>
+
+      </div>
 
     </header>
 
-    <section
-      class="refresh-bar"
-      aria-label="Wait-time controls"
-    >
-      <span
-        class="updated-time"
-        id="updated-time"
-        aria-live="polite"
-      >
-        Updating…
-      </span>
+    <main class="utility-page-main">
 
-      <button
-        class="refresh-icon"
-        id="refresh-button"
-        type="button"
-        aria-label="Refresh wait times"
-        title="Refresh wait times"
-      >
-        ↻
-      </button>
-    </section>
+      <div class="page-title-block">
+        <p>
+          Choose a park to view current attraction wait times.
+        </p>
+      </div>
 
-    <select
-      class="hidden"
-      id="park-select"
-      tabindex="-1"
-      aria-hidden="true"
-    >
-      <option value="magic-kingdom">
-        Magic Kingdom
-      </option>
+      <div class="menu-card-list">
 
-      <option value="epcot">
-        EPCOT
-      </option>
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=magic-kingdom"
+        >
+          <span class="menu-card-icon">
+            🏰
+          </span>
 
-      <option value="hollywood-studios">
-        Hollywood Studios
-      </option>
+          <span>
+            <strong>
+              Magic Kingdom
+            </strong>
 
-      <option value="animal-kingdom">
-        Animal Kingdom
-      </option>
-    </select>
+            <small>
+              View live attraction waits
+            </small>
+          </span>
 
-    <section
-      class="wait-list"
-      id="wait-list"
-      aria-live="polite"
-      aria-label="Attraction wait times"
-    >
-    </section>
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
 
-    <section
-      class="error-panel hidden"
-      id="error-panel"
-      role="alert"
-    >
-      <strong>
-        Wait times could not be loaded.
-      </strong>
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=epcot"
+        >
+          <span class="menu-card-icon">
+            🌐
+          </span>
 
-      <p id="error-message">
-        Check your connection and try again.
-      </p>
-    </section>
+          <span>
+            <strong>
+              EPCOT
+            </strong>
 
-    <p class="source-note">
-      Wait-time data supplied by Queue-Times.
-      DisneyOS is not affiliated with or endorsed by Disney.
-    </p>
+            <small>
+              View live attraction waits
+            </small>
+          </span>
 
-  </main>
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
 
-  <nav
-    class="bottom-navigation"
-    aria-label="Primary navigation"
-  >
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=hollywood-studios"
+        >
+          <span class="menu-card-icon">
+            🎬
+          </span>
 
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="home"
-    >
-      <span class="nav-icon">⌂</span>
-      <span class="nav-label">Home</span>
-    </a>
+          <span>
+            <strong>
+              Hollywood Studios
+            </strong>
 
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="parks"
-    >
-      <span class="nav-icon">🏰</span>
-      <span class="nav-label">Parks</span>
-    </a>
+            <small>
+              View live attraction waits
+            </small>
+          </span>
 
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="trip"
-    >
-      <span class="nav-icon">🧳</span>
-      <span class="nav-label">My Trip</span>
-    </a>
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
 
-    <a
-      class="nav-button standalone-nav-button active"
-      href="index.html"
-      data-page-target="shortcuts"
-      aria-current="page"
-    >
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Shortcuts</span>
-    </a>
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=animal-kingdom"
+        >
+          <span class="menu-card-icon">
+            🌳
+          </span>
 
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="settings"
-    >
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Settings</span>
-    </a>
+          <span>
+            <strong>
+              Animal Kingdom
+            </strong>
 
-  </nav>
+            <small>
+              View live attraction waits
+            </small>
+          </span>
 
-  <script src="js/wait-times.js?v=4"></script>
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
+
+      </div>
+
+    </main>
+
+  </div>
 
   <script>
-    const activePageStorageKey = "disneyos-active-page";
-
     document
       .getElementById("back-button")
       .addEventListener("click", () => {
-        window.location.href = "wait-times-menu.html";
-      });
-
-    document
-      .querySelectorAll("[data-page-target]")
-      .forEach((link) => {
-        link.addEventListener("click", () => {
-          try {
-            window.localStorage.setItem(
-              activePageStorageKey,
-              link.dataset.pageTarget
-            );
-          } catch (error) {
-            console.warn(
-              "DisneyOS could not save the requested page.",
-              error
-            );
-          }
-        });
+        window.location.href = "index.html";
       });
   </script>
 
