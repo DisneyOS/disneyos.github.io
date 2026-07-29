@@ -54,13 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const parkMaps = {
     "Magic Kingdom":
-      "https://disneyworld.disney.go.com/maps/magic-kingdom/",
+      "https://disneyworld.disney.go.com/destinations/map/",
     EPCOT:
-      "https://disneyworld.disney.go.com/maps/epcot/",
+      "https://disneyworld.disney.go.com/destinations/map/",
     "Hollywood Studios":
-      "https://disneyworld.disney.go.com/maps/hollywood-studios/",
+      "https://disneyworld.disney.go.com/destinations/map/",
     "Animal Kingdom":
-      "https://disneyworld.disney.go.com/maps/animal-kingdom/"
+      "https://disneyworld.disney.go.com/destinations/map/"
   };
 
   const entertainmentMeta = {
@@ -320,32 +320,54 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchParkDay(slug) {
-    const response = await fetch(
-      `${API_BASE}/park-day?park=${encodeURIComponent(
-        slug
-      )}`,
-      {
-        headers: {
-          Accept: "application/json"
+    const endpoint =
+      `${API_BASE}/park-day?park=${encodeURIComponent(slug)}`;
+
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      try {
+        const separator =
+          endpoint.includes("?") ? "&" : "?";
+
+        const response = await fetch(
+          `${endpoint}${separator}refresh=${Date.now()}`,
+          {
+            cache: "no-store",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Park-day request failed: ${response.status}`
+          );
+        }
+
+        const payload = await response.json();
+
+        if (!payload?.success || !payload?.data) {
+          throw new Error(
+            "Park-day response did not contain data."
+          );
+        }
+
+        return payload.data;
+      } catch (error) {
+        lastError = error;
+
+        if (attempt < 2) {
+          await new Promise((resolve) =>
+            window.setTimeout(resolve, 650)
+          );
         }
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Park-day request failed: ${response.status}`
-      );
     }
 
-    const payload = await response.json();
-
-    if (!payload?.success || !payload?.data) {
-      throw new Error(
-        "Park-day response did not contain data."
-      );
-    }
-
-    return payload.data;
+    throw lastError ||
+      new Error("Park-day data is unavailable.");
   }
 
   async function fetchWeather() {
@@ -1239,11 +1261,11 @@ document.addEventListener("DOMContentLoaded", () => {
   parkMapButton?.addEventListener(
     "click",
     () => {
-      window.open(
-        parkMaps[getActivePark()],
-        "_blank",
-        "noopener,noreferrer"
-      );
+      const mapUrl =
+        parkMaps[getActivePark()] ||
+        "https://disneyworld.disney.go.com/destinations/map/";
+
+      window.location.href = mapUrl;
     }
   );
 
