@@ -1020,6 +1020,82 @@ p {
   line-height: 1.2;
 }
 
+.shortcut-card-live {
+  cursor: pointer;
+}
+
+.shortcut-card-coming-soon {
+  position: relative;
+  overflow: hidden;
+
+  cursor: default;
+}
+
+.shortcut-card-coming-soon > * {
+  filter: saturate(0.35);
+  opacity: 0.74;
+}
+
+.shortcut-card-coming-soon::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background: rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+
+  content: "";
+}
+
+.shortcut-card-coming-soon::after {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+
+  min-width: max-content;
+  padding: 7px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-pill);
+
+  background: rgba(8, 18, 31, 0.78);
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  color: rgba(255, 255, 255, 0.94);
+
+  content: "COMING SOON";
+
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+  line-height: 1;
+  text-transform: uppercase;
+
+  transform: translate(-50%, -50%);
+}
+
+.shortcut-card-coming-soon:hover {
+  border-color: var(--border);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 44, 67, 0.93),
+      rgba(13, 25, 41, 0.95)
+    );
+}
+
+.shortcut-card-coming-soon:active {
+  transform: none;
+}
+
 
 /* ---------------------------------------------------------
    Settings
