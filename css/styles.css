@@ -1354,3 +1354,183 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------
+   Feature state system
+   --------------------------------------------------------- */
+
+.feature-state-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 26px;
+  padding: 5px 9px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.feature-state-badge.live {
+  border-color: rgba(81, 168, 255, 0.28);
+  background: rgba(65, 148, 255, 0.16);
+  color: #8ec7ff;
+}
+
+.feature-state-badge.coming-soon {
+  border-color: rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.075);
+  color: rgba(234, 240, 249, 0.72);
+}
+
+.coming-soon-surface {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coming-soon-surface .card-icon,
+.coming-soon-surface .compact-card-icon,
+.coming-soon-surface .recommendation-icon {
+  filter: saturate(0.5);
+  opacity: 0.82;
+}
+
+.hero-live-content {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-live-content > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-live-content strong {
+  font-size: 1rem;
+}
+
+.hero-action-button {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.coming-soon-card-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.compact-card > .feature-state-badge {
+  margin-left: auto;
+}
+
+.park-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.park-live-button {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 15px;
+
+  border: 1px solid rgba(134, 195, 255, 0.3);
+  border-radius: 14px;
+
+  background: rgba(37, 116, 211, 0.88);
+  box-shadow: 0 8px 24px rgba(8, 34, 70, 0.28);
+
+  color: #ffffff;
+  font-weight: 760;
+}
+
+.park-live-button:active {
+  transform: scale(0.98);
+}
+
+.menu-card-coming-soon,
+.settings-row-coming-soon {
+  cursor: default;
+}
+
+.menu-card-coming-soon {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.menu-card-coming-soon:hover {
+  border-color: var(--border);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 44, 67, 0.93),
+      rgba(13, 25, 41, 0.95)
+    );
+}
+
+.menu-card-coming-soon:active,
+.settings-row-coming-soon:active {
+  transform: none;
+}
+
+.menu-card-coming-soon .menu-card-icon,
+.settings-row-coming-soon > span:first-child {
+  filter: saturate(0.6);
+  opacity: 0.82;
+}
+
+.settings-row-coming-soon > .feature-state-badge,
+.static-row > .feature-state-badge {
+  color: inherit;
+  font-size: 0.66rem;
+}
+
+@media (max-width: 430px) {
+  .hero-live-content {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-action-button {
+    width: 100%;
+  }
+
+  .compact-card {
+    align-items: flex-start;
+  }
+
+  .compact-card > .feature-state-badge {
+    margin-top: 2px;
+  }
+
+  .menu-card-coming-soon {
+    gap: var(--space-3);
+  }
+
+  .menu-card-coming-soon .feature-state-badge {
+    max-width: 78px;
+    white-space: normal;
+    text-align: center;
+  }
+}
