@@ -2017,3 +2017,23 @@ p {
     gap: 2px;
   }
 }
+
+
+/* =========================================================
+   DisneyOS v1.4.1 targeted fixes
+   ========================================================= */
+
+/* Remove the decorative hero circles that could overlap
+   the temperature and park-status values on small screens. */
+.home-hero-card::before,
+.home-hero-card::after {
+  display: none;
+}
+
+/* Keep every hero value visually above the card background. */
+.home-hero-card .hero-card-top,
+.home-hero-card .hero-status-grid,
+.home-hero-card .special-hours-strip {
+  position: relative;
+  z-index: 2;
+}
