@@ -46,8 +46,7 @@
         sans-serif;
     }
 
-    button,
-    select {
+    button {
       font: inherit;
     }
 
@@ -95,55 +94,37 @@
       cursor: pointer;
     }
 
-    .controls-card {
-      display: grid;
+    .refresh-panel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 14px;
-      margin-bottom: 18px;
-      padding: 16px;
+      margin-bottom: 14px;
+      padding: 14px 16px;
       border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 20px;
+      border-radius: 18px;
       background: rgba(17, 31, 51, 0.92);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
     }
 
-    .control-group {
-      display: grid;
-      gap: 7px;
+    .refresh-copy {
+      min-width: 0;
     }
 
-    .control-label {
-      color: #b8c6d9;
-      font-size: 0.82rem;
-      font-weight: 700;
+    .refresh-label {
+      margin: 0;
+      font-weight: 800;
     }
 
-    .park-select {
-      width: 100%;
-      min-height: 48px;
-      padding: 0 14px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 14px;
-      background: #0d1b2d;
-      color: #ffffff;
-    }
-
-    .controls-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-
-    .sort-select {
-      width: 100%;
-      min-height: 46px;
-      padding: 0 12px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 13px;
-      background: #0d1b2d;
-      color: #ffffff;
+    .refresh-description {
+      margin: 4px 0 0;
+      color: #9eb1ca;
+      font-size: 0.78rem;
+      line-height: 1.4;
     }
 
     .refresh-button {
+      flex: 0 0 auto;
       min-width: 108px;
       min-height: 46px;
       padding: 10px 16px;
@@ -300,8 +281,9 @@
     }
 
     @media (max-width: 430px) {
-      .controls-row {
-        grid-template-columns: 1fr;
+      .refresh-panel {
+        align-items: stretch;
+        flex-direction: column;
       }
 
       .refresh-button {
@@ -341,73 +323,68 @@
     </header>
 
     <section
-      class="controls-card"
+      class="refresh-panel"
       aria-label="Wait-time controls"
     >
 
-      <label class="control-group">
-        <span class="control-label">
-          Park
-        </span>
+      <div class="refresh-copy">
+        <p class="refresh-label">
+          Live attraction waits
+        </p>
 
-        <select
-          class="park-select"
-          id="park-select"
-        >
-          <option value="magic-kingdom">
-            Magic Kingdom
-          </option>
-
-          <option value="epcot">
-            EPCOT
-          </option>
-
-          <option value="hollywood-studios">
-            Hollywood Studios
-          </option>
-
-          <option value="animal-kingdom">
-            Animal Kingdom
-          </option>
-        </select>
-      </label>
-
-      <div class="controls-row">
-
-        <label class="control-group">
-          <span class="control-label">
-            Sort
-          </span>
-
-          <select
-            class="sort-select"
-            id="sort-select"
-          >
-            <option value="high-low">
-              Longest to shortest
-            </option>
-
-            <option value="low-high">
-              Shortest to longest
-            </option>
-
-            <option value="alphabetical">
-              Attraction name
-            </option>
-          </select>
-        </label>
-
-        <button
-          class="refresh-button"
-          id="refresh-button"
-          type="button"
-        >
-          Refresh
-        </button>
-
+        <p class="refresh-description">
+          Longest waits appear first. Closed attractions appear at the bottom.
+        </p>
       </div>
 
+      <button
+        class="refresh-button"
+        id="refresh-button"
+        type="button"
+      >
+        Refresh
+      </button>
+
     </section>
+
+    <!--
+      These controls are retained temporarily for compatibility
+      with the current JavaScript but are not visible to users.
+    -->
+
+    <select
+      class="hidden"
+      id="park-select"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <option value="magic-kingdom">
+        Magic Kingdom
+      </option>
+
+      <option value="epcot">
+        EPCOT
+      </option>
+
+      <option value="hollywood-studios">
+        Hollywood Studios
+      </option>
+
+      <option value="animal-kingdom">
+        Animal Kingdom
+      </option>
+    </select>
+
+    <select
+      class="hidden"
+      id="sort-select"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <option value="high-low">
+        Longest to shortest
+      </option>
+    </select>
 
     <section
       class="status-panel"
@@ -424,7 +401,7 @@
         class="status-detail"
         id="status-detail"
       >
-        Connecting to the live data source.
+        Connecting to the DisneyOS API.
       </p>
     </section>
 
@@ -446,7 +423,7 @@
 
       <article class="summary-card">
         <strong id="average-wait">
-          0
+          0m
         </strong>
 
         <span>
@@ -456,7 +433,7 @@
 
       <article class="summary-card">
         <strong id="longest-wait">
-          0
+          0m
         </strong>
 
         <span>
@@ -495,7 +472,7 @@
 
   </main>
 
-  <script src="js/wait-times.js"></script>
+  <script src="js/wait-times.js?v=3"></script>
 
 </body>
 </html>
