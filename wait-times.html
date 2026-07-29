@@ -56,11 +56,7 @@
       padding:
         max(20px, env(safe-area-inset-top))
         16px
-        calc(
-          var(--navigation-height) +
-          env(safe-area-inset-bottom) +
-          42px
-        );
+        calc(30px + env(safe-area-inset-bottom));
     }
 
     .wait-times-header {
@@ -220,10 +216,6 @@
       line-height: 1.5;
       text-align: center;
     }
-
-    .standalone-nav-button {
-      text-decoration: none;
-    }
   </style>
 </head>
 
@@ -281,21 +273,10 @@
       tabindex="-1"
       aria-hidden="true"
     >
-      <option value="magic-kingdom">
-        Magic Kingdom
-      </option>
-
-      <option value="epcot">
-        EPCOT
-      </option>
-
-      <option value="hollywood-studios">
-        Hollywood Studios
-      </option>
-
-      <option value="animal-kingdom">
-        Animal Kingdom
-      </option>
+      <option value="magic-kingdom">Magic Kingdom</option>
+      <option value="epcot">EPCOT</option>
+      <option value="hollywood-studios">Hollywood Studios</option>
+      <option value="animal-kingdom">Animal Kingdom</option>
     </select>
 
     <section
@@ -327,86 +308,15 @@
 
   </main>
 
-  <nav
-    class="bottom-navigation"
-    aria-label="Primary navigation"
-  >
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="home"
-    >
-      <span class="nav-icon">⌂</span>
-      <span class="nav-label">Home</span>
-    </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="parks"
-    >
-      <span class="nav-icon">🏰</span>
-      <span class="nav-label">Parks</span>
-    </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="trip"
-    >
-      <span class="nav-icon">🧳</span>
-      <span class="nav-label">My Trip</span>
-    </a>
-
-    <a
-      class="nav-button standalone-nav-button active"
-      href="index.html"
-      data-page-target="shortcuts"
-      aria-current="page"
-    >
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Shortcuts</span>
-    </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="settings"
-    >
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Settings</span>
-    </a>
-
-  </nav>
-
-  <script src="js/wait-times.js?v=4"></script>
+  <script src="js/wait-times.js?v=5"></script>
 
   <script>
-    const activePageStorageKey = "disneyos-active-page";
-
     document
       .getElementById("back-button")
       .addEventListener("click", () => {
-        window.location.href = "wait-times-menu.html";
-      });
-
-    document
-      .querySelectorAll("[data-page-target]")
-      .forEach((link) => {
-        link.addEventListener("click", () => {
-          try {
-            window.localStorage.setItem(
-              activePageStorageKey,
-              link.dataset.pageTarget
-            );
-          } catch (error) {
-            console.warn(
-              "DisneyOS could not save the requested page.",
-              error
-            );
-          }
-        });
+        window.location.assign(
+          "https://disneyos.github.io/wait-times-menu.html"
+        );
       });
   </script>
 
