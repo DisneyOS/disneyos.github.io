@@ -60,20 +60,7 @@
     }
 
     .wait-times-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .wait-times-eyebrow {
-      margin: 0 0 4px;
-      color: #9eb1ca;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
+      margin-bottom: 8px;
     }
 
     .wait-times-title {
@@ -82,112 +69,38 @@
       line-height: 1.05;
     }
 
-    .close-button {
-      flex: 0 0 auto;
-      min-width: 64px;
-      min-height: 44px;
-      padding: 10px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.07);
-      color: #ffffff;
-      cursor: pointer;
-    }
-
-    .refresh-panel {
+    .refresh-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 14px;
-      padding: 14px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 18px;
-      background: rgba(17, 31, 51, 0.92);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+      gap: 16px;
+      margin: 4px 0 18px;
     }
 
-    .refresh-copy {
-      min-width: 0;
-    }
-
-    .refresh-label {
-      margin: 0;
-      font-weight: 800;
-    }
-
-    .refresh-description {
-      margin: 4px 0 0;
+    .updated-time {
       color: #9eb1ca;
-      font-size: 0.78rem;
-      line-height: 1.4;
+      font-size: 0.9rem;
     }
 
-    .refresh-button {
-      flex: 0 0 auto;
-      min-width: 108px;
-      min-height: 46px;
-      padding: 10px 16px;
+    .refresh-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
       border: 0;
-      border-radius: 13px;
-      background: #3d8cff;
+      border-radius: 50%;
+      background: transparent;
       color: #ffffff;
-      font-weight: 800;
+      font-size: 1.5rem;
+      line-height: 1;
       cursor: pointer;
     }
 
-    .refresh-button:disabled {
+    .refresh-icon:disabled {
       cursor: wait;
-      opacity: 0.65;
-    }
-
-    .status-panel {
-      margin-bottom: 14px;
-      padding: 14px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .status-panel p {
-      margin: 0;
-    }
-
-    .status-main {
-      font-weight: 800;
-    }
-
-    .status-detail {
-      margin-top: 5px !important;
-      color: #9eb1ca;
-      font-size: 0.82rem;
-    }
-
-    .summary-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .summary-card {
-      padding: 13px 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.055);
-      text-align: center;
-    }
-
-    .summary-card strong {
-      display: block;
-      font-size: 1.35rem;
-    }
-
-    .summary-card span {
-      display: block;
-      margin-top: 3px;
-      color: #9eb1ca;
-      font-size: 0.72rem;
+      opacity: 0.55;
     }
 
     .wait-list {
@@ -225,6 +138,7 @@
 
     .wait-number {
       display: block;
+      color: #f6f8fc;
       font-size: 1.55rem;
       font-weight: 900;
       line-height: 1;
@@ -279,17 +193,6 @@
       line-height: 1.5;
       text-align: center;
     }
-
-    @media (max-width: 430px) {
-      .refresh-panel {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      .refresh-button {
-        width: 100%;
-      }
-    }
   </style>
 </head>
 
@@ -298,59 +201,36 @@
   <main class="wait-times-shell">
 
     <header class="wait-times-header">
-
-      <div>
-        <p class="wait-times-eyebrow">
-          DisneyOS Live
-        </p>
-
-        <h1
-          class="wait-times-title"
-          id="park-title"
-        >
-          Wait Times
-        </h1>
-      </div>
-
-      <button
-        class="close-button"
-        id="close-button"
-        type="button"
+      <h1
+        class="wait-times-title"
+        id="park-title"
       >
-        Done
-      </button>
-
+        Wait Times
+      </h1>
     </header>
 
     <section
-      class="refresh-panel"
+      class="refresh-bar"
       aria-label="Wait-time controls"
     >
-
-      <div class="refresh-copy">
-        <p class="refresh-label">
-          Live attraction waits
-        </p>
-
-        <p class="refresh-description">
-          Longest waits appear first. Closed attractions appear at the bottom.
-        </p>
-      </div>
+      <span
+        class="updated-time"
+        id="updated-time"
+        aria-live="polite"
+      >
+        Updating…
+      </span>
 
       <button
-        class="refresh-button"
+        class="refresh-icon"
         id="refresh-button"
         type="button"
+        aria-label="Refresh wait times"
+        title="Refresh wait times"
       >
-        Refresh
+        ↻
       </button>
-
     </section>
-
-    <!--
-      These controls are retained temporarily for compatibility
-      with the current JavaScript but are not visible to users.
-    -->
 
     <select
       class="hidden"
@@ -374,74 +254,6 @@
         Animal Kingdom
       </option>
     </select>
-
-    <select
-      class="hidden"
-      id="sort-select"
-      tabindex="-1"
-      aria-hidden="true"
-    >
-      <option value="high-low">
-        Longest to shortest
-      </option>
-    </select>
-
-    <section
-      class="status-panel"
-      aria-live="polite"
-    >
-      <p
-        class="status-main"
-        id="status-main"
-      >
-        Preparing wait times…
-      </p>
-
-      <p
-        class="status-detail"
-        id="status-detail"
-      >
-        Connecting to the DisneyOS API.
-      </p>
-    </section>
-
-    <section
-      class="summary-row hidden"
-      id="summary-row"
-      aria-label="Park wait-time summary"
-    >
-
-      <article class="summary-card">
-        <strong id="open-count">
-          0
-        </strong>
-
-        <span>
-          Open
-        </span>
-      </article>
-
-      <article class="summary-card">
-        <strong id="average-wait">
-          0m
-        </strong>
-
-        <span>
-          Average wait
-        </span>
-      </article>
-
-      <article class="summary-card">
-        <strong id="longest-wait">
-          0m
-        </strong>
-
-        <span>
-          Longest wait
-        </span>
-      </article>
-
-    </section>
 
     <section
       class="wait-list"
@@ -472,7 +284,7 @@
 
   </main>
 
-  <script src="js/wait-times.js?v=3"></script>
+  <script src="js/wait-times.js?v=4"></script>
 
 </body>
 </html>
