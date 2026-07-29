@@ -46,7 +46,7 @@
           </p>
 
           <h1 id="greeting">
-            Good morning, Kyle
+            Good morning
           </h1>
         </div>
 
@@ -55,7 +55,9 @@
           type="button"
           aria-label="Open profile"
         >
-          K
+          <span id="profile-initial">
+            D
+          </span>
         </button>
 
       </div>
@@ -81,7 +83,7 @@
                 Today at
               </p>
 
-              <h2>
+              <h2 id="current-park">
                 Magic Kingdom
               </h2>
             </div>
@@ -900,14 +902,18 @@
 
           <div class="settings-card">
 
-            <button class="settings-row" type="button">
+            <button
+              class="settings-row"
+              type="button"
+              id="edit-name-button"
+            >
               <span>
                 <strong>
                   Name
                 </strong>
 
-                <small>
-                  Kyle
+                <small id="settings-name">
+                  Not set
                 </small>
               </span>
 
@@ -916,13 +922,17 @@
               </span>
             </button>
 
-            <button class="settings-row" type="button">
+            <button
+              class="settings-row"
+              type="button"
+              id="edit-park-button"
+            >
               <span>
                 <strong>
                   Preferred park
                 </strong>
 
-                <small>
+                <small id="settings-park">
                   Magic Kingdom
                 </small>
               </span>
