@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="DisneyOS is an intelligent Disney trip companion."
+  >
+
+  <meta name="theme-color" content="#07111f">
+
+  <title>DisneyOS</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="assets/icons/icon-192.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/icons/icon-192.png"
+  >
+</head>
+
+<body>
+
+  <div class="app-shell">
+
+    <header class="app-header">
+
+      <div class="header-content">
+
+        <div>
+          <p class="eyebrow" id="current-date">
+            Wednesday, July 29
+          </p>
+
+          <h1 id="greeting">
+            Good morning, Kyle
+          </h1>
+        </div>
+
+        <button
+          class="profile-button"
+          type="button"
+          aria-label="Open profile"
+        >
+          K
+        </button>
+
+      </div>
+
+    </header>
+
+    <main class="app-content">
+
+      <!-- HOME -->
+
+      <section
+        class="page active"
+        id="home-page"
+        data-page="home"
+      >
+
+        <section class="hero-card">
+
+          <div class="hero-card-top">
+
+            <div>
+              <p class="card-label">
+                Today at
+              </p>
+
+              <h2>
+                Magic Kingdom
+              </h2>
+            </div>
+
+            <div class="weather-summary">
+              <span class="weather-icon">
+                ☀️
+              </span>
+
+              <span>
+                91°
+              </span>
+            </div>
+
+          </div>
+
+          <div class="hero-card-bottom">
+
+            <div>
+              <span class="metric-label">
+                Park hours
+              </span>
+
+              <strong>
+                9:00 AM–10:00 PM
+              </strong>
+            </div>
+
+            <div>
+              <span class="metric-label">
+                Crowd
+              </span>
+
+              <strong>
+                Moderate
+              </strong>
+            </div>
+
+          </div>
+
+        </section>
+
+        <section class="section-block">
+
+          <div class="section-heading">
+
+            <div>
+              <p class="eyebrow">
+                Your day
+              </p>
+
+              <h2>
+                Coming up
+              </h2>
+            </div>
+
+            <button
+              class="text-button"
+              type="button"
+              data-action="open-trip"
+            >
+              View all
+            </button>
+
+          </div>
+
+          <div class="card-grid">
+
+            <article class="info-card featured-card">
+
+              <div class="card-icon lightning-icon">
+                ⚡
+              </div>
+
+              <div class="card-content">
+
+                <div class="card-heading-row">
+
+                  <div>
+                    <p class="card-label">
+                      Next Lightning Lane
+                    </p>
+
+                    <h3>
+                      Haunted Mansion
+                    </h3>
+                  </div>
+
+                  <span class="status-badge success">
+                    Confirmed
+                  </span>
+
+                </div>
+
+                <p class="primary-detail">
+                  2:15–3:15 PM
+                </p>
+
+                <p class="secondary-detail">
+                  Check in begins in 1 hour 20 minutes
+                </p>
+
+                <button
+                  class="primary-button"
+                  type="button"
+                >
+                  View reservation
+                </button>
+
+              </div>
+
+            </article>
+
+            <article class="info-card">
+
+              <div class="card-icon dining-icon">
+                🍽️
+              </div>
+
+              <div class="card-content">
+
+                <p class="card-label">
+                  Next dining
+                </p>
+
+                <h3>
+                  Skipper Canteen
+                </h3>
+
+                <p class="primary-detail">
+                  5:40 PM
+                </p>
+
+                <p class="secondary-detail">
+                  Adventureland
+                </p>
+
+              </div>
+
+            </article>
+
+          </div>
+
+        </section>
+
+        <section class="section-block">
+
+          <div class="section-heading">
+
+            <div>
+              <p class="eyebrow">
+                DisneyOS recommendation
+              </p>
+
+              <h2>
+                What to do next
+              </h2>
+            </div>
+
+          </div>
+
+          <article class="recommendation-card">
+
+            <div class="recommendation-main">
+
+              <div class="recommendation-icon">
+                🏴‍☠️
+              </div>
+
+              <div>
+                <p class="card-label">
+                  Recommended attraction
+                </p>
+
+                <h3>
+                  Pirates of the Caribbean
+                </h3>
+
+                <p class="secondary-detail">
+                  Low wait and near your next reservation
+                </p>
+              </div>
+
+            </div>
+
+            <div class="wait-time-display">
+
+              <strong>
+                18
+              </strong>
+
+              <span>
+                min
+              </span>
+
+            </div>
+
+            <button
+              class="secondary-button"
+              type="button"
+            >
+              View directions
+            </button>
+
+          </article>
+
+        </section>
+
+        <section class="section-block">
+
+          <div class="section-heading">
+
+            <div>
+              <p class="eyebrow">
+                At a glance
+              </p>
+
+              <h2>
+                Park conditions
+              </h2>
+            </div>
+
+          </div>
+
+          <div class="compact-grid">
+
+            <article class="compact-card">
+
+              <div class="compact-card-icon">
+                🌦️
+              </div>
+
+              <div>
+                <p class="card-label">
+                  Weather
+                </p>
+
+                <h3>
+                  Rain after 3 PM
+                </h3>
+
+                <p class="secondary-detail">
+                  30% chance
+                </p>
+              </div>
+
+            </article>
+
+            <article class="compact-card">
+
+              <div class="compact-card-icon">
+                🚝
+              </div>
+
+              <div>
+                <p class="card-label">
+                  Transportation
+                </p>
+
+                <h3>
+                  Monorail
+                </h3>
+
+                <p class="secondary-detail">
+                  About 5 minutes
+                </p>
+              </div>
+
+            </article>
+
+            <article class="compact-card">
+
+              <div class="compact-card-icon">
+                📷
+              </div>
+
+              <div>
+                <p class="card-label">
+                  PhotoPass
+                </p>
+
+                <h3>
+                  7 new photos
+                </h3>
+
+                <p class="secondary-detail">
+                  Added today
+                </p>
+              </div>
+
+            </article>
+
+            <article class="compact-card">
+
+              <div class="compact-card-icon">
+                🎭
+              </div>
+
+              <div>
+                <p class="card-label">
+                  Entertainment
+                </p>
+
+                <h3>
+                  Festival of Fantasy
+                </h3>
+
+                <p class="secondary-detail">
+                  3:00 PM
+                </p>
+              </div>
+
+            </article>
+
+          </div>
+
+        </section>
+
+      </section>
+
+      <!-- PARKS -->
+
+      <section
+        class="page"
+        id="parks-page"
+        data-page="parks"
+      >
+
+        <div class="page-title-block">
+          <p class="eyebrow">
+            Explore
+          </p>
+
+          <h2>
+            Parks
+          </h2>
+
+          <p>
+            View live conditions, attractions, dining, and entertainment.
+          </p>
+        </div>
+
+        <div class="park-list">
+
+          <article class="park-card">
+
+            <div class="park-card-overlay">
+
+              <div>
+                <p class="card-label">
+                  Walt Disney World
+                </p>
+
+                <h3>
+                  Magic Kingdom
+                </h3>
+
+                <p class="secondary-detail">
+                  Open until 10:00 PM
+                </p>
+              </div>
+
+              <div class="park-metrics">
+
+                <div>
+                  <strong>
+                    29
+                  </strong>
+
+                  <span>
+                    avg. wait
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    7/10
+                  </strong>
+
+                  <span>
+                    crowd
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+
+          <article class="park-card">
+
+            <div class="park-card-overlay">
+
+              <div>
+                <p class="card-label">
+                  Walt Disney World
+                </p>
+
+                <h3>
+                  EPCOT
+                </h3>
+
+                <p class="secondary-detail">
+                  Open until 9:00 PM
+                </p>
+              </div>
+
+              <div class="park-metrics">
+
+                <div>
+                  <strong>
+                    34
+                  </strong>
+
+                  <span>
+                    avg. wait
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    6/10
+                  </strong>
+
+                  <span>
+                    crowd
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+
+          <article class="park-card">
+
+            <div class="park-card-overlay">
+
+              <div>
+                <p class="card-label">
+                  Walt Disney World
+                </p>
+
+                <h3>
+                  Hollywood Studios
+                </h3>
+
+                <p class="secondary-detail">
+                  Open until 9:00 PM
+                </p>
+              </div>
+
+              <div class="park-metrics">
+
+                <div>
+                  <strong>
+                    41
+                  </strong>
+
+                  <span>
+                    avg. wait
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    8/10
+                  </strong>
+
+                  <span>
+                    crowd
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+
+          <article class="park-card">
+
+            <div class="park-card-overlay">
+
+              <div>
+                <p class="card-label">
+                  Walt Disney World
+                </p>
+
+                <h3>
+                  Animal Kingdom
+                </h3>
+
+                <p class="secondary-detail">
+                  Open until 8:00 PM
+                </p>
+              </div>
+
+              <div class="park-metrics">
+
+                <div>
+                  <strong>
+                    24
+                  </strong>
+
+                  <span>
+                    avg. wait
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    5/10
+                  </strong>
+
+                  <span>
+                    crowd
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- MY TRIP -->
+
+      <section
+        class="page"
+        id="trip-page"
+        data-page="trip"
+      >
+
+        <div class="page-title-block">
+          <p class="eyebrow">
+            Your vacation
+          </p>
+
+          <h2>
+            My Trip
+          </h2>
+
+          <p>
+            Everything connected to your Disney day.
+          </p>
+        </div>
+
+        <div class="menu-card-list">
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              ⚡
+            </span>
+
+            <span>
+              <strong>
+                Lightning Lane
+              </strong>
+
+              <small>
+                View upcoming reservations
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              🍽️
+            </span>
+
+            <span>
+              <strong>
+                Dining
+              </strong>
+
+              <small>
+                Reservations and mobile ordering
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              🏨
+            </span>
+
+            <span>
+              <strong>
+                Resort
+              </strong>
+
+              <small>
+                Hotel details and transportation
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              🗓️
+            </span>
+
+            <span>
+              <strong>
+                Daily itinerary
+              </strong>
+
+              <small>
+                See today's complete schedule
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              🎟️
+            </span>
+
+            <span>
+              <strong>
+                Virtual Queue
+              </strong>
+
+              <small>
+                View boarding groups
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+          <button class="menu-card" type="button">
+            <span class="menu-card-icon">
+              📷
+            </span>
+
+            <span>
+              <strong>
+                PhotoPass
+              </strong>
+
+              <small>
+                View recent photos
+              </small>
+            </span>
+
+            <span class="menu-card-arrow">
+              ›
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- SHORTCUTS -->
+
+      <section
+        class="page"
+        id="shortcuts-page"
+        data-page="shortcuts"
+      >
+
+        <div class="page-title-block">
+          <p class="eyebrow">
+            One tap
+          </p>
+
+          <h2>
+            Shortcuts
+          </h2>
+
+          <p>
+            Launch common Disney actions without navigating through menus.
+          </p>
+        </div>
+
+        <div class="shortcut-grid">
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              ⏱️
+            </span>
+
+            <strong>
+              Wait Times
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              ⚡
+            </span>
+
+            <strong>
+              Lightning Lane
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              🍔
+            </span>
+
+            <strong>
+              Mobile Order
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              🚻
+            </span>
+
+            <strong>
+              Find Restroom
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              🚌
+            </span>
+
+            <strong>
+              Bus Times
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              📍
+            </span>
+
+            <strong>
+              Navigate
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              👑
+            </span>
+
+            <strong>
+              Characters
+            </strong>
+          </button>
+
+          <button class="shortcut-card" type="button">
+            <span class="shortcut-icon">
+              📋
+            </span>
+
+            <strong>
+              Tip Board
+            </strong>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- SETTINGS -->
+
+      <section
+        class="page"
+        id="settings-page"
+        data-page="settings"
+      >
+
+        <div class="page-title-block">
+          <p class="eyebrow">
+            DisneyOS
+          </p>
+
+          <h2>
+            Settings
+          </h2>
+
+          <p>
+            Personalize your DisneyOS experience.
+          </p>
+        </div>
+
+        <div class="settings-group">
+
+          <p class="settings-group-label">
+            Profile
+          </p>
+
+          <div class="settings-card">
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Name
+                </strong>
+
+                <small>
+                  Kyle
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Preferred park
+                </strong>
+
+                <small>
+                  Magic Kingdom
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Default resort
+                </strong>
+
+                <small>
+                  Not selected
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="settings-group">
+
+          <p class="settings-group-label">
+            Connections
+          </p>
+
+          <div class="settings-card">
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Disney Planner
+                </strong>
+
+                <small>
+                  Placeholder connection
+                </small>
+              </span>
+
+              <span class="status-badge warning">
+                Not connected
+              </span>
+            </button>
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Apple Shortcuts
+                </strong>
+
+                <small>
+                  Manage installed shortcuts
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="settings-group">
+
+          <p class="settings-group-label">
+            Application
+          </p>
+
+          <div class="settings-card">
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Appearance
+                </strong>
+
+                <small>
+                  Dark
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+            <button class="settings-row" type="button">
+              <span>
+                <strong>
+                  Notifications
+                </strong>
+
+                <small>
+                  Enabled
+                </small>
+              </span>
+
+              <span>
+                ›
+              </span>
+            </button>
+
+            <div class="settings-row static-row">
+              <span>
+                <strong>
+                  DisneyOS version
+                </strong>
+
+                <small>
+                  1.0.0 Preview
+                </small>
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <nav
+      class="bottom-navigation"
+      aria-label="Primary navigation"
+    >
+
+      <button
+        class="nav-button active"
+        type="button"
+        data-target="home"
+        aria-label="Home"
+      >
+        <span class="nav-icon">
+          ⌂
+        </span>
+
+        <span class="nav-label">
+          Home
+        </span>
+      </button>
+
+      <button
+        class="nav-button"
+        type="button"
+        data-target="parks"
+        aria-label="Parks"
+      >
+        <span class="nav-icon">
+          ♜
+        </span>
+
+        <span class="nav-label">
+          Parks
+        </span>
+      </button>
+
+      <button
+        class="nav-button"
+        type="button"
+        data-target="trip"
+        aria-label="My Trip"
+      >
+        <span class="nav-icon">
+          ◉
+        </span>
+
+        <span class="nav-label">
+          My Trip
+        </span>
+      </button>
+
+      <button
+        class="nav-button"
+        type="button"
+        data-target="shortcuts"
+        aria-label="Shortcuts"
+      >
+        <span class="nav-icon">
+          ⚡
+        </span>
+
+        <span class="nav-label">
+          Shortcuts
+        </span>
+      </button>
+
+      <button
+        class="nav-button"
+        type="button"
+        data-target="settings"
+        aria-label="Settings"
+      >
+        <span class="nav-icon">
+          ⚙
+        </span>
+
+        <span class="nav-label">
+          Settings
+        </span>
+      </button>
+
+    </nav>
+
+  </div>
+
+  <script src="js/app.js"></script>
+
+</body>
+</html>
