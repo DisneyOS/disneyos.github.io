@@ -1,5 +1,5 @@
 /**
- * DisneyOS v1.0
+ * DisneyOS v1.2
  * Core application behavior and local profile settings
  */
 
@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const editParkButton = document.getElementById("edit-park-button");
   const waitTimesShortcut = document.getElementById(
     "wait-times-shortcut"
+  );
+  const waitTimesButtons = document.querySelectorAll(
+    "[data-wait-park]"
+  );
+  const openWaitTimesButtons = document.querySelectorAll(
+    '[data-action="open-wait-times"]'
   );
 
   const storageKeys = {
@@ -310,6 +316,25 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "wait-times-menu.html";
     });
   }
+
+  openWaitTimesButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      window.location.href = "wait-times-menu.html";
+    });
+  });
+
+  waitTimesButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const park = button.dataset.waitPark;
+
+      if (!park) {
+        return;
+      }
+
+      window.location.href =
+        `wait-times.html?park=${encodeURIComponent(park)}`;
+    });
+  });
 
   renderProfile();
 
