@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const editNameButton = document.getElementById("edit-name-button");
   const editParkButton = document.getElementById("edit-park-button");
+  const waitTimesShortcut = document.getElementById(
+    "wait-times-shortcut"
+  );
 
   const storageKeys = {
     activePage: "disneyos-active-page",
@@ -300,6 +303,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "click",
       editPreferredPark
     );
+  }
+
+  if (waitTimesShortcut) {
+    waitTimesShortcut.addEventListener("click", () => {
+      window.location.href = "wait-times-menu.html";
+    });
   }
 
   renderProfile();
