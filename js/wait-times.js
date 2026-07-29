@@ -1,9 +1,13 @@
 /**
  * DisneyOS Wait Times
- * Retrieves and displays live Queue-Times attraction data.
+ *
+ * Loads normalized live attraction data from the DisneyOS API.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL =
+    "https://disneyos-api.disneyosplanner.workers.dev";
+
   const parkTitle = document.getElementById("park-title");
   const parkSelect = document.getElementById("park-select");
   const sortSelect = document.getElementById("sort-select");
@@ -25,33 +29,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const parkConfiguration = {
     "magic-kingdom": {
-      id: 6,
       name: "Magic Kingdom"
     },
+
     epcot: {
-      id: 5,
       name: "EPCOT"
     },
+
     "hollywood-studios": {
-      id: 7,
       name: "Hollywood Studios"
     },
+
     "animal-kingdom": {
-      id: 8,
       name: "Animal Kingdom"
     }
   };
 
-  let currentRides = [];
   let currentParkKey = "magic-kingdom";
+  let currentAttractions = [];
 
   /**
    * Read the selected park from the page URL.
    *
    * Example:
    * wait-times.html?park=epcot
-   *
-   * @returns {string}
    */
   function getParkFromUrl() {
     const parameters = new URLSearchParams(
@@ -71,26 +72,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Update the browser URL without reloading the page.
-   *
-   * @param {string} parkKey
+   * Update the park parameter without reloading the page.
    */
   function updateParkUrl(parkKey) {
     const newUrl = new URL(window.location.href);
 
     newUrl.searchParams.set("park", parkKey);
 
-    window.history.replaceState(
-      {},
-      "",
-      newUrl
-    );
+    window.history.replaceState({}, "", newUrl);
   }
 
   /**
-   * Display loading information.
-   *
-   * @param {string} parkName
+   * Display the loading state.
    */
   function showLoadingState(parkName) {
     refreshButton.disabled = true;
@@ -109,9 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Display an error message.
-   *
-   * @param {string} message
+   * Display an error state.
    */
   function showError(message) {
     refreshButton.disabled = false;
@@ -131,78 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Convert the Queue-Times land structure into one ride list.
-   *
-   * @param {object} responseData
-   * @returns {Array}
-   */
-  function flattenRideData(responseData) {
-    if (
-      !responseData ||
-      !Array.isArray(responseData.lands)
-    ) {
-      return [];
-    }
-
-    return responseData.lands.flatMap((land) => {
-      const rides = Array.isArray(land.rides)
-        ? land.rides
-        : [];
-
-      return rides.map((ride) => ({
-        id: ride.id,
-        name: ride.name || "Unnamed attraction",
-        land: land.name || "Park attraction",
-        isOpen: Boolean(ride.is_open),
-        waitTime: Number.isFinite(
-          Number(ride.wait_time)
-        )
-          ? Number(ride.wait_time)
-          : 0,
-        lastUpdated: ride.last_updated || null
-      }));
-    });
-  }
-
-  /**
-   * Sort ride data according to the current selection.
-   *
-   * Closed attractions always appear after open attractions.
-   *
-   * @param {Array} rides
-   * @returns {Array}
-   */
-  function sortRides(rides) {
-    const selectedSort = sortSelect.value;
-
-    return [...rides].sort((rideA, rideB) => {
-      if (rideA.isOpen !== rideB.isOpen) {
-        return rideA.isOpen ? -1 : 1;
-      }
-
-      if (selectedSort === "low-high") {
-        return (
-          rideA.waitTime - rideB.waitTime ||
-          rideA.name.localeCompare(rideB.name)
-        );
-      }
-
-      if (selectedSort === "alphabetical") {
-        return rideA.name.localeCompare(rideB.name);
-      }
-
-      return (
-        rideB.waitTime - rideA.waitTime ||
-        rideA.name.localeCompare(rideB.name)
-      );
-    });
-  }
-
-  /**
-   * Convert an ISO timestamp into a readable local time.
-   *
-   * @param {string|null} timestamp
-   * @returns {string}
+   * Format an ISO timestamp using the device's local time.
    */
   function formatUpdatedTime(timestamp) {
     if (!timestamp) {
@@ -215,94 +135,69 @@ document.addEventListener("DOMContentLoaded", () => {
       return "Update time unavailable";
     }
 
-    return new Intl.DateTimeFormat(
-      "en-US",
-      {
-        hour: "numeric",
-        minute: "2-digit"
-      }
-    ).format(date);
-  }
-
-  /**
-   * Find the newest timestamp contained in the ride data.
-   *
-   * @param {Array} rides
-   * @returns {string|null}
-   */
-  function getNewestTimestamp(rides) {
-    const timestamps = rides
-      .map((ride) => {
-        if (!ride.lastUpdated) {
-          return null;
-        }
-
-        const timestamp = new Date(
-          ride.lastUpdated
-        ).getTime();
-
-        return Number.isNaN(timestamp)
-          ? null
-          : timestamp;
-      })
-      .filter((timestamp) => timestamp !== null);
-
-    if (timestamps.length === 0) {
-      return null;
-    }
-
-    return new Date(
-      Math.max(...timestamps)
-    ).toISOString();
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
   }
 
   /**
    * Create one attraction card.
-   *
-   * @param {object} ride
-   * @returns {HTMLElement}
    */
-  function createRideCard(ride) {
+  function createAttractionCard(attraction) {
     const article = document.createElement("article");
     article.className = "ride-card";
 
-    const rideInformation = document.createElement("div");
+    const attractionInformation =
+      document.createElement("div");
 
-    const rideName = document.createElement("h2");
-    rideName.className = "ride-name";
-    rideName.textContent = ride.name;
+    const attractionName =
+      document.createElement("h2");
 
-    const rideLand = document.createElement("p");
-    rideLand.className = "ride-land";
+    attractionName.className = "ride-name";
+    attractionName.textContent = attraction.name;
 
-    rideLand.textContent = ride.isOpen
-      ? ride.land
-      : `${ride.land} · Currently closed`;
+    const attractionLand =
+      document.createElement("p");
 
-    rideInformation.append(
-      rideName,
-      rideLand
+    attractionLand.className = "ride-land";
+
+    attractionLand.textContent = attraction.isOpen
+      ? attraction.land
+      : `${attraction.land} · Currently closed`;
+
+    attractionInformation.append(
+      attractionName,
+      attractionLand
     );
 
     const waitDisplay = document.createElement("div");
     waitDisplay.className = "wait-display";
 
-    if (ride.isOpen) {
-      const waitNumber = document.createElement("span");
+    if (attraction.isOpen) {
+      const waitNumber =
+        document.createElement("span");
+
       waitNumber.className = "wait-number";
-      waitNumber.textContent = String(ride.waitTime);
-
-      const waitUnit = document.createElement("span");
-      waitUnit.className = "wait-unit";
-      waitUnit.textContent =
-        ride.waitTime === 1 ? "minute" : "minutes";
-
-      waitDisplay.append(
-        waitNumber,
-        waitUnit
+      waitNumber.textContent = String(
+        attraction.waitMinutes
       );
+
+      const waitUnit =
+        document.createElement("span");
+
+      waitUnit.className = "wait-unit";
+
+      waitUnit.textContent =
+        attraction.waitMinutes === 1
+          ? "minute"
+          : "minutes";
+
+      waitDisplay.append(waitNumber, waitUnit);
     } else {
-      const closedLabel = document.createElement("span");
+      const closedLabel =
+        document.createElement("span");
+
       closedLabel.className = "closed-label";
       closedLabel.textContent = "Closed";
 
@@ -310,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     article.append(
-      rideInformation,
+      attractionInformation,
       waitDisplay
     );
 
@@ -318,71 +213,56 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Update the summary cards.
-   *
-   * @param {Array} rides
+   * Render the wait-time summary.
    */
-  function renderSummary(rides) {
-    const openRides = rides.filter(
-      (ride) => ride.isOpen
+  function renderSummary(summary) {
+    openCount.textContent = String(
+      summary.openAttractions ?? 0
     );
 
-    const waits = openRides.map(
-      (ride) => ride.waitTime
-    );
+    averageWait.textContent =
+      `${summary.averageWaitMinutes ?? 0}m`;
 
-    const totalWait = waits.reduce(
-      (total, wait) => total + wait,
-      0
-    );
-
-    const calculatedAverage = waits.length
-      ? Math.round(totalWait / waits.length)
-      : 0;
-
-    const calculatedLongest = waits.length
-      ? Math.max(...waits)
-      : 0;
-
-    openCount.textContent = String(openRides.length);
-    averageWait.textContent = `${calculatedAverage}m`;
-    longestWait.textContent = `${calculatedLongest}m`;
+    longestWait.textContent =
+      `${summary.longestWaitMinutes ?? 0}m`;
 
     summaryRow.classList.remove("hidden");
   }
 
   /**
-   * Render the attraction list and status information.
+   * Render the normalized DisneyOS API response.
    */
-  function renderWaitTimes() {
-    const sortedRides = sortRides(currentRides);
-    const selectedPark =
-      parkConfiguration[currentParkKey];
+  function renderWaitTimes(data) {
+    currentAttractions = Array.isArray(
+      data.attractions
+    )
+      ? data.attractions
+      : [];
 
     waitList.innerHTML = "";
 
-    sortedRides.forEach((ride) => {
-      waitList.appendChild(createRideCard(ride));
+    currentAttractions.forEach((attraction) => {
+      waitList.appendChild(
+        createAttractionCard(attraction)
+      );
     });
 
-    renderSummary(currentRides);
+    renderSummary(data.summary || {});
 
-    const openRideCount = currentRides.filter(
-      (ride) => ride.isOpen
-    ).length;
+    const selectedPark =
+      parkConfiguration[currentParkKey];
 
-    const newestTimestamp =
-      getNewestTimestamp(currentRides);
+    parkTitle.textContent =
+      data.park?.name ||
+      selectedPark.name;
 
     statusMain.textContent =
-      `${openRideCount} attractions currently open`;
+      `${data.summary?.openAttractions ?? 0} attractions currently open`;
 
     statusDetail.textContent =
       `Latest reported update: ${
-        formatUpdatedTime(newestTimestamp)
+        formatUpdatedTime(data.updated)
       }`;
-
-    parkTitle.textContent = selectedPark.name;
 
     refreshButton.disabled = false;
     refreshButton.textContent = "Refresh";
@@ -391,9 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Retrieve live wait times from Queue-Times.
-   *
-   * @param {string} parkKey
+   * Retrieve live data from the DisneyOS API.
    */
   async function loadWaitTimes(parkKey) {
     const selectedPark =
@@ -416,38 +294,42 @@ document.addEventListener("DOMContentLoaded", () => {
     showLoadingState(selectedPark.name);
 
     const endpoint =
-      `https://queue-times.com/parks/` +
-      `${selectedPark.id}/queue_times.json`;
+      `${API_BASE_URL}/v1/wait-times` +
+      `?park=${encodeURIComponent(parkKey)}`;
 
     try {
-      const response = await fetch(
-        endpoint,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json"
-          },
-          cache: "no-store"
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `The data service returned status ${response.status}.`
-        );
-      }
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Accept: "application/json"
+        },
+        cache: "no-store"
+      });
 
       const responseData = await response.json();
 
-      currentRides = flattenRideData(responseData);
+      if (!response.ok || !responseData.success) {
+        const apiMessage =
+          responseData?.error?.message;
 
-      if (currentRides.length === 0) {
         throw new Error(
-          "No attraction information was returned for this park."
+          apiMessage ||
+          `DisneyOS API returned status ${response.status}.`
         );
       }
 
-      renderWaitTimes();
+      if (
+        !responseData.data ||
+        !Array.isArray(
+          responseData.data.attractions
+        )
+      ) {
+        throw new Error(
+          "DisneyOS returned an unexpected response."
+        );
+      }
+
+      renderWaitTimes(responseData.data);
     } catch (error) {
       console.error(
         "DisneyOS wait-time request failed:",
@@ -455,6 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       showError(
+        error.message ||
         "Check your internet connection, then tap Try Again."
       );
     }
@@ -462,9 +345,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /**
    * Attempt to dismiss the page.
-   *
-   * When displayed through Apple Shortcuts, the Shortcut's
-   * native Done button may still be the primary close control.
    */
   function closeWaitTimes() {
     if (window.history.length > 1) {
@@ -480,9 +360,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   sortSelect.addEventListener("change", () => {
-    if (currentRides.length > 0) {
-      renderWaitTimes();
-    }
+    /*
+     * Sorting is now performed by the DisneyOS API.
+     * This temporary control will be removed next.
+     */
   });
 
   refreshButton.addEventListener("click", () => {
