@@ -1889,10 +1889,18 @@ document.addEventListener("DOMContentLoaded", () => {
         parkSelectorPanel.removeAttribute(
           "hidden"
         );
+        homeParkSelector.setAttribute(
+          "aria-expanded",
+          "true"
+        );
       } else {
         parkSelectorPanel.setAttribute(
           "hidden",
           ""
+        );
+        homeParkSelector.setAttribute(
+          "aria-expanded",
+          "false"
         );
       }
     }
@@ -1911,6 +1919,10 @@ document.addEventListener("DOMContentLoaded", () => {
       parkSelectorPanel.setAttribute(
         "hidden",
         ""
+      );
+      homeParkSelector?.setAttribute(
+        "aria-expanded",
+        "false"
       );
 
       renderProfile();

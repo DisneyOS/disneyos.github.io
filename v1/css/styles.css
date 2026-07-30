@@ -2565,3 +2565,90 @@ body {
 .park-selector-panel button:active {
   background: #12263d !important;
 }
+
+
+/* DisneyOS 2.0.3 — selector stacking and home logo */
+.home-hero-card .hero-card-top {
+  position: relative;
+  z-index: 50 !important;
+}
+.home-hero-card .hero-status-grid,
+.home-hero-card .special-hours-strip {
+  position: relative;
+  z-index: 1 !important;
+}
+.park-selector-control {
+  position: relative;
+  z-index: 60;
+}
+.park-selector-panel {
+  z-index: 1000 !important;
+  isolation: isolate;
+  opacity: 1 !important;
+  background: #081522 !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,0), 0 22px 60px rgba(0,0,0,.72) !important;
+}
+.park-selector-panel button {
+  opacity: 1 !important;
+  background: #081522 !important;
+}
+.park-selector-panel button:hover,
+.park-selector-panel button:focus-visible,
+.park-selector-panel button:active {
+  background: #12263d !important;
+}
+.header-brand-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border-radius: 12px;
+  text-decoration: none;
+}
+.header-brand-link:focus-visible {
+  outline: 2px solid var(--cyan, #43e7ff);
+  outline-offset: 4px;
+}
+
+
+/* DisneyOS 2.0.4 — clean hero park selector */
+.park-selector-button {
+  position: relative;
+  min-height: 48px;
+  margin: -6px -8px;
+  padding: 6px 8px !important;
+  border: 0 !important;
+  border-radius: 12px;
+  outline: 0;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.park-selector-button:hover,
+.park-selector-button:active,
+.park-selector-button:focus,
+.park-selector-button:focus-visible {
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.park-selector-button:focus-visible {
+  outline: 2px solid rgba(67, 231, 255, .72);
+  outline-offset: 2px;
+}
+.park-selector-button span:last-child {
+  display: inline-block;
+  margin-left: -3px;
+  font-size: .82rem;
+  line-height: 1;
+  opacity: .72;
+  transform: translateY(2px);
+  transition: transform .16s ease;
+}
+.park-selector-button[aria-expanded="true"] span:last-child {
+  transform: translateY(2px) rotate(180deg);
+}

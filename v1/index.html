@@ -9,7 +9,7 @@
 <title>DisneyOS</title>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="css/theme.css" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.2" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.4" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -21,7 +21,7 @@
 <header class="app-header">
 <div class="header-content">
 <div class="header-brand-group">
-<img alt="DisneyOS" class="header-brand-logo" src="assets/disneyos-logo-transparent.png"/>
+<a class="header-brand-link" href="./" aria-label="Go to DisneyOS Home"><img alt="DisneyOS" class="header-brand-logo" src="assets/disneyos-logo-transparent.png"/></a>
 <div>
 <p class="eyebrow" id="current-date">
             Wednesday, July 29
@@ -45,7 +45,7 @@
 <div class="hero-card-top">
 <div>
 <p class="card-label">Today at</p>
-<div class="park-selector-control"><button aria-haspopup="listbox" class="park-selector-button" id="home-park-selector" type="button">
+<div class="park-selector-control"><button aria-expanded="false" aria-haspopup="listbox" class="park-selector-button" id="home-park-selector" type="button">
 <span id="current-park">Magic Kingdom</span>
 <span aria-hidden="true">⌄</span>
 </button><div class="park-selector-panel" hidden="" id="park-selector-panel">
@@ -532,7 +532,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.2"></script>
+<script src="js/app.js?v=2.0.4"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
