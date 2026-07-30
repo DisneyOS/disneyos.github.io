@@ -1130,7 +1130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     magicContent.innerHTML = `
       <div class="magic-loading">
         <div class="loading-spinner" aria-hidden="true"></div>
-        <strong>Finding your best next move…</strong>
+        <strong>Asking Genie for your best next move…</strong>
         <p>Comparing waits, shows, weather, and remaining park time.</p>
       </div>
     `;
@@ -1152,20 +1152,41 @@ document.addEventListener("DOMContentLoaded", () => {
             fetchWeather()
           ]);
 
-        if (parkDayResult.status !== "fulfilled") {
-          throw parkDayResult.reason;
+        const parkDay =
+          parkDayResult.status === "fulfilled"
+            ? parkDayResult.value
+            : null;
+
+        const waitTimes =
+          waitTimesResult.status === "fulfilled"
+            ? waitTimesResult.value
+            : [];
+
+        const weather =
+          weatherResult.status === "fulfilled"
+            ? weatherResult.value
+            : null;
+
+        if (!parkDay && waitTimes.length === 0 && !weather) {
+          throw new Error(
+            "No live DisneyOS data sources were available."
+          );
         }
 
         combinedData = {
-          parkDay: parkDayResult.value,
-          waitTimes:
-            waitTimesResult.status === "fulfilled"
-              ? waitTimesResult.value
-              : [],
-          weather:
-            weatherResult.status === "fulfilled"
-              ? weatherResult.value
-              : null
+          parkDay: parkDay || {
+            park: {
+              name:
+                getSelectedParkName?.() ||
+                "Selected park",
+              status: "Live status unavailable"
+            },
+            hours: {},
+            crowd: {},
+            entertainment: []
+          },
+          waitTimes,
+          weather
         };
 
         lastMagicData = combinedData;
@@ -1181,15 +1202,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.warn(
-        "DisneyOS Magic could not create a recommendation.",
+        "DisneyOS Genie could not create a recommendation.",
         error
       );
 
       magicContent.innerHTML = `
         <div class="magic-error">
           <span class="magic-result-icon">⚠️</span>
-          <h3>Magic is temporarily unavailable</h3>
-          <p>DisneyOS could not reach all of the live feeds needed for a recommendation. Please try again.</p>
+          <h3>Genie is temporarily unavailable</h3>
+          <p>Genie could not reach any usable live data. Please try again in a moment.</p>
           <button class="primary-button" id="magic-retry-button" type="button">Try Again</button>
         </div>
       `;

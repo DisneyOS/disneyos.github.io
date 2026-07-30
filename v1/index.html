@@ -8,8 +8,8 @@
 <meta content="#05070c" name="theme-color"/>
 <title>DisneyOS</title>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="css/theme.css" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.4" rel="stylesheet"/>
+<link href="css/theme.css?v=2.0.5" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.5" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -135,8 +135,8 @@
 <strong>Park Map</strong>
 </button>
 <button class="quick-action-card magic-action-card" data-action="open-magic" type="button">
-<span>✨</span>
-<strong>What Should I Do?</strong>
+<span aria-hidden="true">🪔</span>
+<strong>Genie</strong>
 </button>
 </div>
 </section><section class="section-block">
@@ -168,12 +168,12 @@
 </div>
 <button class="recommendation-card magic-recommendation-card" data-action="open-magic" type="button">
 <div class="recommendation-main">
-<div class="recommendation-icon">✨</div>
+<div class="recommendation-icon" aria-hidden="true">🪔</div>
 <div>
 <div class="card-heading-row">
 <div>
-<p class="card-label">DisneyOS Magic</p>
-<h3>What should I do next?</h3>
+<p class="card-label">DisneyOS Genie</p>
+<h3>Ask Genie what to do next</h3>
 </div>
 <span class="feature-state-badge live">Live</span>
 </div>
@@ -532,16 +532,16 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.4"></script>
+<script src="js/app.js?v=2.0.5"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
 <header class="magic-sheet-header">
 <div>
-<p class="eyebrow">DisneyOS Magic</p>
+<p class="eyebrow">DisneyOS Genie</p>
 <h2 id="magic-title">What should I do next?</h2>
 </div>
-<button aria-label="Close DisneyOS Magic" class="magic-close-button" data-action="close-magic" type="button">×</button>
+<button aria-label="Close DisneyOS Genie" class="magic-close-button" data-action="close-magic" type="button">×</button>
 </header>
 <div class="magic-content" id="magic-content">
 <div class="magic-loading">

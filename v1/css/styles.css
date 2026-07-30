@@ -2652,3 +2652,16 @@ body {
 .park-selector-button[aria-expanded="true"] span:last-child {
   transform: translateY(2px) rotate(180deg);
 }
+
+
+/* DisneyOS v2.0.5 — Genie reliability and hidden-state fix */
+.magic-sheet-footer[hidden],
+.magic-actions[hidden],
+[hidden] {
+  display: none !important;
+}
+
+.magic-action-card > span,
+.recommendation-icon {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
