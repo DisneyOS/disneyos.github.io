@@ -2527,3 +2527,41 @@ body {
   .wait-times-header::after,
   .utility-page-header::after { width: 58px; height: 24px; }
 }
+
+
+/* DisneyOS 2.0.1 home stabilization */
+.park-selector-control {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+.park-selector-panel {
+  top: calc(100% + 8px) !important;
+  right: auto !important;
+  left: 0 !important;
+  width: min(360px, calc(100vw - 64px));
+}
+.park-selector-panel[hidden] {
+  display: none !important;
+}
+.profile-button {
+  cursor: pointer;
+}
+
+
+/* DisneyOS 2.0.2 — opaque park selector */
+.park-selector-panel {
+  background: #0a1625 !important;
+  background-color: #0a1625 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.62) !important;
+}
+.park-selector-panel button {
+  background: #0a1625 !important;
+}
+.park-selector-panel button:hover,
+.park-selector-panel button:focus-visible,
+.park-selector-panel button:active {
+  background: #12263d !important;
+}

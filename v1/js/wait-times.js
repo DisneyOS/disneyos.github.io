@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const API_BASE = "https://disneyos-api.krookstool89.workers.dev/v1";
+  const API_BASE = "https://disneyos-api.disneyosplanner.workers.dev/v1";
   const PARK_NAMES = {
     "magic-kingdom": "Magic Kingdom",
     epcot: "EPCOT",

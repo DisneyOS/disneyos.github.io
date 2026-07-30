@@ -1,10 +1,8 @@
-# DisneyOS v2.0 — Versioned Release
+# DisneyOS v2.0.1 Home Fixes
 
-Upload the **contents of this folder** to the root of the `disneyos.github.io` repository.
+Upload these files to the repository root. This release fixes the Home park selector, Wait Times API endpoint, Magic show filtering, profile-to-settings navigation, and Home section order.
 
-- `https://disneyos.github.io/` reads `latest.json` and immediately redirects to the current version.
-- The current application lives in `/v1/`.
-- To release a future version, add `/v2/` and change `latest.json` from `v1` to `v2`.
-- Keep the root URL on NFC cards, shortcuts, QR codes, and bookmarks.
 
-DisneyOS Setup remains a separate product and repository.
+## 2.0.2
+- Opaque park selector menu.
+- DisneyOS Magic now uses Ride, See, Watch, or Meet based on experience type.

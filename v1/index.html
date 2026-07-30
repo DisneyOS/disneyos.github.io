@@ -1,770 +1,562 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  >
-
-  <meta
-    name="description"
-    content="DisneyOS is an intelligent Disney trip companion."
-  >
-
-  <meta name="theme-color" content="#05070c">
-
-  <title>DisneyOS</title>
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<meta content="DisneyOS is an intelligent Disney trip companion." name="description"/>
+<meta content="#05070c" name="theme-color"/>
+<title>DisneyOS</title>
+<link href="manifest.webmanifest" rel="manifest"/>
+<link href="css/theme.css" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.2" rel="stylesheet"/>
+<link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
 </head>
-
 <body>
-
-  <div class="ambient one" aria-hidden="true"></div>
-  <div class="ambient two" aria-hidden="true"></div>
-
-  <div class="app-shell">
-
-    <header class="app-header">
-
-      <div class="header-content">
-
-        <div class="header-brand-group">
-          <img class="header-brand-logo" src="assets/disneyos-logo-transparent.png" alt="DisneyOS">
-
-          <div>
-          <p class="eyebrow" id="current-date">
+<div aria-hidden="true" class="ambient one"></div>
+<div aria-hidden="true" class="ambient two"></div>
+<div class="app-shell">
+<header class="app-header">
+<div class="header-content">
+<div class="header-brand-group">
+<img alt="DisneyOS" class="header-brand-logo" src="assets/disneyos-logo-transparent.png"/>
+<div>
+<p class="eyebrow" id="current-date">
             Wednesday, July 29
           </p>
-
-          <h1 id="greeting">
+<h1 id="greeting">
             Good morning
           </h1>
-          </div>
-        </div>
-
-        <button
-          class="profile-button"
-          type="button"
-          aria-label="Open profile"
-        >
-          <span id="profile-initial">
+</div>
+</div>
+<button aria-label="Open settings" class="profile-button" id="profile-button" type="button">
+<span id="profile-initial">
             D
           </span>
-        </button>
+</button>
+</div>
+</header>
+<main class="app-content">
+<!-- HOME -->
+<section class="page active" data-page="home" id="home-page">
+<section class="hero-card home-hero-card">
+<div class="hero-card-top">
+<div>
+<p class="card-label">Today at</p>
+<div class="park-selector-control"><button aria-haspopup="listbox" class="park-selector-button" id="home-park-selector" type="button">
+<span id="current-park">Magic Kingdom</span>
+<span aria-hidden="true">⌄</span>
+</button><div class="park-selector-panel" hidden="" id="park-selector-panel">
+<button data-home-park="Magic Kingdom" type="button">Magic Kingdom</button>
+<button data-home-park="EPCOT" type="button">EPCOT</button>
+<button data-home-park="Hollywood Studios" type="button">Hollywood Studios</button>
+<button data-home-park="Animal Kingdom" type="button">Animal Kingdom</button>
+</div></div>
+</div>
+<div aria-label="Current weather" class="weather-summary">
+<span class="weather-icon" id="hero-weather-icon">☀️</span>
+<span id="hero-temperature">--°</span>
+</div>
+</div>
+<div class="hero-status-grid">
+<div>
+<span class="metric-label">Park hours</span>
+<strong id="park-hours">Checking…</strong>
+</div>
+<div>
+<span class="metric-label">Current crowd</span>
+<strong id="current-crowd">Checking…</strong>
+</div>
+<div>
+<span class="metric-label">Park status</span>
+<strong id="park-status">Checking…</strong>
+</div>
+</div>
 
-      </div>
+</section>
 
-    </header>
 
-    <main class="app-content">
 
-      <!-- HOME -->
 
-      <section
-        class="page active"
-        id="home-page"
-        data-page="home"
-      >
 
-        <section class="hero-card home-hero-card">
-
-          <div class="hero-card-top">
-            <div>
-              <p class="card-label">Today at</p>
-              <button class="park-selector-button" type="button" id="home-park-selector" aria-haspopup="listbox">
-                <span id="current-park">Magic Kingdom</span>
-                <span aria-hidden="true">⌄</span>
-              </button>
-            </div>
-
-            <div class="weather-summary" aria-label="Current weather">
-              <span class="weather-icon" id="hero-weather-icon">☀️</span>
-              <span id="hero-temperature">--°</span>
-            </div>
-          </div>
-
-          <div class="hero-status-grid">
-            <div>
-              <span class="metric-label">Park hours</span>
-              <strong id="park-hours">Checking…</strong>
-            </div>
-            <div>
-              <span class="metric-label">Current crowd</span>
-              <strong id="current-crowd">Checking…</strong>
-            </div>
-            <div>
-              <span class="metric-label">Park status</span>
-              <strong id="park-status">Checking…</strong>
-            </div>
-          </div>
-
-          <div class="park-selector-panel" id="park-selector-panel" hidden>
-            <button type="button" data-home-park="Magic Kingdom">Magic Kingdom</button>
-            <button type="button" data-home-park="EPCOT">EPCOT</button>
-            <button type="button" data-home-park="Hollywood Studios">Hollywood Studios</button>
-            <button type="button" data-home-park="Animal Kingdom">Animal Kingdom</button>
-          </div>
-
-        </section>
-
-        <section class="section-block">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Today in the park</p>
-              <h2>What’s next</h2>
-            </div>
-          </div>
-
-          <div class="schedule-card-list" id="schedule-card-list">
-            <article class="schedule-loading-card" id="schedule-loading-card">
-              <div class="loading-spinner" aria-hidden="true"></div>
-              <div>
-                <strong>Loading today’s entertainment</strong>
-                <p>Checking remaining showtimes for the selected park.</p>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section class="section-block">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">At a glance</p>
-              <h2>Park information</h2>
-            </div>
-          </div>
-
-          <div class="home-info-grid">
-            <article class="home-info-card expandable-info-card" id="weather-card">
-              <button class="info-card-toggle" type="button" aria-expanded="false">
-                <span class="compact-card-icon" id="weather-card-icon">🌦️</span>
-                <span class="info-card-copy">
-                  <span class="card-label">Weather</span>
-                  <strong id="weather-summary-title">Loading forecast…</strong>
-                  <small id="weather-summary-detail">Checking current conditions</small>
-                </span>
-                <span class="schedule-chevron">›</span>
-              </button>
-              <div class="info-card-details" hidden>
-                <div class="weather-detail-grid" id="weather-detail-grid"></div>
-              </div>
-            </article>
-
-            <article class="home-info-card expandable-info-card" id="transportation-card">
-              <button class="info-card-toggle" type="button" aria-expanded="false">
-                <span class="compact-card-icon">🚝</span>
-                <span class="info-card-copy">
-                  <span class="card-label">Transportation</span>
-                  <strong id="transportation-title">Loading options…</strong>
-                  <small id="transportation-detail">Checking routes for this park</small>
-                </span>
-                <span class="schedule-chevron">›</span>
-              </button>
-              <div class="info-card-details" hidden>
-                <div class="transportation-list" id="transportation-list"></div>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section class="section-block">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">One tap</p>
-              <h2>Quick actions</h2>
-            </div>
-          </div>
-
-          <div class="quick-action-grid">
-            <button class="quick-action-card" type="button" data-action="open-wait-times">
-              <span>⏱️</span>
-              <strong>Wait Times</strong>
-            </button>
-            <button class="quick-action-card" type="button" id="park-map-button">
-              <span>🗺️</span>
-              <strong>Park Map</strong>
-            </button>
-            <button class="quick-action-card magic-action-card" type="button" data-action="open-magic">
-              <span>✨</span>
-              <strong>What Should I Do?</strong>
-            </button>
-          </div>
-        </section>
-
-        <section class="section-block">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Your day</p>
-              <h2>Trip planning</h2>
-            </div>
-          </div>
-
-          <article class="info-card coming-soon-surface">
-            <div class="card-icon">📅</div>
-            <div class="card-content">
-              <div class="card-heading-row">
-                <div>
-                  <p class="card-label">Your Disney Day</p>
-                  <h3>Plans, reservations, and reminders</h3>
-                </div>
-                <span class="feature-state-badge coming-soon">Coming Soon</span>
-              </div>
-              <p class="secondary-detail">A complete daily timeline built around your park plans, dining, and Lightning Lane reservations.</p>
-            </div>
-          </article>
-        </section>
-
-        <section class="section-block">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">DisneyOS intelligence</p>
-              <h2>What to do next</h2>
-            </div>
-          </div>
-
-          <button class="recommendation-card magic-recommendation-card" type="button" data-action="open-magic">
-            <div class="recommendation-main">
-              <div class="recommendation-icon">✨</div>
-              <div>
-                <div class="card-heading-row">
-                  <div>
-                    <p class="card-label">DisneyOS Magic</p>
-                    <h3>What should I do next?</h3>
-                  </div>
-                  <span class="feature-state-badge live">Live</span>
-                </div>
-                <p class="secondary-detail">One tap combines current waits, today’s entertainment, weather, and park hours into a recommendation.</p>
-              </div>
-            </div>
-          </button>
-        </section>
-
-      </section>
-
-      <!-- PARKS -->
-
-      <section
-        class="page"
-        id="parks-page"
-        data-page="parks"
-      >
-
-        <div class="page-title-block">
-          <p class="eyebrow">
+<section class="section-block">
+<div class="section-heading">
+<div>
+<p class="eyebrow">At a glance</p>
+<h2>Park information</h2>
+</div>
+</div>
+<div class="home-info-grid">
+<article class="home-info-card expandable-info-card" id="weather-card">
+<button aria-expanded="false" class="info-card-toggle" type="button">
+<span class="compact-card-icon" id="weather-card-icon">🌦️</span>
+<span class="info-card-copy">
+<span class="card-label">Weather</span>
+<strong id="weather-summary-title">Loading forecast…</strong>
+<small id="weather-summary-detail">Checking current conditions</small>
+</span>
+<span class="schedule-chevron">›</span>
+</button>
+<div class="info-card-details" hidden="">
+<div class="weather-detail-grid" id="weather-detail-grid"></div>
+</div>
+</article>
+<article class="home-info-card expandable-info-card" id="transportation-card">
+<button aria-expanded="false" class="info-card-toggle" type="button">
+<span class="compact-card-icon">🚝</span>
+<span class="info-card-copy">
+<span class="card-label">Transportation</span>
+<strong id="transportation-title">Loading options…</strong>
+<small id="transportation-detail">Checking routes for this park</small>
+</span>
+<span class="schedule-chevron">›</span>
+</button>
+<div class="info-card-details" hidden="">
+<div class="transportation-list" id="transportation-list"></div>
+</div>
+</article>
+</div>
+</section><section class="section-block">
+<div class="section-heading">
+<div>
+<p class="eyebrow">One tap</p>
+<h2>Quick actions</h2>
+</div>
+</div>
+<div class="quick-action-grid">
+<button class="quick-action-card" data-action="open-wait-times" type="button">
+<span>⏱️</span>
+<strong>Wait Times</strong>
+</button>
+<button class="quick-action-card" id="park-map-button" type="button">
+<span>🗺️</span>
+<strong>Park Map</strong>
+</button>
+<button class="quick-action-card magic-action-card" data-action="open-magic" type="button">
+<span>✨</span>
+<strong>What Should I Do?</strong>
+</button>
+</div>
+</section><section class="section-block">
+<div class="section-heading">
+<div>
+<p class="eyebrow">Your day</p>
+<h2>Trip planning</h2>
+</div>
+</div>
+<article class="info-card coming-soon-surface">
+<div class="card-icon">📅</div>
+<div class="card-content">
+<div class="card-heading-row">
+<div>
+<p class="card-label">Your Disney Day</p>
+<h3>Plans, reservations, and reminders</h3>
+</div>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</div>
+<p class="secondary-detail">A complete daily timeline built around your park plans, dining, and Lightning Lane reservations.</p>
+</div>
+</article>
+</section><section class="section-block">
+<div class="section-heading">
+<div>
+<p class="eyebrow">DisneyOS intelligence</p>
+<h2>What to do next</h2>
+</div>
+</div>
+<button class="recommendation-card magic-recommendation-card" data-action="open-magic" type="button">
+<div class="recommendation-main">
+<div class="recommendation-icon">✨</div>
+<div>
+<div class="card-heading-row">
+<div>
+<p class="card-label">DisneyOS Magic</p>
+<h3>What should I do next?</h3>
+</div>
+<span class="feature-state-badge live">Live</span>
+</div>
+<p class="secondary-detail">One tap combines current waits, today’s entertainment, weather, and park hours into a recommendation.</p>
+</div>
+</div>
+</button>
+</section><section class="section-block">
+<div class="section-heading">
+<div>
+<p class="eyebrow">Today in the park</p>
+<h2>What’s next</h2>
+</div>
+</div>
+<div class="schedule-card-list" id="schedule-card-list">
+<article class="schedule-loading-card" id="schedule-loading-card">
+<div aria-hidden="true" class="loading-spinner"></div>
+<div>
+<strong>Loading today’s entertainment</strong>
+<p>Checking remaining showtimes for the selected park.</p>
+</div>
+</article>
+</div>
+</section></section>
+<!-- PARKS -->
+<section class="page" data-page="parks" id="parks-page">
+<div class="page-title-block">
+<p class="eyebrow">
             Explore
           </p>
-
-          <h2>
+<h2>
             Parks
           </h2>
-
-          <p>
+<p>
             Live attraction wait times are available for all four Walt Disney World parks.
           </p>
-        </div>
-
-        <div class="park-list">
-
-          <article class="park-card">
-
-            <div class="park-card-overlay">
-
-              <div>
-                <div class="park-card-heading">
-                  <div>
-                    <p class="card-label">
+</div>
+<div class="park-list">
+<article class="park-card">
+<div class="park-card-overlay">
+<div>
+<div class="park-card-heading">
+<div>
+<p class="card-label">
                       Walt Disney World
                     </p>
-
-                    <h3>
+<h3>
                       Magic Kingdom
                     </h3>
-                  </div>
-                </div>
-
-                <p class="secondary-detail">
+</div>
+</div>
+<p class="secondary-detail">
                   Current attraction wait times
                 </p>
-              </div>
-
-              <button
-                class="park-live-button"
-                type="button"
-                data-wait-park="magic-kingdom"
-              >
+</div>
+<button class="park-live-button" data-wait-park="magic-kingdom" type="button">
                 View wait times
               </button>
-
-            </div>
-
-          </article>
-
-          <article class="park-card">
-
-            <div class="park-card-overlay">
-
-              <div>
-                <div class="park-card-heading">
-                  <div>
-                    <p class="card-label">
+</div>
+</article>
+<article class="park-card">
+<div class="park-card-overlay">
+<div>
+<div class="park-card-heading">
+<div>
+<p class="card-label">
                       Walt Disney World
                     </p>
-
-                    <h3>
+<h3>
                       EPCOT
                     </h3>
-                  </div>
-                </div>
-
-                <p class="secondary-detail">
+</div>
+</div>
+<p class="secondary-detail">
                   Current attraction wait times
                 </p>
-              </div>
-
-              <button
-                class="park-live-button"
-                type="button"
-                data-wait-park="epcot"
-              >
+</div>
+<button class="park-live-button" data-wait-park="epcot" type="button">
                 View wait times
               </button>
-
-            </div>
-
-          </article>
-
-          <article class="park-card">
-
-            <div class="park-card-overlay">
-
-              <div>
-                <div class="park-card-heading">
-                  <div>
-                    <p class="card-label">
+</div>
+</article>
+<article class="park-card">
+<div class="park-card-overlay">
+<div>
+<div class="park-card-heading">
+<div>
+<p class="card-label">
                       Walt Disney World
                     </p>
-
-                    <h3>
+<h3>
                       Hollywood Studios
                     </h3>
-                  </div>
-                </div>
-
-                <p class="secondary-detail">
+</div>
+</div>
+<p class="secondary-detail">
                   Current attraction wait times
                 </p>
-              </div>
-
-              <button
-                class="park-live-button"
-                type="button"
-                data-wait-park="hollywood-studios"
-              >
+</div>
+<button class="park-live-button" data-wait-park="hollywood-studios" type="button">
                 View wait times
               </button>
-
-            </div>
-
-          </article>
-
-          <article class="park-card">
-
-            <div class="park-card-overlay">
-
-              <div>
-                <div class="park-card-heading">
-                  <div>
-                    <p class="card-label">
+</div>
+</article>
+<article class="park-card">
+<div class="park-card-overlay">
+<div>
+<div class="park-card-heading">
+<div>
+<p class="card-label">
                       Walt Disney World
                     </p>
-
-                    <h3>
+<h3>
                       Animal Kingdom
                     </h3>
-                  </div>
-                </div>
-
-                <p class="secondary-detail">
+</div>
+</div>
+<p class="secondary-detail">
                   Current attraction wait times
                 </p>
-              </div>
-
-              <button
-                class="park-live-button"
-                type="button"
-                data-wait-park="animal-kingdom"
-              >
+</div>
+<button class="park-live-button" data-wait-park="animal-kingdom" type="button">
                 View wait times
               </button>
-
-            </div>
-
-          </article>
-
-        </div>
-
-      </section>
-
-      <!-- MY TRIP -->
-
-      <section
-        class="page"
-        id="trip-page"
-        data-page="trip"
-      >
-
-        <div class="page-title-block">
-          <p class="eyebrow">
+</div>
+</article>
+</div>
+</section>
+<!-- MY TRIP -->
+<section class="page" data-page="trip" id="trip-page">
+<div class="page-title-block">
+<p class="eyebrow">
             Your vacation
           </p>
-
-          <h2>
+<h2>
             My Trip
           </h2>
-
-          <p>
+<p>
             Trip connections and itinerary tools are being built for a future DisneyOS release.
           </p>
-        </div>
-
-        <div class="menu-card-list">
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">⚡</span>
-            <span>
-              <strong>Lightning Lane</strong>
-              <small>Reservations and return windows</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">🍽️</span>
-            <span>
-              <strong>Dining</strong>
-              <small>Reservations and mobile ordering</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">🏨</span>
-            <span>
-              <strong>Resort</strong>
-              <small>Hotel details and transportation</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">🗓️</span>
-            <span>
-              <strong>Daily itinerary</strong>
-              <small>Your complete Disney day</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">🎟️</span>
-            <span>
-              <strong>Virtual Queue</strong>
-              <small>Boarding group details</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-          <button class="menu-card menu-card-coming-soon" type="button" disabled>
-            <span class="menu-card-icon">📷</span>
-            <span>
-              <strong>PhotoPass</strong>
-              <small>Recent vacation photos</small>
-            </span>
-            <span class="feature-state-badge coming-soon">Coming Soon</span>
-          </button>
-
-        </div>
-
-      </section>
-
-      <!-- SHORTCUTS -->
-
-      <section
-        class="page"
-        id="shortcuts-page"
-        data-page="shortcuts"
-      >
-
-        <div class="page-title-block">
-          <p class="eyebrow">
+</div>
+<div class="menu-card-list">
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">⚡</span>
+<span>
+<strong>Lightning Lane</strong>
+<small>Reservations and return windows</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">🍽️</span>
+<span>
+<strong>Dining</strong>
+<small>Reservations and mobile ordering</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">🏨</span>
+<span>
+<strong>Resort</strong>
+<small>Hotel details and transportation</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">🗓️</span>
+<span>
+<strong>Daily itinerary</strong>
+<small>Your complete Disney day</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">🎟️</span>
+<span>
+<strong>Virtual Queue</strong>
+<small>Boarding group details</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="menu-card menu-card-coming-soon" disabled="" type="button">
+<span class="menu-card-icon">📷</span>
+<span>
+<strong>PhotoPass</strong>
+<small>Recent vacation photos</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+</div>
+</section>
+<!-- SHORTCUTS -->
+<section class="page" data-page="shortcuts" id="shortcuts-page">
+<div class="page-title-block">
+<p class="eyebrow">
             One tap
           </p>
-
-          <h2>
+<h2>
             Shortcuts
           </h2>
-
-          <p>
+<p>
             Launch common Disney actions without navigating through menus.
           </p>
-        </div>
-
-        <div class="shortcut-grid">
-
-          <button
-            class="shortcut-card shortcut-card-live"
-            type="button"
-            id="wait-times-shortcut"
-            aria-label="Open Wait Times"
-          >
-            <span class="shortcut-icon">
+</div>
+<div class="shortcut-grid">
+<button aria-label="Open Wait Times" class="shortcut-card shortcut-card-live" id="wait-times-shortcut" type="button">
+<span class="shortcut-icon">
               ⏱️
             </span>
-
-            <strong>
+<strong>
               Wait Times
             </strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">⚡</span>
-            <strong>Lightning Lane</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">🍔</span>
-            <strong>Mobile Order</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">🚻</span>
-            <strong>Find Restroom</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">🚌</span>
-            <strong>Bus Times</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">📍</span>
-            <strong>Navigate</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">👑</span>
-            <strong>Characters</strong>
-          </button>
-
-          <button class="shortcut-card shortcut-card-coming-soon" type="button" disabled>
-            <span class="shortcut-icon">📋</span>
-            <strong>Tip Board</strong>
-          </button>
-
-        </div>
-
-      </section>
-
-      <!-- SETTINGS -->
-
-      <section
-        class="page"
-        id="settings-page"
-        data-page="settings"
-      >
-
-        <div class="page-title-block">
-          <p class="eyebrow">
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">⚡</span>
+<strong>Lightning Lane</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">🍔</span>
+<strong>Mobile Order</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">🚻</span>
+<strong>Find Restroom</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">🚌</span>
+<strong>Bus Times</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">📍</span>
+<strong>Navigate</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">👑</span>
+<strong>Characters</strong>
+</button>
+<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
+<span class="shortcut-icon">📋</span>
+<strong>Tip Board</strong>
+</button>
+</div>
+</section>
+<!-- SETTINGS -->
+<section class="page" data-page="settings" id="settings-page">
+<div class="page-title-block">
+<p class="eyebrow">
             DisneyOS
           </p>
-
-          <h2>
+<h2>
             Settings
           </h2>
-
-          <p>
+<p>
             Personalize your DisneyOS experience.
           </p>
-        </div>
-
-        <div class="settings-group">
-
-          <p class="settings-group-label">
+</div>
+<div class="settings-group">
+<p class="settings-group-label">
             Profile
           </p>
-
-          <div class="settings-card">
-
-            <button class="settings-row" type="button" id="edit-name-button">
-              <span>
-                <strong>Name</strong>
-                <small id="settings-name">Not set</small>
-              </span>
-              <span>›</span>
-            </button>
-
-            <button class="settings-row" type="button" id="edit-park-button">
-              <span>
-                <strong>Preferred park</strong>
-                <small id="settings-park">Magic Kingdom</small>
-              </span>
-              <span>›</span>
-            </button>
-
-            <button class="settings-row settings-row-coming-soon" type="button" disabled>
-              <span>
-                <strong>Default resort</strong>
-                <small>Resort selection</small>
-              </span>
-              <span class="feature-state-badge coming-soon">Coming Soon</span>
-            </button>
-
-          </div>
-
-        </div>
-
-        <div class="settings-group">
-
-          <p class="settings-group-label">
+<div class="settings-card">
+<button class="settings-row" id="edit-name-button" type="button">
+<span>
+<strong>Name</strong>
+<small id="settings-name">Not set</small>
+</span>
+<span>›</span>
+</button>
+<button class="settings-row" id="edit-park-button" type="button">
+<span>
+<strong>Preferred park</strong>
+<small id="settings-park">Magic Kingdom</small>
+</span>
+<span>›</span>
+</button>
+<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<span>
+<strong>Default resort</strong>
+<small>Resort selection</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+</div>
+</div>
+<div class="settings-group">
+<p class="settings-group-label">
             Connections
           </p>
-
-          <div class="settings-card">
-
-            <button class="settings-row settings-row-coming-soon" type="button" disabled>
-              <span>
-                <strong>Disney Planner</strong>
-                <small>Trip connection</small>
-              </span>
-              <span class="feature-state-badge coming-soon">Coming Soon</span>
-            </button>
-
-            <button class="settings-row settings-row-coming-soon" type="button" disabled>
-              <span>
-                <strong>Apple Shortcuts</strong>
-                <small>Shortcut management</small>
-              </span>
-              <span class="feature-state-badge coming-soon">Coming Soon</span>
-            </button>
-
-          </div>
-
-        </div>
-
-        <div class="settings-group">
-
-          <p class="settings-group-label">
+<div class="settings-card">
+<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<span>
+<strong>Disney Planner</strong>
+<small>Trip connection</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<span>
+<strong>Apple Shortcuts</strong>
+<small>Shortcut management</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+</div>
+</div>
+<div class="settings-group">
+<p class="settings-group-label">
             Application
           </p>
-
-          <div class="settings-card">
-
-            <button class="settings-row settings-row-coming-soon" type="button" disabled>
-              <span>
-                <strong>Appearance</strong>
-                <small>Theme options</small>
-              </span>
-              <span class="feature-state-badge coming-soon">Coming Soon</span>
-            </button>
-
-            <button class="settings-row settings-row-coming-soon" type="button" disabled>
-              <span>
-                <strong>Notifications</strong>
-                <small>Alert preferences</small>
-              </span>
-              <span class="feature-state-badge coming-soon">Coming Soon</span>
-            </button>
-
-            <div class="settings-row static-row">
-              <span>
-                <strong>DisneyOS version</strong>
-                <small>1.2.0 Preview</small>
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </main>
-
-    <nav
-      class="bottom-navigation"
-      aria-label="Primary navigation"
-    >
-
-      <button class="nav-button active" type="button" data-target="home" aria-label="Home">
-        <span class="nav-icon">⌂</span>
-        <span class="nav-label">Home</span>
-      </button>
-
-      <button class="nav-button" type="button" data-target="parks" aria-label="Parks">
-        <span class="nav-icon">♜</span>
-        <span class="nav-label">Parks</span>
-      </button>
-
-      <button class="nav-button" type="button" data-target="trip" aria-label="My Trip">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">My Trip</span>
-      </button>
-
-      <button class="nav-button" type="button" data-target="shortcuts" aria-label="Shortcuts">
-        <span class="nav-icon">⚡</span>
-        <span class="nav-label">Shortcuts</span>
-      </button>
-
-      <button class="nav-button" type="button" data-target="settings" aria-label="Settings">
-        <span class="nav-icon">⚙</span>
-        <span class="nav-label">Settings</span>
-      </button>
-
-    </nav>
-
-  </div>
-
-  <script src="js/app.js?v=2"></script>
-
-
-  <div class="magic-modal" id="magic-modal" hidden>
-    <div class="magic-modal-backdrop" data-action="close-magic"></div>
-
-    <section class="magic-sheet" role="dialog" aria-modal="true" aria-labelledby="magic-title">
-      <header class="magic-sheet-header">
-        <div>
-          <p class="eyebrow">DisneyOS Magic</p>
-          <h2 id="magic-title">What should I do next?</h2>
-        </div>
-
-        <button class="magic-close-button" type="button" data-action="close-magic" aria-label="Close DisneyOS Magic">×</button>
-      </header>
-
-      <div class="magic-content" id="magic-content">
-        <div class="magic-loading">
-          <div class="loading-spinner" aria-hidden="true"></div>
-          <strong>Finding your best next move…</strong>
-          <p>Comparing waits, shows, weather, and remaining park time.</p>
-        </div>
-      </div>
-
-      <footer class="magic-sheet-footer" id="magic-actions" hidden>
-        <button class="secondary-button" id="magic-another-button" type="button">🔄 Give me another</button>
-        <button class="primary-button" id="magic-wait-times-button" type="button">View Wait Times</button>
-      </footer>
-    </section>
-  </div>
-
-
-  <script>
+<div class="settings-card">
+<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<span>
+<strong>Appearance</strong>
+<small>Theme options</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<span>
+<strong>Notifications</strong>
+<small>Alert preferences</small>
+</span>
+<span class="feature-state-badge coming-soon">Coming Soon</span>
+</button>
+<div class="settings-row static-row">
+<span>
+<strong>DisneyOS version</strong>
+<small>1.2.0 Preview</small>
+</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav aria-label="Primary navigation" class="bottom-navigation">
+<button aria-label="Home" class="nav-button active" data-target="home" type="button">
+<span class="nav-icon">⌂</span>
+<span class="nav-label">Home</span>
+</button>
+<button aria-label="Parks" class="nav-button" data-target="parks" type="button">
+<span class="nav-icon">♜</span>
+<span class="nav-label">Parks</span>
+</button>
+<button aria-label="My Trip" class="nav-button" data-target="trip" type="button">
+<span class="nav-icon">◉</span>
+<span class="nav-label">My Trip</span>
+</button>
+<button aria-label="Shortcuts" class="nav-button" data-target="shortcuts" type="button">
+<span class="nav-icon">⚡</span>
+<span class="nav-label">Shortcuts</span>
+</button>
+<button aria-label="Settings" class="nav-button" data-target="settings" type="button">
+<span class="nav-icon">⚙</span>
+<span class="nav-label">Settings</span>
+</button>
+</nav>
+</div>
+<script src="js/app.js?v=2.0.2"></script>
+<div class="magic-modal" hidden="" id="magic-modal">
+<div class="magic-modal-backdrop" data-action="close-magic"></div>
+<section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
+<header class="magic-sheet-header">
+<div>
+<p class="eyebrow">DisneyOS Magic</p>
+<h2 id="magic-title">What should I do next?</h2>
+</div>
+<button aria-label="Close DisneyOS Magic" class="magic-close-button" data-action="close-magic" type="button">×</button>
+</header>
+<div class="magic-content" id="magic-content">
+<div class="magic-loading">
+<div aria-hidden="true" class="loading-spinner"></div>
+<strong>Finding your best next move…</strong>
+<p>Comparing waits, shows, weather, and remaining park time.</p>
+</div>
+</div>
+<footer class="magic-sheet-footer" hidden="" id="magic-actions">
+<button class="secondary-button" id="magic-another-button" type="button">🔄 Give me another</button>
+<button class="primary-button" id="magic-wait-times-button" type="button">View Wait Times</button>
+</footer>
+</section>
+</div>
+<script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
     }

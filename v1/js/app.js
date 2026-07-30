@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dateElement = document.getElementById("current-date");
   const currentParkElement = document.getElementById("current-park");
   const profileInitialElement = document.getElementById("profile-initial");
+  const profileButton = document.getElementById("profile-button");
   const settingsNameElement = document.getElementById("settings-name");
   const settingsParkElement = document.getElementById("settings-park");
   const editNameButton = document.getElementById("edit-name-button");
@@ -1285,6 +1286,54 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((item) => item.name);
   }
 
+  function normalizeExperienceName(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  function classifyMagicExperience(attraction, entertainmentByName) {
+    const normalized = normalizeExperienceName(attraction.name);
+    const matchedEntertainment = entertainmentByName.get(normalized);
+    const rawType = normalizeExperienceName(
+      attraction.raw?.type ||
+      attraction.raw?.category ||
+      attraction.raw?.entityType ||
+      attraction.raw?.kind ||
+      matchedEntertainment?.category
+    );
+
+    if (/character|meet and greet/.test(rawType) || /meet |character/.test(normalized)) {
+      return { type: "character", action: "Meet", icon: "👋" };
+    }
+
+    if (/parade|cavalcade/.test(rawType) || /parade|cavalcade|festival of fantasy/.test(normalized)) {
+      return { type: "parade", action: "Watch", icon: "🎉" };
+    }
+
+    if (/fireworks|nighttime spectacular/.test(rawType) || /fireworks|happily ever after|luminous|fantasmic/.test(normalized)) {
+      return { type: "fireworks", action: "Watch", icon: "🎆" };
+    }
+
+    const showKeywords = [
+      "philharmagic", "friendship faire", "beauty and the beast live",
+      "frozen sing along", "indiana jones epic", "muppet vision",
+      "turtle talk", "monsters inc laugh floor", "enchanted tales with belle",
+      "country bear musical jamboree", "hall of presidents",
+      "carousel of progress", "feathered friends in flight",
+      "finding nemo the big blue", "festival of the lion king"
+    ];
+
+    if (/show|entertainment|theater|theatre/.test(rawType) ||
+        showKeywords.some((keyword) => normalized.includes(keyword)) ||
+        matchedEntertainment) {
+      return { type: "show", action: "See", icon: "🎭" };
+    }
+
+    return { type: "ride", action: "Ride", icon: "✨" };
+  }
+
   function createMagicRecommendation(data) {
     const parkDay = data.parkDay || {};
     const attractions = data.waitTimes || [];
@@ -1310,6 +1359,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextEntertainment =
       getNextEntertainment(entertainment);
 
+    const entertainmentByName = new Map(
+      entertainment
+        .map((item) => [normalizeExperienceName(item.name), item])
+        .filter(([name]) => Boolean(name))
+    );
+
     const weatherContext =
       getMagicWeatherContext(data.weather);
 
@@ -1329,6 +1384,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .map((attraction) => ({
         ...attraction,
+        experience: classifyMagicExperience(attraction, entertainmentByName),
         score: scoreMagicAttraction(
           attraction,
           nextEntertainment,
@@ -1403,10 +1459,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return {
-      type: "attraction",
-      icon: "✨",
+      type: best.experience.type,
+      icon: best.experience.icon,
       eyebrow: "Best next move",
-      title: `Ride ${best.name}`,
+      title: `${best.experience.action} ${best.name}`,
       summary:
         best.wait === 0
           ? "It is currently one of the strongest low-wait opportunities in the park."
@@ -1568,6 +1624,16 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  function getEntertainmentAction(item) {
+    const category = normalizeExperienceName(item?.category);
+    const name = normalizeExperienceName(item?.name);
+
+    if (/character/.test(category) || /meet /.test(name)) return "Meet";
+    if (/parade|cavalcade/.test(category) || /parade|cavalcade/.test(name)) return "Watch";
+    if (/fireworks|nighttime/.test(category) || /fireworks|happily ever after|luminous|fantasmic/.test(name)) return "Watch";
+    return "See";
+  }
+
   function createEntertainmentFallback(
     nextEntertainment,
     minutesUntilClose,
@@ -1581,7 +1647,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "🎉"
             : "🎭",
         eyebrow: "Best next move",
-        title: `Head toward ${nextEntertainment.name}`,
+        title: `${getEntertainmentAction(nextEntertainment)} ${nextEntertainment.name}`,
         summary: `It begins in ${formatDuration(
           nextEntertainment.minutesAway
         )}.`,
@@ -1764,6 +1830,10 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => {
       showPage(button.dataset.target);
     });
+  });
+
+  profileButton?.addEventListener("click", () => {
+    showPage("settings");
   });
 
   editNameButton?.addEventListener(
