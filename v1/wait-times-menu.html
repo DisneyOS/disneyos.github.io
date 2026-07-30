@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="Choose a Walt Disney World park to view live wait times."
+  >
+
+  <meta name="theme-color" content="#05070c">
+
+  <title>Wait Times | DisneyOS</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <style>
+    .utility-page-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .utility-back-button {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+
+      width: 44px;
+      height: 44px;
+
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+
+      background: var(--surface-soft);
+
+      color: var(--text-primary);
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .utility-page-main {
+      width: min(100%, var(--content-width));
+      margin: 0 auto;
+      padding: 0 var(--space-5) var(--space-8);
+    }
+
+    .park-choice-link {
+      text-decoration: none;
+    }
+
+    .park-choice-link:active {
+      transform: scale(0.975);
+    }
+
+    @media (min-width: 560px) {
+      .utility-page-main {
+        padding-right: var(--space-7);
+        padding-left: var(--space-7);
+      }
+    }
+
+    @media (max-width: 370px) {
+      .utility-page-main {
+        padding-right: var(--space-4);
+        padding-left: var(--space-4);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ambient one" aria-hidden="true"></div>
+  <div class="ambient two" aria-hidden="true"></div>
+
+  <div class="app-shell">
+
+    <header class="app-header">
+
+      <div class="header-content utility-page-header">
+
+        <button
+          class="utility-back-button"
+          type="button"
+          id="back-button"
+          aria-label="Return to DisneyOS Shortcuts"
+        >
+          ‹
+        </button>
+
+        <div>
+          <p class="eyebrow">
+            DisneyOS Shortcuts
+          </p>
+
+          <h1>
+            Wait Times
+          </h1>
+        </div>
+
+      </div>
+
+    </header>
+
+    <main class="utility-page-main">
+
+      <div class="page-title-block">
+        <p>
+          Choose a park to view current attraction wait times.
+        </p>
+      </div>
+
+      <div class="menu-card-list">
+
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=magic-kingdom"
+        >
+          <span class="menu-card-icon">
+            🏰
+          </span>
+
+          <span>
+            <strong>
+              Magic Kingdom
+            </strong>
+
+            <small>
+              View live attraction waits
+            </small>
+          </span>
+
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
+
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=epcot"
+        >
+          <span class="menu-card-icon">
+            🌐
+          </span>
+
+          <span>
+            <strong>
+              EPCOT
+            </strong>
+
+            <small>
+              View live attraction waits
+            </small>
+          </span>
+
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
+
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=hollywood-studios"
+        >
+          <span class="menu-card-icon">
+            🎬
+          </span>
+
+          <span>
+            <strong>
+              Hollywood Studios
+            </strong>
+
+            <small>
+              View live attraction waits
+            </small>
+          </span>
+
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
+
+        <a
+          class="menu-card park-choice-link"
+          href="wait-times.html?park=animal-kingdom"
+        >
+          <span class="menu-card-icon">
+            🌳
+          </span>
+
+          <span>
+            <strong>
+              Animal Kingdom
+            </strong>
+
+            <small>
+              View live attraction waits
+            </small>
+          </span>
+
+          <span class="menu-card-arrow">
+            ›
+          </span>
+        </a>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    document
+      .getElementById("back-button")
+      .addEventListener("click", () => {
+        window.location.href = "index.html";
+      });
+  </script>
+
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
+    }
+  </script>
+</body>
+</html>

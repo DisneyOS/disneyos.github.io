@@ -1,0 +1,2529 @@
+/* =========================================================
+   DisneyOS v1.0
+   Core application styles
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   Design tokens
+   --------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+
+  --background: #07111f;
+  --background-deep: #040a12;
+  --surface: rgba(18, 31, 49, 0.88);
+  --surface-strong: #14243a;
+  --surface-soft: rgba(255, 255, 255, 0.055);
+  --surface-hover: rgba(255, 255, 255, 0.09);
+
+  --primary: #4f9cff;
+  --primary-bright: #70b1ff;
+  --primary-soft: rgba(79, 156, 255, 0.16);
+
+  --success: #4cd77d;
+  --success-soft: rgba(76, 215, 125, 0.14);
+
+  --warning: #ffbd4a;
+  --warning-soft: rgba(255, 189, 74, 0.14);
+
+  --critical: #ff6b6b;
+  --critical-soft: rgba(255, 107, 107, 0.14);
+
+  --text-primary: #f4f8ff;
+  --text-secondary: #a8b7ca;
+  --text-muted: #738398;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --shadow-small:
+    0 8px 24px rgba(0, 0, 0, 0.18);
+
+  --shadow-medium:
+    0 18px 48px rgba(0, 0, 0, 0.26);
+
+  --shadow-large:
+    0 28px 80px rgba(0, 0, 0, 0.34);
+
+  --radius-small: 14px;
+  --radius-medium: 20px;
+  --radius-large: 28px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+
+  --content-width: 760px;
+  --navigation-height: 82px;
+}
+
+
+/* ---------------------------------------------------------
+   Reset and base
+   --------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background-deep);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(50, 110, 190, 0.22),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(63, 168, 255, 0.12),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #0a1728 0%,
+      var(--background) 36%,
+      var(--background-deep) 100%
+    );
+
+  background-attachment: fixed;
+
+  color: var(--text-primary);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    "Segoe UI",
+    sans-serif;
+
+  line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(79, 156, 255, 0.65);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+
+/* ---------------------------------------------------------
+   Application shell
+   --------------------------------------------------------- */
+
+.app-shell {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom:
+    calc(
+      var(--navigation-height) +
+      env(safe-area-inset-bottom) +
+      28px
+    );
+}
+
+.app-header {
+  position: relative;
+  z-index: 10;
+
+  padding:
+    calc(env(safe-area-inset-top) + 22px)
+    var(--space-5)
+    var(--space-5);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  width: min(100%, var(--content-width));
+  margin: 0 auto;
+}
+
+.app-header h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.7rem, 7vw, 2.45rem);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.profile-button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  width: 46px;
+  height: 46px;
+
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(106, 177, 255, 0.95),
+      rgba(43, 102, 191, 0.94)
+    );
+
+  box-shadow:
+    0 10px 26px rgba(32, 102, 193, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  color: #ffffff;
+  font-weight: 750;
+}
+
+.app-content {
+  width: min(100%, var(--content-width));
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+
+/* ---------------------------------------------------------
+   Page transitions
+   --------------------------------------------------------- */
+
+.page {
+  display: none;
+  animation: page-enter 260ms ease both;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   Shared typography
+   --------------------------------------------------------- */
+
+.eyebrow,
+.card-label,
+.settings-group-label,
+.metric-label {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 760;
+  letter-spacing: 0.095em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin-bottom: 6px;
+}
+
+.card-label {
+  margin-bottom: 5px;
+}
+
+.secondary-detail {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.91rem;
+}
+
+.primary-detail {
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-size: 1.12rem;
+  font-weight: 730;
+}
+
+
+/* ---------------------------------------------------------
+   Home hero
+   --------------------------------------------------------- */
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+
+  padding: var(--space-6);
+
+  border: 1px solid rgba(144, 196, 255, 0.2);
+  border-radius: var(--radius-large);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(52, 121, 212, 0.94),
+      rgba(24, 69, 130, 0.95) 55%,
+      rgba(19, 43, 78, 0.97)
+    );
+
+  box-shadow:
+    var(--shadow-large),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.hero-card::before {
+  position: absolute;
+  top: -45px;
+  right: -55px;
+
+  width: 190px;
+  height: 190px;
+
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+
+  content: "";
+}
+
+.hero-card::after {
+  position: absolute;
+  right: 18%;
+  bottom: -74px;
+
+  width: 180px;
+  height: 180px;
+
+  border-radius: 50%;
+  background: rgba(92, 182, 255, 0.13);
+
+  content: "";
+}
+
+.hero-card-top,
+.hero-card-bottom {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.hero-card h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.75rem, 7vw, 2.35rem);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.weather-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 9px 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-pill);
+
+  background: rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  font-size: 1rem;
+  font-weight: 740;
+}
+
+.weather-icon {
+  font-size: 1rem;
+}
+
+.hero-card-bottom {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-card-bottom div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-card-bottom .metric-label {
+  color: rgba(232, 243, 255, 0.65);
+}
+
+.hero-card-bottom strong {
+  font-size: 0.95rem;
+}
+
+
+/* ---------------------------------------------------------
+   Sections and headings
+   --------------------------------------------------------- */
+
+.section-block {
+  margin-top: var(--space-8);
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  margin-bottom: var(--space-4);
+}
+
+.section-heading h2,
+.page-title-block h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.45rem, 6vw, 1.92rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.text-button {
+  flex: 0 0 auto;
+
+  padding: 8px 0;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--primary-bright);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   General cards
+   --------------------------------------------------------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.info-card,
+.recommendation-card,
+.compact-card,
+.menu-card,
+.shortcut-card,
+.settings-card {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 44, 67, 0.93),
+      rgba(13, 25, 41, 0.95)
+    );
+  box-shadow: var(--shadow-small);
+}
+
+.info-card {
+  display: flex;
+  gap: var(--space-4);
+
+  padding: var(--space-5);
+
+  border-radius: var(--radius-medium);
+}
+
+.featured-card {
+  border-color: rgba(79, 156, 255, 0.24);
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(79, 156, 255, 0.04);
+}
+
+.card-icon,
+.compact-card-icon,
+.menu-card-icon,
+.shortcut-icon,
+.recommendation-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.card-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 14px;
+
+  background: var(--surface-soft);
+
+  font-size: 1.25rem;
+}
+
+.lightning-icon {
+  background: var(--warning-soft);
+}
+
+.dining-icon {
+  background: rgba(255, 132, 105, 0.13);
+}
+
+.card-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-content h3,
+.recommendation-card h3,
+.compact-card h3 {
+  margin-bottom: 8px;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.card-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+
+/* ---------------------------------------------------------
+   Status badges
+   --------------------------------------------------------- */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 26px;
+  padding: 5px 9px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+}
+
+.status-badge.success {
+  border-color: rgba(76, 215, 125, 0.19);
+  background: var(--success-soft);
+  color: #76e89a;
+}
+
+.status-badge.warning {
+  border-color: rgba(255, 189, 74, 0.2);
+  background: var(--warning-soft);
+  color: #ffd072;
+}
+
+
+/* ---------------------------------------------------------
+   Buttons
+   --------------------------------------------------------- */
+
+.primary-button,
+.secondary-button {
+  min-height: 44px;
+  padding: 10px 15px;
+
+  border-radius: 13px;
+
+  font-weight: 730;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.primary-button {
+  margin-top: var(--space-4);
+
+  border: 1px solid rgba(118, 187, 255, 0.28);
+  background: var(--primary);
+  box-shadow: 0 8px 20px rgba(51, 127, 222, 0.24);
+
+  color: #ffffff;
+}
+
+.secondary-button {
+  width: 100%;
+
+  border: 1px solid var(--border-strong);
+  background: var(--surface-soft);
+
+  color: var(--text-primary);
+}
+
+.primary-button:active,
+.secondary-button:active,
+.menu-card:active,
+.shortcut-card:active,
+.nav-button:active {
+  transform: scale(0.975);
+}
+
+
+/* ---------------------------------------------------------
+   Recommendation card
+   --------------------------------------------------------- */
+
+.recommendation-card {
+  padding: var(--space-5);
+
+  border-radius: var(--radius-large);
+}
+
+.recommendation-main {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.recommendation-icon {
+  width: 52px;
+  height: 52px;
+
+  border-radius: 16px;
+
+  background: rgba(133, 99, 255, 0.13);
+
+  font-size: 1.5rem;
+}
+
+.wait-time-display {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+
+  margin: var(--space-5) 0;
+
+  padding: var(--space-4);
+
+  border: 1px solid rgba(79, 156, 255, 0.16);
+  border-radius: var(--radius-medium);
+
+  background: var(--primary-soft);
+}
+
+.wait-time-display strong {
+  font-size: 2.15rem;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.wait-time-display span {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   Compact information cards
+   --------------------------------------------------------- */
+
+.compact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.compact-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+
+  min-height: 94px;
+  padding: var(--space-4);
+
+  border-radius: var(--radius-medium);
+}
+
+.compact-card-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 14px;
+
+  background: var(--surface-soft);
+
+  font-size: 1.25rem;
+}
+
+.compact-card h3 {
+  margin-bottom: 2px;
+  font-size: 1rem;
+}
+
+
+/* ---------------------------------------------------------
+   General page heading
+   --------------------------------------------------------- */
+
+.page-title-block {
+  margin-bottom: var(--space-7);
+}
+
+.page-title-block p:last-child {
+  max-width: 540px;
+  margin-top: var(--space-3);
+  margin-bottom: 0;
+
+  color: var(--text-secondary);
+}
+
+
+/* ---------------------------------------------------------
+   Park cards
+   --------------------------------------------------------- */
+
+.park-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.park-card {
+  position: relative;
+  overflow: hidden;
+
+  min-height: 220px;
+
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-large);
+
+  background:
+    radial-gradient(
+      circle at 78% 24%,
+      rgba(112, 177, 255, 0.34),
+      transparent 29%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(31, 91, 159, 0.94),
+      rgba(16, 36, 64, 0.98)
+    );
+
+  box-shadow: var(--shadow-medium);
+}
+
+.park-card:nth-child(2) {
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(198, 130, 255, 0.28),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(69, 50, 121, 0.95),
+      rgba(20, 27, 52, 0.98)
+    );
+}
+
+.park-card:nth-child(3) {
+  background:
+    radial-gradient(
+      circle at 78% 24%,
+      rgba(255, 119, 104, 0.24),
+      transparent 29%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(121, 57, 60, 0.95),
+      rgba(42, 24, 36, 0.98)
+    );
+}
+
+.park-card:nth-child(4) {
+  background:
+    radial-gradient(
+      circle at 78% 24%,
+      rgba(116, 214, 145, 0.23),
+      transparent 29%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(45, 103, 74, 0.95),
+      rgba(20, 41, 34, 0.98)
+    );
+}
+
+.park-card::before {
+  position: absolute;
+  top: -34px;
+  right: -30px;
+
+  width: 185px;
+  height: 185px;
+
+  border: 32px solid rgba(255, 255, 255, 0.035);
+  border-radius: 50%;
+
+  content: "";
+}
+
+.park-card-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding: var(--space-6);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 9, 16, 0.03),
+      rgba(4, 9, 16, 0.15) 45%,
+      rgba(4, 9, 16, 0.48)
+    );
+}
+
+.park-card h3 {
+  margin-bottom: 4px;
+
+  font-size: clamp(1.55rem, 6vw, 2rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.park-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.park-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  padding-top: var(--space-4);
+}
+
+.park-metrics strong {
+  font-size: 1.13rem;
+}
+
+.park-metrics span {
+  color: rgba(232, 240, 252, 0.66);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+
+/* ---------------------------------------------------------
+   My Trip menu
+   --------------------------------------------------------- */
+
+.menu-card-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.menu-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+
+  width: 100%;
+  min-height: 78px;
+  padding: var(--space-4);
+
+  border-radius: var(--radius-medium);
+
+  text-align: left;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.menu-card:hover {
+  border-color: var(--border-strong);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(32, 51, 78, 0.96),
+      rgba(17, 30, 48, 0.98)
+    );
+}
+
+.menu-card-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 14px;
+
+  background: var(--surface-soft);
+
+  font-size: 1.18rem;
+}
+
+.menu-card span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-card strong {
+  font-size: 1rem;
+}
+
+.menu-card small,
+.settings-row small {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.menu-card-arrow {
+  color: var(--text-muted);
+  font-size: 1.75rem;
+  font-weight: 300;
+}
+
+
+/* ---------------------------------------------------------
+   Shortcut cards
+   --------------------------------------------------------- */
+
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.shortcut-card {
+  display: flex;
+  min-height: 138px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  padding: var(--space-4);
+
+  border-radius: var(--radius-medium);
+
+  text-align: left;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.shortcut-card:hover {
+  border-color: var(--border-strong);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31, 49, 75, 0.96),
+      rgba(17, 30, 48, 0.98)
+    );
+}
+
+.shortcut-icon {
+  width: 46px;
+  height: 46px;
+
+  border-radius: 15px;
+
+  background: var(--primary-soft);
+
+  font-size: 1.3rem;
+}
+
+.shortcut-card strong {
+  max-width: 110px;
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.shortcut-card-live {
+  cursor: pointer;
+}
+
+.shortcut-card-coming-soon {
+  position: relative;
+  overflow: hidden;
+
+  cursor: default;
+}
+
+.shortcut-card-coming-soon > * {
+  filter: saturate(0.35);
+  opacity: 0.74;
+}
+
+.shortcut-card-coming-soon::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background: rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+
+  content: "";
+}
+
+.shortcut-card-coming-soon::after {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+
+  min-width: max-content;
+  padding: 7px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-pill);
+
+  background: rgba(8, 18, 31, 0.78);
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  color: rgba(255, 255, 255, 0.94);
+
+  content: "COMING SOON";
+
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+  line-height: 1;
+  text-transform: uppercase;
+
+  transform: translate(-50%, -50%);
+}
+
+.shortcut-card-coming-soon:hover {
+  border-color: var(--border);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 44, 67, 0.93),
+      rgba(13, 25, 41, 0.95)
+    );
+}
+
+.shortcut-card-coming-soon:active {
+  transform: none;
+}
+
+
+/* ---------------------------------------------------------
+   Settings
+   --------------------------------------------------------- */
+
+.settings-group {
+  margin-bottom: var(--space-7);
+}
+
+.settings-group-label {
+  margin-bottom: var(--space-3);
+  padding-left: 4px;
+}
+
+.settings-card {
+  overflow: hidden;
+  border-radius: var(--radius-medium);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  width: 100%;
+  min-height: 68px;
+  padding: var(--space-4);
+
+  border: 0;
+  border-bottom: 1px solid var(--border);
+
+  background: transparent;
+
+  text-align: left;
+}
+
+.settings-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-row > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-row > span:last-child:not(.status-badge) {
+  color: var(--text-muted);
+  font-size: 1.45rem;
+}
+
+.static-row {
+  cursor: default;
+}
+
+
+/* ---------------------------------------------------------
+   Bottom navigation
+   --------------------------------------------------------- */
+
+.bottom-navigation {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  bottom: 0;
+
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  width: min(100%, var(--content-width));
+  min-height: var(--navigation-height);
+
+  margin: 0;
+  padding:
+    8px
+    8px
+    calc(8px + env(safe-area-inset-bottom));
+
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+
+  background: rgba(11, 21, 34, 0.92);
+
+  box-shadow:
+    0 -10px 34px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+
+  transform: translateX(-50%);
+}
+
+.nav-button {
+  position: relative;
+
+  display: flex;
+  min-width: 0;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  padding: 6px 3px;
+
+  border: 0;
+  border-radius: 17px;
+
+  background: transparent;
+
+  color: var(--text-muted);
+
+  transition:
+    transform 150ms ease,
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.nav-button.active {
+  background: var(--primary-soft);
+  color: var(--primary-bright);
+}
+
+.nav-icon {
+  display: grid;
+  place-items: center;
+
+  min-height: 28px;
+
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.nav-label {
+  overflow: hidden;
+
+  max-width: 100%;
+
+  font-size: 0.64rem;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   Tablet and desktop
+   --------------------------------------------------------- */
+
+@media (min-width: 560px) {
+  .app-header {
+    padding-right: var(--space-7);
+    padding-left: var(--space-7);
+  }
+
+  .app-content {
+    padding-right: var(--space-7);
+    padding-left: var(--space-7);
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .featured-card {
+    grid-column: 1 / -1;
+  }
+
+  .compact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .park-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shortcut-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .shortcut-card {
+    min-height: 150px;
+  }
+}
+
+@media (min-width: 820px) {
+  .app-header {
+    padding-top: 38px;
+  }
+
+  .app-content {
+    padding-bottom: var(--space-8);
+  }
+
+  .hero-card {
+    padding: var(--space-7);
+  }
+
+  .card-grid {
+    grid-template-columns: 1.35fr 0.65fr;
+  }
+
+  .featured-card {
+    grid-column: auto;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   Small phones
+   --------------------------------------------------------- */
+
+@media (max-width: 370px) {
+  .app-header,
+  .app-content {
+    padding-right: var(--space-4);
+    padding-left: var(--space-4);
+  }
+
+  .hero-card,
+  .park-card-overlay {
+    padding: var(--space-5);
+  }
+
+  .card-heading-row {
+    flex-direction: column;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+  .nav-label {
+    font-size: 0.58rem;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   Reduced motion
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   Feature state system
+   --------------------------------------------------------- */
+
+.feature-state-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 26px;
+  padding: 5px 9px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.feature-state-badge.live {
+  border-color: rgba(81, 168, 255, 0.28);
+  background: rgba(65, 148, 255, 0.16);
+  color: #8ec7ff;
+}
+
+.feature-state-badge.coming-soon {
+  border-color: rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.075);
+  color: rgba(234, 240, 249, 0.72);
+}
+
+.coming-soon-surface {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coming-soon-surface .card-icon,
+.coming-soon-surface .compact-card-icon,
+.coming-soon-surface .recommendation-icon {
+  filter: saturate(0.5);
+  opacity: 0.82;
+}
+
+.hero-live-content {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-live-content > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-live-content strong {
+  font-size: 1rem;
+}
+
+.hero-action-button {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.coming-soon-card-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.compact-card > .feature-state-badge {
+  margin-left: auto;
+}
+
+.park-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.park-live-button {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 15px;
+
+  border: 1px solid rgba(134, 195, 255, 0.3);
+  border-radius: 14px;
+
+  background: rgba(37, 116, 211, 0.88);
+  box-shadow: 0 8px 24px rgba(8, 34, 70, 0.28);
+
+  color: #ffffff;
+  font-weight: 760;
+}
+
+.park-live-button:active {
+  transform: scale(0.98);
+}
+
+.menu-card-coming-soon,
+.settings-row-coming-soon {
+  cursor: default;
+}
+
+.menu-card-coming-soon {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.menu-card-coming-soon:hover {
+  border-color: var(--border);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 44, 67, 0.93),
+      rgba(13, 25, 41, 0.95)
+    );
+}
+
+.menu-card-coming-soon:active,
+.settings-row-coming-soon:active {
+  transform: none;
+}
+
+.menu-card-coming-soon .menu-card-icon,
+.settings-row-coming-soon > span:first-child {
+  filter: saturate(0.6);
+  opacity: 0.82;
+}
+
+.settings-row-coming-soon > .feature-state-badge,
+.static-row > .feature-state-badge {
+  color: inherit;
+  font-size: 0.66rem;
+}
+
+@media (max-width: 430px) {
+  .hero-live-content {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-action-button {
+    width: 100%;
+  }
+
+  .compact-card {
+    align-items: flex-start;
+  }
+
+  .compact-card > .feature-state-badge {
+    margin-top: 2px;
+  }
+
+  .menu-card-coming-soon {
+    gap: var(--space-3);
+  }
+
+  .menu-card-coming-soon .feature-state-badge {
+    max-width: 78px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+/* ---------------------------------------------------------
+   DisneyOS v1.3 home dashboard
+   --------------------------------------------------------- */
+
+.home-hero-card {
+  overflow: visible;
+}
+
+.park-selector-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: clamp(1.75rem, 7vw, 2.35rem);
+  font-weight: 760;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  text-align: left;
+}
+
+.park-selector-button span:last-child {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.1rem;
+}
+
+.hero-status-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-status-grid div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-status-grid .metric-label {
+  color: rgba(232, 243, 255, 0.65);
+}
+
+.hero-status-grid strong {
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.park-selector-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 14px);
+  right: var(--space-5);
+  left: var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-medium);
+  background: rgba(10, 22, 37, 0.98);
+  box-shadow: var(--shadow-large);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.park-selector-panel button {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+}
+
+.park-selector-panel button:last-child {
+  border-bottom: 0;
+}
+
+.park-selector-panel button:active {
+  background: var(--surface-hover);
+}
+
+.schedule-card-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.schedule-card,
+.home-info-card,
+.quick-action-card {
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(27, 44, 67, 0.93), rgba(13, 25, 41, 0.95));
+  box-shadow: var(--shadow-small);
+}
+
+.schedule-card {
+  overflow: hidden;
+  border-radius: var(--radius-medium);
+}
+
+.schedule-card-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 88px;
+  padding: var(--space-4);
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.schedule-card-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: var(--surface-soft);
+  font-size: 1.3rem;
+}
+
+.schedule-card-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.schedule-card-copy .card-label {
+  margin: 0;
+}
+
+.schedule-card-copy strong {
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-card-copy small {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.schedule-chevron {
+  color: var(--text-muted);
+  font-size: 1.65rem;
+  transition: transform 160ms ease;
+}
+
+.schedule-card.expanded .schedule-chevron {
+  transform: rotate(90deg);
+}
+
+.schedule-card-details {
+  padding: 0 var(--space-4) var(--space-4) 78px;
+  border-top: 1px solid var(--border);
+}
+
+.schedule-card-details .card-label {
+  margin: var(--space-4) 0 var(--space-3);
+}
+
+.schedule-time-pill {
+  display: inline-flex;
+  margin: 0 8px 8px 0;
+  padding: 7px 10px;
+  border: 1px solid rgba(79, 156, 255, 0.18);
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.schedule-empty-state {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.home-info-grid,
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.home-info-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 112px;
+  padding: var(--space-4);
+  border-radius: var(--radius-medium);
+}
+
+.home-info-card h3 {
+  margin-bottom: 3px;
+  font-size: 1rem;
+}
+
+.quick-action-card {
+  display: flex;
+  min-height: 104px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-radius: var(--radius-medium);
+  text-align: left;
+}
+
+.quick-action-card span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  font-size: 1.25rem;
+}
+
+.quick-action-card:active {
+  transform: scale(0.975);
+}
+
+@media (max-width: 520px) {
+  .hero-status-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hero-status-grid div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .hero-status-grid strong {
+    text-align: right;
+  }
+
+  .home-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   DisneyOS v1.4 dynamic home dashboard
+   ========================================================= */
+
+.special-hours-strip {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.special-hours-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.86rem;
+}
+
+.special-hours-item span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.special-hours-item strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.schedule-loading-card,
+.schedule-empty-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: var(--surface);
+  box-shadow: var(--shadow-small);
+}
+
+.schedule-loading-card p,
+.schedule-empty-card p {
+  margin: 3px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.schedule-empty-card.error-state {
+  border-color: rgba(255, 107, 107, 0.24);
+}
+
+.loading-spinner {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--primary-bright);
+  border-radius: 50%;
+  animation: disneyos-spin 0.8s linear infinite;
+}
+
+@keyframes disneyos-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.event-list {
+  display: grid;
+  gap: 16px;
+}
+
+.event-row {
+  display: grid;
+  gap: 9px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.event-row strong {
+  display: block;
+  font-size: 0.96rem;
+}
+
+.event-row small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 0.79rem;
+}
+
+.schedule-time-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.expandable-info-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.info-card-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 18px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.info-card-copy {
+  min-width: 0;
+}
+
+.info-card-copy .card-label {
+  display: block;
+}
+
+.info-card-copy strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-card-copy small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-card-details {
+  padding: 0 18px 18px;
+}
+
+.expandable-info-card.expanded .schedule-chevron {
+  transform: rotate(90deg);
+}
+
+.weather-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.weather-metric {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+
+.weather-metric span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.weather-metric strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.transportation-list {
+  display: grid;
+  gap: 13px;
+}
+
+.transportation-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+
+.transportation-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--primary-bright);
+  box-shadow: 0 0 0 5px var(--primary-soft);
+}
+
+.transportation-row strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.transportation-row p {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.81rem;
+}
+
+@media (max-width: 520px) {
+  .weather-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .special-hours-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+
+/* =========================================================
+   DisneyOS v1.4.1 targeted fixes
+   ========================================================= */
+
+/* Remove the decorative hero circles that could overlap
+   the temperature and park-status values on small screens. */
+.home-hero-card::before,
+.home-hero-card::after {
+  display: none;
+}
+
+/* Keep every hero value visually above the card background. */
+.home-hero-card .hero-card-top,
+.home-hero-card .hero-status-grid,
+.home-hero-card .special-hours-strip {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================================================
+   DisneyOS v1.5 — Magic Button
+   ========================================================= */
+
+.quick-action-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.magic-action-card {
+  background:
+    radial-gradient(circle at top right, rgba(170, 114, 255, 0.22), transparent 50%),
+    var(--surface);
+}
+
+.magic-recommendation-card {
+  width: 100%;
+  border: 1px solid rgba(170, 114, 255, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(170, 114, 255, 0.18), transparent 48%),
+    var(--surface);
+  text-align: left;
+}
+
+.magic-recommendation-card:active {
+  transform: scale(0.985);
+}
+
+body.magic-modal-open {
+  overflow: hidden;
+}
+
+.magic-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  align-items: end;
+}
+
+.magic-modal[hidden] {
+  display: none;
+}
+
+.magic-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.74);
+  backdrop-filter: blur(10px);
+}
+
+.magic-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 760px);
+  max-height: min(88vh, 820px);
+  margin: 0 auto;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--background);
+  box-shadow: 0 -24px 80px rgba(0, 0, 0, 0.45);
+  animation: magic-sheet-in 0.28s ease-out;
+}
+
+@keyframes magic-sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+.magic-sheet-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(12, 17, 31, 0.94);
+  backdrop-filter: blur(18px);
+}
+
+.magic-sheet-header h2 {
+  margin: 2px 0 0;
+}
+
+.magic-close-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.magic-content {
+  padding: 20px 22px;
+}
+
+.magic-loading,
+.magic-error {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 38px 18px;
+  text-align: center;
+}
+
+.magic-loading p,
+.magic-error p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.magic-result-card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(170, 114, 255, 0.28);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(170, 114, 255, 0.2), transparent 45%),
+    var(--surface);
+}
+
+.magic-result-heading {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.magic-result-heading h3 {
+  margin: 2px 0 5px;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.magic-result-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: rgba(170, 114, 255, 0.16);
+  font-size: 1.65rem;
+}
+
+.magic-confidence {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-bright);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.magic-result-summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.magic-reason-list {
+  display: grid;
+  gap: 10px;
+}
+
+.magic-reason {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.magic-reason span {
+  color: #62d69f;
+  font-weight: 900;
+}
+
+.magic-reason p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.magic-follow-up {
+  display: grid;
+  gap: 3px;
+  padding: 15px;
+  border-radius: 16px;
+  background: rgba(79, 156, 255, 0.11);
+}
+
+.magic-follow-up span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.magic-disclaimer {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.magic-sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 15px 22px calc(15px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: rgba(12, 17, 31, 0.95);
+  backdrop-filter: blur(18px);
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 48px;
+  padding: 11px 15px;
+  border-radius: 14px;
+  font-weight: 800;
+}
+
+.primary-button {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+}
+
+.secondary-button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+@media (max-width: 620px) {
+  .quick-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .magic-action-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 430px) {
+  .magic-sheet-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   DisneyOS v2.0 — Approved Brand System Migration
+   The setup portal and main app remain separate products,
+   while sharing the same approved DisneyOS visual language.
+   ========================================================= */
+
+:root {
+  --background: var(--bg);
+  --background-deep: #020409;
+  --surface: var(--panel);
+  --surface-strong: rgba(18, 24, 38, 0.94);
+  --surface-soft: var(--soft);
+  --surface-hover: var(--strong);
+  --primary: var(--blue);
+  --primary-bright: var(--cyan);
+  --primary-soft: rgba(35, 136, 255, 0.16);
+  --success: #57e88f;
+  --text-primary: var(--text);
+  --text-secondary: var(--secondary);
+  --text-muted: var(--muted);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --shadow-small: 0 10px 30px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,.045);
+  --shadow-medium: 0 18px 52px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255,255,255,.055);
+  --shadow-large: var(--shadow);
+  --radius-small: 15px;
+  --radius-medium: 22px;
+  --radius-large: 30px;
+}
+
+html { background: var(--bg); }
+
+body {
+  background:
+    radial-gradient(circle at 50% -12%, rgba(35,136,255,.18), transparent 34rem),
+    radial-gradient(circle at 110% 42%, rgba(67,231,255,.065), transparent 28rem),
+    var(--bg);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+.ambient {
+  position: fixed;
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: .12;
+  pointer-events: none;
+}
+.ambient.one { top: -190px; right: -190px; background: var(--blue); }
+.ambient.two { bottom: -230px; left: -230px; background: var(--cyan); }
+
+.header-content { align-items: center; }
+.header-brand-group {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+.header-brand-logo {
+  width: 68px;
+  height: auto;
+  filter: drop-shadow(0 10px 26px rgba(35,136,255,.26));
+}
+.app-header h1 { letter-spacing: -.045em; }
+
+.eyebrow,
+.card-label,
+.settings-group-label,
+.metric-label {
+  color: var(--cyan);
+  opacity: .82;
+  letter-spacing: .13em;
+}
+
+.profile-button {
+  border-color: rgba(67,231,255,.24);
+  background: var(--gradient);
+  color: #00101b;
+  box-shadow: 0 14px 36px rgba(35,136,255,.23), inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.hero-card,
+.info-card,
+.recommendation-card,
+.menu-card,
+.settings-card,
+.park-card,
+.home-info-card,
+.quick-action-card,
+.magic-result-card,
+.ride-card {
+  border-color: var(--line);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), transparent 25%),
+    var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(28px) saturate(125%);
+  -webkit-backdrop-filter: blur(28px) saturate(125%);
+}
+
+.hero-card {
+  border-color: rgba(67,231,255,.18);
+  background:
+    radial-gradient(circle at 92% 0%, rgba(67,231,255,.13), transparent 38%),
+    linear-gradient(145deg, rgba(35,136,255,.17), rgba(14,18,29,.87) 48%),
+    var(--panel);
+}
+.hero-card::before,
+.hero-card::after { display: none !important; }
+
+.park-selector-button,
+.utility-back-button,
+.back-button,
+.magic-close-button {
+  border-color: var(--line-strong);
+  background: var(--soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.feature-state-badge.live,
+.primary-button,
+.button-primary {
+  border: 0;
+  background: var(--gradient);
+  color: #00101b;
+  box-shadow: 0 12px 30px rgba(35,136,255,.20);
+}
+.feature-state-badge.coming-soon {
+  border-color: var(--line);
+  background: var(--soft);
+  color: var(--secondary);
+}
+
+.quick-action-card,
+.magic-action-card {
+  min-height: 108px;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.quick-action-card:hover,
+.magic-action-card:hover {
+  border-color: rgba(67,231,255,.25);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), transparent 32%),
+    var(--panel);
+}
+.quick-action-card span {
+  filter: drop-shadow(0 8px 18px rgba(35,136,255,.22));
+}
+.magic-action-card,
+.magic-recommendation-card,
+.magic-result-card {
+  border-color: rgba(67,231,255,.22);
+  background:
+    radial-gradient(circle at 95% 0%, rgba(67,231,255,.14), transparent 42%),
+    linear-gradient(145deg, rgba(35,136,255,.11), rgba(14,18,29,.82)),
+    var(--panel);
+}
+.recommendation-icon,
+.magic-result-icon {
+  background: var(--gradient-soft);
+  color: var(--cyan);
+}
+.magic-confidence {
+  background: var(--gradient-soft);
+  color: var(--cyan);
+}
+.magic-follow-up { background: var(--gradient-soft); }
+
+.bottom-navigation {
+  border-color: var(--line);
+  background: rgba(8, 11, 18, .88);
+  box-shadow: 0 -18px 52px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(28px) saturate(130%);
+  -webkit-backdrop-filter: blur(28px) saturate(130%);
+}
+.nav-button.active { color: var(--cyan); }
+.nav-button.active::before { background: var(--gradient); box-shadow: 0 0 16px rgba(67,231,255,.32); }
+
+.magic-modal-backdrop { background: rgba(0, 2, 7, .76); }
+.magic-sheet {
+  border-color: var(--line);
+  background: #080b12;
+  box-shadow: 0 -30px 100px rgba(0,0,0,.55);
+}
+.magic-sheet-header,
+.magic-sheet-footer { background: rgba(8,11,18,.92); }
+.loading-spinner { border-top-color: var(--cyan); }
+
+/* Wait-times pages inherit the same product identity without becoming Setup. */
+.wait-times-shell,
+.utility-page-main { position: relative; }
+.wait-times-header::after,
+.utility-page-header::after {
+  content: "";
+  width: 74px;
+  height: 28px;
+  margin-left: auto;
+  background: url("../assets/logo.svg") center / contain no-repeat;
+  filter: drop-shadow(0 8px 20px rgba(35,136,255,.24));
+  opacity: .95;
+}
+.ride-card { border-radius: var(--radius-md) !important; }
+.wait-number { color: var(--text) !important; }
+.updated-time,
+.ride-land,
+.wait-unit { color: var(--secondary) !important; }
+.refresh-icon { color: var(--cyan) !important; }
+
+@media (max-width: 430px) {
+  .header-brand-logo { width: 56px; }
+  .header-brand-group { gap: 12px; }
+  .wait-times-header::after,
+  .utility-page-header::after { width: 58px; height: 24px; }
+}

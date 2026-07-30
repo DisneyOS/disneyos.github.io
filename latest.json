@@ -1,0 +1,10 @@
+{
+  "current": "v1",
+  "version": "2.0",
+  "releaseNotes": [
+    "Versioned /v1/ deployment",
+    "Automatic root redirect to the current release",
+    "Approved DisneyOS branding and PWA assets",
+    "DisneyOS Magic and live park dashboard"
+  ]
+}
