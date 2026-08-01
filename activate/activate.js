@@ -21,6 +21,7 @@
 
   const params = new URLSearchParams(window.location.search);
   const cardCode = params.get("card")?.trim() || "";
+  const memberNumber = params.get("member")?.trim() || "";
   const installedAppAuthorization = !cardCode;
 
   function showState(target) {
@@ -36,6 +37,11 @@
     document.getElementById("activation-title").textContent = "Finish Setting Up DisneyOS";
     document.getElementById("activation-intro").textContent =
       "DisneyOS has been installed. Authorize this iPhone with your DisneyOS Membership.";
+    const reference = document.getElementById("membership-reference");
+    if (reference && memberNumber) {
+      reference.textContent = `Membership ${memberNumber}`;
+      reference.hidden = false;
+    }
     activateButtonLabel.textContent = "Finish Setup";
   }
 
@@ -116,6 +122,7 @@
     const endpoint = installedAppAuthorization ? "authorize" : "activate";
     const body = { password, deviceName: getDeviceName() };
     if (cardCode) body.cardCode = cardCode;
+    if (installedAppAuthorization) body.memberNumber = memberNumber;
 
     const response = await fetch(`${API_BASE}/membership/${endpoint}`, {
       method: "POST",
@@ -172,13 +179,32 @@
   });
 
   openDisneyOS.addEventListener("click", () => {
-    window.location.assign(installedAppAuthorization ? APP_URL : SETUP_URL);
+    if (installedAppAuthorization) {
+      window.location.assign(APP_URL);
+      return;
+    }
+
+    let membership = null;
+    try {
+      membership = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+    } catch {
+      membership = null;
+    }
+
+    const destination = new URL(SETUP_URL, window.location.href);
+    if (membership?.memberNumber) destination.searchParams.set("member", membership.memberNumber);
+    window.location.assign(destination.href);
   });
 
   (async () => {
     configureAuthorizationCopy();
     const alreadyActive = await verifyExistingMembership();
     if (alreadyActive) return;
+    if (installedAppAuthorization && !memberNumber) {
+      formMessage.textContent = "Open DisneyOS from the installation page to finish setup.";
+      passwordInput.disabled = true;
+      activateButton.disabled = true;
+    }
     showState(activationState);
     window.setTimeout(() => passwordInput.focus(), 80);
   })();
