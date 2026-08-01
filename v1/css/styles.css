@@ -2665,3 +2665,288 @@ body {
 .recommendation-icon {
   font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
+
+
+/* =========================================================
+   DisneyOS v1.5 live My Trip
+   ========================================================= */
+
+.trip-title-block {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.trip-refresh-button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.35rem;
+  box-shadow: var(--shadow-small);
+}
+
+.trip-refresh-button:active {
+  transform: scale(0.96) rotate(-20deg);
+}
+
+.trip-status-strip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 18px 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.trip-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  box-shadow: 0 0 0 5px rgba(255,255,255,.04);
+}
+
+.trip-status-strip[data-state="online"] .trip-status-dot {
+  background: var(--success);
+  box-shadow: 0 0 14px rgba(87,232,143,.5);
+}
+
+.trip-status-strip[data-state="loading"] .trip-status-dot {
+  background: var(--primary-bright);
+  animation: trip-status-pulse 1.4s ease-in-out infinite;
+}
+
+.trip-status-strip[data-state="error"] .trip-status-dot {
+  background: var(--danger);
+}
+
+@keyframes trip-status-pulse {
+  50% { opacity: .42; transform: scale(.8); }
+}
+
+.trip-summary-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 184px;
+  padding: 22px;
+  border: 1px solid rgba(67,231,255,.18);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(67,231,255,.18), transparent 42%),
+    linear-gradient(145deg, rgba(22,49,78,.96), rgba(10,21,37,.98));
+  box-shadow: var(--shadow-large);
+}
+
+.trip-summary-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -70px auto;
+  width: 170px;
+  height: 170px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 50%;
+}
+
+.trip-summary-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.trip-summary-top h3 {
+  margin: 4px 0 7px;
+  font-size: clamp(1.55rem, 6vw, 2.1rem);
+  letter-spacing: -.035em;
+}
+
+.trip-summary-metrics {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 17px;
+  border-top: 1px solid rgba(255,255,255,.13);
+}
+
+.trip-summary-metrics div {
+  display: grid;
+  gap: 3px;
+}
+
+.trip-summary-metrics span {
+  color: var(--text-muted);
+  font-size: .76rem;
+}
+
+.trip-summary-metrics strong {
+  font-size: 1.15rem;
+}
+
+.trip-loading-state,
+.trip-error-state {
+  display: flex;
+  min-height: 138px;
+  align-items: center;
+  gap: 15px;
+}
+
+.trip-loading-state p,
+.trip-error-state p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: .88rem;
+}
+
+.trip-error-state > span {
+  font-size: 1.5rem;
+}
+
+.trip-section {
+  margin-top: 28px;
+}
+
+.trip-plan-list,
+.dining-card-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trip-plan-card {
+  display: grid;
+  grid-template-columns: 48px 46px minmax(0,1fr);
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: linear-gradient(145deg, rgba(27,44,67,.93), rgba(13,25,41,.95));
+  box-shadow: var(--shadow-small);
+}
+
+.trip-plan-date {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  border-right: 1px solid var(--border);
+}
+
+.trip-plan-date span {
+  color: var(--primary-bright);
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trip-plan-date strong {
+  font-size: 1.35rem;
+}
+
+.trip-plan-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  font-size: 1.2rem;
+}
+
+.trip-plan-copy {
+  min-width: 0;
+}
+
+.trip-plan-copy .card-label {
+  margin: 0 0 2px;
+  text-transform: capitalize;
+}
+
+.trip-plan-copy h3 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-plan-copy p:last-child {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: .82rem;
+}
+
+.dining-reservation-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: linear-gradient(145deg, rgba(27,44,67,.94), rgba(13,25,41,.97));
+  box-shadow: var(--shadow-small);
+}
+
+.dining-reservation-card > img {
+  display: block;
+  width: 100%;
+  height: 168px;
+  object-fit: cover;
+}
+
+.dining-reservation-body {
+  padding: 18px;
+}
+
+.dining-reservation-body h3 {
+  margin: 3px 0 0;
+  font-size: 1.15rem;
+}
+
+.dining-reservation-meta {
+  margin: 14px 0 5px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.dining-reservation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.dining-reservation-actions a {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 13px;
+  border: 1px solid rgba(67,231,255,.18);
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media (max-width: 440px) {
+  .trip-plan-card {
+    grid-template-columns: 42px 40px minmax(0,1fr);
+    gap: 10px;
+    padding: 13px;
+  }
+
+  .trip-plan-icon {
+    width: 40px;
+    height: 40px;
+  }
+}

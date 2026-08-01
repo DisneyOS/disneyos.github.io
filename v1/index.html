@@ -8,8 +8,8 @@
 <meta content="#05070c" name="theme-color"/>
 <title>DisneyOS</title>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="css/theme.css?v=2.0.5" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.5" rel="stylesheet"/>
+<link href="css/theme.css?v=2.0.6" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.6" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -304,67 +304,53 @@
 </section>
 <!-- MY TRIP -->
 <section class="page" data-page="trip" id="trip-page">
-<div class="page-title-block">
-<p class="eyebrow">
-            Your vacation
-          </p>
-<h2>
-            My Trip
-          </h2>
-<p>
-            Trip connections and itinerary tools are being built for a future DisneyOS release.
-          </p>
+<div class="page-title-block trip-title-block">
+<div>
+<p class="eyebrow">Your vacation</p>
+<h2>My Trip</h2>
+<p id="trip-page-subtitle">Loading your connected Disney plans.</p>
 </div>
-<div class="menu-card-list">
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">⚡</span>
-<span>
-<strong>Lightning Lane</strong>
-<small>Reservations and return windows</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">🍽️</span>
-<span>
-<strong>Dining</strong>
-<small>Reservations and mobile ordering</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">🏨</span>
-<span>
-<strong>Resort</strong>
-<small>Hotel details and transportation</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">🗓️</span>
-<span>
-<strong>Daily itinerary</strong>
-<small>Your complete Disney day</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">🎟️</span>
-<span>
-<strong>Virtual Queue</strong>
-<small>Boarding group details</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
-<button class="menu-card menu-card-coming-soon" disabled="" type="button">
-<span class="menu-card-icon">📷</span>
-<span>
-<strong>PhotoPass</strong>
-<small>Recent vacation photos</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
+<button class="trip-refresh-button" id="trip-refresh-button" type="button" aria-label="Refresh My Trip">↻</button>
 </div>
+<div class="trip-status-strip" id="trip-status-strip">
+<span class="trip-status-dot"></span>
+<span id="trip-status-text">Connecting to Disney Planner…</span>
+</div>
+<section class="trip-summary-card" id="trip-summary-card">
+<div class="trip-loading-state">
+<div class="loading-spinner" aria-hidden="true"></div>
+<div>
+<strong>Loading your trip</strong>
+<p>Checking upcoming plans, dining reservations, and tickets.</p>
+</div>
+</div>
+</section>
+<section class="section-block trip-section" id="upcoming-plans-section" hidden>
+<div class="section-heading">
+<div>
+<p class="eyebrow">Your itinerary</p>
+<h2>Upcoming plans</h2>
+</div>
+</div>
+<div class="trip-plan-list" id="trip-plan-list"></div>
+</section>
+<section class="section-block trip-section" id="dining-reservations-section" hidden>
+<div class="section-heading">
+<div>
+<p class="eyebrow">Reservations</p>
+<h2>Dining</h2>
+</div>
+</div>
+<div class="dining-card-list" id="dining-card-list"></div>
+</section>
+<section class="section-block trip-section" id="trip-empty-section" hidden>
+<article class="schedule-empty-card">
+<div>
+<strong>No upcoming plans found</strong>
+<p>New Disney reservations will appear here after they are linked to the connected account.</p>
+</div>
+</article>
+</section>
 </section>
 <!-- SHORTCUTS -->
 <section class="page" data-page="shortcuts" id="shortcuts-page">
@@ -532,7 +518,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.5"></script>
+<script src="js/app.js?v=2.0.6"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
