@@ -2,8 +2,13 @@
   "use strict";
   const C = window.DISNEYOS_CONFIG;
   const app = document.getElementById("app");
-  const defaults = { step:"welcome", installed:false, shortcuts:{}, focus:false, homescreen:false, wallpaper:false, completedVersion:null };
+  const defaults = { step:"welcome", installed:false, shortcuts:{}, focus:false, homescreen:false, wallpaper:false, completedVersion:null, memberNumber:null };
   let state = load();
+  const memberFromUrl = new URLSearchParams(window.location.search).get("member")?.trim() || "";
+  if (memberFromUrl && state.memberNumber !== memberFromUrl) {
+    state.memberNumber = memberFromUrl;
+    save();
+  }
 
   function load(){
     try { return { ...defaults, ...JSON.parse(localStorage.getItem(C.storageKey) || "{}") }; }
@@ -68,7 +73,11 @@
       ${standalone()?`<div class="status-card"><div class="status-dot">✓</div><div><strong>Already Installed</strong><p>DisneyOS is running from your Home Screen.</p></div></div>`:`<div class="confirm-card"><label class="confirm-label"><input id="confirmInstall" type="checkbox" ${state.installed?"checked":""}><span>DisneyOS has been added to my Home Screen.</span></label></div>`}`,
       disabled:!done,next:()=>goto("shortcuts")
     });
-    document.getElementById("openApp").onclick=()=>open(C.appUrl,"_blank","noopener");
+    document.getElementById("openApp").onclick=()=>{
+      const destination = new URL("v1/authorize.html", C.appUrl);
+      if (state.memberNumber) destination.searchParams.set("member", state.memberNumber);
+      open(destination.href,"_blank","noopener");
+    };
     document.getElementById("confirmInstall")?.addEventListener("change",e=>set({installed:e.target.checked}));
   }
 
