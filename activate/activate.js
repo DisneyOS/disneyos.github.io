@@ -3,6 +3,7 @@
 
   const API_BASE = "https://disneyos-api-dev.disneyosplanner.workers.dev/v1";
   const SETUP_URL = "../setup/";
+  const APP_URL = window.location.pathname.startsWith("/v1/") ? "./" : "../";
   const TOKEN_KEY = "disneyos-member-device-token";
   const PROFILE_KEY = "disneyos-member-profile";
   const DISPLAY_NAME_KEY = "disneyos-display-name";
@@ -10,21 +11,32 @@
   const loadingState = document.getElementById("loading-state");
   const activationState = document.getElementById("activation-state");
   const successState = document.getElementById("success-state");
-  const missingCardState = document.getElementById("missing-card-state");
   const form = document.getElementById("activation-form");
   const passwordInput = document.getElementById("membership-password");
   const passwordToggle = document.getElementById("password-toggle");
   const activateButton = document.getElementById("activate-button");
+  const activateButtonLabel = document.getElementById("activate-button-label");
   const formMessage = document.getElementById("form-message");
   const openDisneyOS = document.getElementById("open-disneyos");
-  const openExisting = document.getElementById("open-existing");
 
-  const cardCode = new URLSearchParams(window.location.search).get("card")?.trim() || "";
+  const params = new URLSearchParams(window.location.search);
+  const cardCode = params.get("card")?.trim() || "";
+  const installedAppAuthorization = !cardCode;
 
   function showState(target) {
-    [loadingState, activationState, successState, missingCardState].forEach((state) => {
+    [loadingState, activationState, successState].forEach((state) => {
       state.hidden = state !== target;
     });
+  }
+
+  function configureAuthorizationCopy() {
+    if (!installedAppAuthorization) return;
+
+    document.getElementById("activation-eyebrow").textContent = "DisneyOS Membership";
+    document.getElementById("activation-title").textContent = "Finish Setting Up DisneyOS";
+    document.getElementById("activation-intro").textContent =
+      "DisneyOS has been installed. Authorize this iPhone with your DisneyOS Membership.";
+    activateButtonLabel.textContent = "Finish Setup";
   }
 
   function getStoredToken() {
@@ -38,9 +50,7 @@
   function storeMembership(deviceToken, membership) {
     localStorage.setItem(TOKEN_KEY, deviceToken);
     localStorage.setItem(PROFILE_KEY, JSON.stringify(membership));
-    if (membership?.displayName) {
-      localStorage.setItem(DISPLAY_NAME_KEY, membership.displayName);
-    }
+    if (membership?.displayName) localStorage.setItem(DISPLAY_NAME_KEY, membership.displayName);
   }
 
   function clearMembership() {
@@ -55,7 +65,7 @@
 
   function getDeviceName() {
     const platform = navigator.userAgent || "";
-    if (/iPhone/i.test(platform)) return "iPhone";
+    if (/iPhone/i.test(platform)) return "iPhone Home Screen App";
     if (/iPad/i.test(platform)) return "iPad";
     if (/Android/i.test(platform)) return "Android device";
     if (/Macintosh/i.test(platform)) return "Mac";
@@ -70,6 +80,7 @@
       : "Your device has been added to your DisneyOS membership.";
     document.getElementById("member-name").textContent = membership.displayName;
     document.getElementById("device-name").textContent = membership.deviceName || getDeviceName();
+    openDisneyOS.textContent = installedAppAuthorization ? "Launch DisneyOS" : "Continue Setup";
     showState(successState);
   }
 
@@ -80,10 +91,7 @@
     try {
       const response = await fetch(`${API_BASE}/membership/me`, {
         cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` }
       });
 
       if (response.status === 401 || response.status === 403) {
@@ -95,9 +103,7 @@
       if (!response.ok || !payload?.success) return false;
 
       localStorage.setItem(PROFILE_KEY, JSON.stringify(payload.data));
-      if (payload.data?.displayName) {
-        localStorage.setItem(DISPLAY_NAME_KEY, payload.data.displayName);
-      }
+      if (payload.data?.displayName) localStorage.setItem(DISPLAY_NAME_KEY, payload.data.displayName);
       renderSuccess(payload.data, true);
       return true;
     } catch (error) {
@@ -106,26 +112,22 @@
     }
   }
 
-  async function activateMembership(password) {
-    const response = await fetch(`${API_BASE}/membership/activate`, {
+  async function authorizeMembership(password) {
+    const endpoint = installedAppAuthorization ? "authorize" : "activate";
+    const body = { password, deviceName: getDeviceName() };
+    if (cardCode) body.cardCode = cardCode;
+
+    const response = await fetch(`${API_BASE}/membership/${endpoint}`, {
       method: "POST",
       cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        cardCode,
-        password,
-        deviceName: getDeviceName()
-      })
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(body)
     });
 
     const payload = await response.json().catch(() => null);
-
     if (!response.ok || !payload?.success) {
-      const error = new Error(payload?.error?.message || "DisneyOS could not activate this device.");
-      error.code = payload?.error?.code || "ACTIVATION_FAILED";
+      const error = new Error(payload?.error?.message || "DisneyOS could not authorize this device.");
+      error.code = payload?.error?.code || "AUTHORIZATION_FAILED";
       throw error;
     }
 
@@ -153,10 +155,10 @@
     }
 
     activateButton.disabled = true;
-    activateButton.querySelector("span").textContent = "Authenticating…";
+    activateButtonLabel.textContent = "Authenticating…";
 
     try {
-      const membership = await activateMembership(password);
+      const membership = await authorizeMembership(password);
       passwordInput.value = "";
       history.replaceState({}, "", window.location.pathname);
       renderSuccess(membership, false);
@@ -165,22 +167,18 @@
       passwordInput.select();
     } finally {
       activateButton.disabled = false;
-      activateButton.querySelector("span").textContent = "Activate DisneyOS";
+      activateButtonLabel.textContent = installedAppAuthorization ? "Finish Setup" : "Activate DisneyOS";
     }
   });
 
-  openDisneyOS.addEventListener("click", () => window.location.assign(SETUP_URL));
-  openExisting.addEventListener("click", () => window.location.assign(SETUP_URL));
+  openDisneyOS.addEventListener("click", () => {
+    window.location.assign(installedAppAuthorization ? APP_URL : SETUP_URL);
+  });
 
   (async () => {
+    configureAuthorizationCopy();
     const alreadyActive = await verifyExistingMembership();
     if (alreadyActive) return;
-
-    if (!cardCode) {
-      showState(missingCardState);
-      return;
-    }
-
     showState(activationState);
     window.setTimeout(() => passwordInput.focus(), 80);
   })();
