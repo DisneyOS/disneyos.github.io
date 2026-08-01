@@ -7,9 +7,21 @@
 <meta content="DisneyOS is an intelligent Disney trip companion." name="description"/>
 <meta content="#05070c" name="theme-color"/>
 <title>DisneyOS</title>
+<script>
+  (() => {
+    try {
+      if (!localStorage.getItem("disneyos-member-device-token")) {
+        const destination = new URL("../activate/", window.location.href);
+        window.location.replace(destination.href);
+      }
+    } catch (error) {
+      window.location.replace(new URL("../activate/", window.location.href).href);
+    }
+  })();
+</script>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="css/theme.css?v=2.0.6" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.6" rel="stylesheet"/>
+<link href="css/theme.css?v=2.0.7" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.7" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -518,7 +530,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.6"></script>
+<script src="js/app.js?v=2.0.7"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">

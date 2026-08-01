@@ -20,3 +20,11 @@ Upload these files to the repository root. This release fixes the Home park sele
 - Preserved a large invisible tap target.
 - Added subtle chevron rotation while the menu is open.
 - Retained the DisneyOS logo Home link.
+
+## DisneyOS Membership activation
+
+The `/activate/` experience registers a device through the DisneyOS membership API. The reusable NFC URL format is:
+
+`https://disos.app/activate/?card=<membership-card-code>`
+
+A successful activation stores the device credential in browser local storage under `disneyos-member-device-token`. The `/v1/` launch flow redirects devices without a membership credential to `/activate/`.
