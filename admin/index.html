@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05070c">
+  <meta name="robots" content="noindex,nofollow">
+  <title>DisneyOS Admin</title>
+  <link rel="icon" href="../assets/favicon-32.png">
+  <link rel="stylesheet" href="admin.css?v=1.0.0">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="../v1/" aria-label="Return to DisneyOS">
+        <img src="../assets/disneyos-mark.png" alt="">
+        <span><small>DisneyOS</small><strong>Admin</strong></span>
+      </a>
+      <button id="refresh-button" class="icon-button" type="button" aria-label="Refresh">↻</button>
+    </header>
+
+    <section id="loading-state" class="state-card">
+      <div class="spinner"></div>
+      <h1>Loading Command Center</h1>
+      <p>Verifying administrator access.</p>
+    </section>
+
+    <section id="unauthorized-state" class="state-card" hidden>
+      <div class="state-icon">×</div>
+      <h1>Administrator access required</h1>
+      <p>This DisneyOS device is not authorized to manage members.</p>
+      <a class="primary-button" href="../v1/">Return to DisneyOS</a>
+    </section>
+
+    <section id="admin-content" hidden>
+      <div class="hero">
+        <p class="eyebrow">DisneyOS Command Center</p>
+        <h1>Members & Devices</h1>
+        <p>Manage member access without opening the database console.</p>
+      </div>
+
+      <div class="summary-grid">
+        <article><span id="member-count">0</span><small>Members</small></article>
+        <article><span id="device-count">0</span><small>Active devices</small></article>
+        <article><span id="card-count">0</span><small>Active cards</small></article>
+      </div>
+
+      <div id="message" class="message" hidden></div>
+      <section id="member-list" class="member-list" aria-live="polite"></section>
+    </section>
+  </main>
+
+  <template id="member-template">
+    <article class="member-card">
+      <header class="member-header">
+        <div class="avatar"></div>
+        <div class="member-heading">
+          <h2></h2>
+          <p class="member-id"></p>
+        </div>
+        <span class="member-status"></span>
+      </header>
+      <div class="member-actions">
+        <button class="secondary-button toggle-member" type="button"></button>
+      </div>
+      <div class="subsection cards-section">
+        <h3>Membership cards</h3>
+        <div class="card-list"></div>
+      </div>
+      <div class="subsection devices-section">
+        <h3>Trusted devices</h3>
+        <div class="device-list"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="admin.js?v=1.0.0"></script>
+</body>
+</html>

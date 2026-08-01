@@ -102,8 +102,8 @@
   })();
 </script>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="css/theme.css?v=2.0.8" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.8" rel="stylesheet"/>
+<link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.9" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -541,6 +541,33 @@
 </div>
 <div class="settings-group">
 <p class="settings-group-label">
+            Membership
+          </p>
+<div class="settings-card">
+<div class="settings-row static-row">
+<span>
+<strong>Member ID</strong>
+<small id="settings-member-id">Loading…</small>
+</span>
+</div>
+<div class="settings-row static-row">
+<span>
+<strong>Member status</strong>
+<small id="settings-member-status">Loading…</small>
+</span>
+<span class="status-badge" id="settings-member-status-badge">Active</span>
+</div>
+<a class="settings-row settings-admin-row" href="../admin/" id="admin-console-link" hidden>
+<span>
+<strong>DisneyOS Admin</strong>
+<small>Manage members and devices</small>
+</span>
+<span>›</span>
+</a>
+</div>
+</div>
+<div class="settings-group">
+<p class="settings-group-label">
             Connections
           </p>
 <div class="settings-card">
@@ -612,7 +639,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.8"></script>
+<script src="js/app.js?v=2.0.9"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">

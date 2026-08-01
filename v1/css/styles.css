@@ -2950,3 +2950,27 @@ body {
     height: 40px;
   }
 }
+
+
+/* DisneyOS membership settings */
+.settings-admin-row {
+  color: inherit;
+  text-decoration: none;
+}
+.settings-admin-row[hidden] { display: none; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(76, 222, 154, .14);
+  color: #77efb6;
+  font-size: .76rem;
+  font-weight: 750;
+}
+.status-badge.inactive {
+  background: rgba(255, 132, 132, .13);
+  color: #ffaaaa;
+}

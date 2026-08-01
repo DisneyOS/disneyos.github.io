@@ -18,6 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileButton = document.getElementById("profile-button");
   const settingsNameElement = document.getElementById("settings-name");
   const settingsParkElement = document.getElementById("settings-park");
+  const settingsMemberIdElement = document.getElementById("settings-member-id");
+  const settingsMemberStatusElement = document.getElementById("settings-member-status");
+  const settingsMemberStatusBadge = document.getElementById("settings-member-status-badge");
+  const adminConsoleLink = document.getElementById("admin-console-link");
   const editNameButton = document.getElementById("edit-name-button");
   const editParkButton = document.getElementById("edit-park-button");
   const waitTimesShortcut = document.getElementById("wait-times-shortcut");
@@ -52,7 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     activePage: "disneyos-active-page",
     displayName: "disneyos-display-name",
     preferredPark: "disneyos-preferred-park",
-    todaysPark: "disneyos-todays-park"
+    todaysPark: "disneyos-todays-park",
+    membershipProfile: "disneyos-member-profile"
   };
 
   const parkOptions = [
@@ -225,6 +230,29 @@ document.addEventListener("DOMContentLoaded", () => {
     return "Good evening";
   }
 
+  function getMembershipProfile() {
+    try {
+      return JSON.parse(window.localStorage.getItem(storageKeys.membershipProfile) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function renderMembershipSettings() {
+    const membership = getMembershipProfile();
+    const memberId = membership?.memberNumber || membership?.memberId || "Not available";
+    const status = membership?.memberStatus || "active";
+    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+    if (settingsMemberIdElement) settingsMemberIdElement.textContent = memberId;
+    if (settingsMemberStatusElement) settingsMemberStatusElement.textContent = statusLabel;
+    if (settingsMemberStatusBadge) {
+      settingsMemberStatusBadge.textContent = statusLabel;
+      settingsMemberStatusBadge.classList.toggle("inactive", status !== "active");
+    }
+    if (adminConsoleLink) adminConsoleLink.hidden = membership?.role !== "admin";
+  }
+
   function renderProfile() {
     const cleanName = profile.displayName.trim();
     const activePark = getActivePark();
@@ -266,6 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
         activePark;
     }
 
+    renderMembershipSettings();
     loadDynamicHome(activePark);
   }
 

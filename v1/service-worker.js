@@ -1,7 +1,7 @@
-const CACHE_NAME = "disneyos-v2.0.8";
+const CACHE_NAME = "disneyos-v2.0.9";
 const SHELL = [
   "./", "./index.html", "./wait-times-menu.html", "./wait-times.html",
-  "./css/theme.css?v=2.0.8", "./css/styles.css?v=2.0.8", "./js/app.js?v=2.0.8", "./js/wait-times.js",
+  "./css/theme.css?v=2.0.9", "./css/styles.css?v=2.0.9", "./js/app.js?v=2.0.9", "./js/wait-times.js",
   "./assets/disneyos-logo-transparent.png", "./assets/disneyos-mark.png",
   "./assets/manifest-icon-192.png", "./assets/manifest-icon-512.png"
 ];
