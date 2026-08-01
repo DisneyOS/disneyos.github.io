@@ -35,10 +35,10 @@
       document.documentElement.classList.remove("membership-checking");
     }
 
-    function requireActivation() {
+    function requireActivation(reason = "installed-app") {
       clearMembership();
-      const destination = new URL("../activate/", window.location.href);
-      destination.searchParams.set("reason", "device-revoked");
+      const destination = new URL("./authorize.html", window.location.href);
+      destination.searchParams.set("reason", reason);
       window.location.replace(destination.href);
     }
 
@@ -67,7 +67,7 @@
         });
 
         if (response.status === 401 || response.status === 403) {
-          requireActivation();
+          requireActivation("device-revoked");
           return;
         }
 
