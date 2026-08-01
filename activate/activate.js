@@ -2,7 +2,7 @@
   "use strict";
 
   const API_BASE = "https://disneyos-api-dev.disneyosplanner.workers.dev/v1";
-  const APP_URL = "../v1/";
+  const SETUP_URL = "../setup/";
   const TOKEN_KEY = "disneyos-member-device-token";
   const PROFILE_KEY = "disneyos-member-profile";
   const DISPLAY_NAME_KEY = "disneyos-display-name";
@@ -168,8 +168,8 @@
     }
   });
 
-  openDisneyOS.addEventListener("click", () => window.location.assign(APP_URL));
-  openExisting.addEventListener("click", () => window.location.assign(APP_URL));
+  openDisneyOS.addEventListener("click", () => window.location.assign(SETUP_URL));
+  openExisting.addEventListener("click", () => window.location.assign(SETUP_URL));
 
   (async () => {
     const alreadyActive = await verifyExistingMembership();

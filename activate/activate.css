@@ -72,7 +72,7 @@ button { -webkit-tap-highlight-color: transparent; }
   border-radius: 30px;
   background: radial-gradient(circle, rgba(37, 202, 255, .3), rgba(28, 99, 255, .04) 66%, transparent 72%);
   filter: blur(5px);
-  animation: breathe 2.8s ease-in-out infinite;
+  animation: breathe 4.6s ease-in-out infinite;
 }
 .brand-mark {
   position: relative;
@@ -243,7 +243,7 @@ input:focus {
 .membership-summary span:last-child { color: var(--muted); font-size: .82rem; }
 
 @keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes breathe { 0%,100% { opacity: .55; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.07); } }
+@keyframes breathe { 0%,100% { opacity: .42; transform: scale(.98); } 50% { opacity: .72; transform: scale(1.035); } }
 @keyframes loading { 0% { transform: translateX(-120%); } 100% { transform: translateX(340%); } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
