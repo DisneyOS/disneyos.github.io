@@ -7,21 +7,103 @@
 <meta content="DisneyOS is an intelligent Disney trip companion." name="description"/>
 <meta content="#05070c" name="theme-color"/>
 <title>DisneyOS</title>
+<style>
+  html.membership-checking body { visibility: hidden; }
+</style>
 <script>
   (() => {
-    try {
-      if (!localStorage.getItem("disneyos-member-device-token")) {
-        const destination = new URL("../activate/", window.location.href);
-        window.location.replace(destination.href);
+    "use strict";
+
+    const API_BASE = "https://disneyos-api-dev.disneyosplanner.workers.dev/v1";
+    const TOKEN_KEY = "disneyos-member-device-token";
+    const PROFILE_KEY = "disneyos-member-profile";
+    const DISPLAY_NAME_KEY = "disneyos-display-name";
+
+    document.documentElement.classList.add("membership-checking");
+
+    function clearMembership() {
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(PROFILE_KEY);
+        localStorage.removeItem(DISPLAY_NAME_KEY);
+      } catch (error) {
+        console.warn("DisneyOS could not clear the expired membership credential.", error);
       }
-    } catch (error) {
-      window.location.replace(new URL("../activate/", window.location.href).href);
     }
+
+    function showApp() {
+      document.documentElement.classList.remove("membership-checking");
+    }
+
+    function requireActivation() {
+      clearMembership();
+      const destination = new URL("../activate/", window.location.href);
+      destination.searchParams.set("reason", "device-revoked");
+      window.location.replace(destination.href);
+    }
+
+    async function validateMembership() {
+      let token = "";
+
+      try {
+        token = localStorage.getItem(TOKEN_KEY) || "";
+      } catch {
+        requireActivation();
+        return;
+      }
+
+      if (!token) {
+        requireActivation();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/membership/me`, {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          requireActivation();
+          return;
+        }
+
+        if (!response.ok) {
+          console.warn(`DisneyOS membership validation returned ${response.status}; using the existing local session.`);
+          showApp();
+          return;
+        }
+
+        const payload = await response.json();
+
+        if (!payload?.success || !payload?.data) {
+          requireActivation();
+          return;
+        }
+
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(payload.data));
+        if (payload.data.displayName) {
+          localStorage.setItem(DISPLAY_NAME_KEY, payload.data.displayName);
+        }
+
+        showApp();
+      } catch (error) {
+        // Keep DisneyOS usable during a temporary network or API outage. A revoked
+        // device will be removed automatically the next time validation can run.
+        console.warn("DisneyOS could not reach the membership service; using the existing local session.", error);
+        showApp();
+      }
+    }
+
+    validateMembership();
   })();
 </script>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="css/theme.css?v=2.0.7" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.7" rel="stylesheet"/>
+<link href="css/theme.css?v=2.0.8" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.8" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -530,7 +612,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.7"></script>
+<script src="js/app.js?v=2.0.8"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">

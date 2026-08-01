@@ -47,6 +47,7 @@
     try {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(PROFILE_KEY);
+      localStorage.removeItem(DISPLAY_NAME_KEY);
     } catch {
       // Storage may be unavailable in private browsing modes.
     }
@@ -85,7 +86,7 @@
         }
       });
 
-      if (response.status === 401) {
+      if (response.status === 401 || response.status === 403) {
         clearMembership();
         return false;
       }
