@@ -108,21 +108,67 @@
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
 <style>
-.magic-sheet{display:flex;flex-direction:column;max-height:min(92vh,900px);overflow:hidden}
-.magic-sheet-header{flex:0 0 auto}
-.magic-content{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.magic-question-box{flex:0 0 auto;padding:12px 22px;border-top:1px solid rgba(255,255,255,.10);background:rgba(5,10,19,.97)}
+.magic-sheet{
+  display:flex !important;
+  flex-direction:column !important;
+  height:min(92vh,820px) !important;
+  max-height:none !important;
+  overflow:hidden !important;
+}
+.magic-sheet-header{
+  position:static !important;
+  top:auto !important;
+  flex:0 0 auto !important;
+}
+.magic-content{
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.magic-question-box{
+  position:static !important;
+  flex:0 0 auto !important;
+  padding:12px 22px;
+  border-top:1px solid rgba(255,255,255,.10);
+  background:rgba(5,10,19,.98);
+  z-index:4;
+}
 .magic-question-box label{display:block;margin-bottom:7px;font-weight:700}
 .magic-question-row{display:flex;gap:10px;align-items:center}
-.magic-question-row input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:rgba(255,255,255,.06);color:inherit;padding:12px 14px;font:inherit}
+.magic-question-row input{
+  flex:1;
+  min-width:0;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;
+  background:rgba(255,255,255,.06);
+  color:inherit;
+  padding:12px 14px;
+  font:inherit;
+}
 .magic-question-row input::placeholder{color:rgba(255,255,255,.48)}
 .magic-question-hint{margin:7px 2px 0;font-size:.75rem;opacity:.58}
-.magic-sheet-footer{flex:0 0 auto;background:rgba(5,10,19,.98)}
+.magic-sheet-footer{
+  position:static !important;
+  bottom:auto !important;
+  flex:0 0 auto !important;
+  background:rgba(5,10,19,.98);
+  z-index:4;
+}
 @media(max-width:560px){
-  .magic-sheet{max-height:94vh}
+  .magic-sheet{
+    height:94vh !important;
+    max-height:none !important;
+  }
   .magic-question-box{padding:10px 14px}
   .magic-question-row{gap:8px}
-  .magic-question-row .primary-button{width:auto;white-space:nowrap;padding-left:16px;padding-right:16px}
+  .magic-question-row .primary-button{
+    width:auto;
+    white-space:nowrap;
+    padding-left:16px;
+    padding-right:16px;
+  }
   .magic-question-hint{display:none}
 }
 </style>
@@ -658,7 +704,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.14"></script>
+<script src="js/app.js?v=2.0.15"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
