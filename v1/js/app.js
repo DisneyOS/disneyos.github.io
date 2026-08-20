@@ -597,10 +597,17 @@ document.addEventListener("DOMContentLoaded", () => {
           "park-selector-panel"
         );
 
-      hero.insertBefore(
-        strip,
-        selectorPanel || null
-      );
+      if (
+        selectorPanel &&
+        selectorPanel.parentNode === hero
+      ) {
+        hero.insertBefore(
+          strip,
+          selectorPanel
+        );
+      } else {
+        hero.appendChild(strip);
+      }
     }
 
     strip.innerHTML = specialEntries
