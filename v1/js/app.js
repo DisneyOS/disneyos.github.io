@@ -51,6 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("magic-another-button");
   const magicWaitTimesButton =
     document.getElementById("magic-wait-times-button");
+  const magicQuestionInput =
+    document.getElementById("magic-question-input");
+  const magicAskButton =
+    document.getElementById("magic-ask-button");
 
   const storageKeys = {
     activePage: "disneyos-active-page",
@@ -1242,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("magic-modal-open");
   }
 
-  async function loadMagicRecommendation(useCachedData = false) {
+  async function loadMagicRecommendation(useCachedData = false, userQuery = "") {
     if (!magicContent) {
       return;
     }
@@ -1274,7 +1278,10 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({ park: getActiveParkSlug() })
+          body: JSON.stringify({
+            park: getActiveParkSlug(),
+            query: String(userQuery || "").trim()
+          })
         },
         30000
       );
@@ -1291,7 +1298,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return;
     } catch (aiError) {
-      console.warn("DisneyOS AI Genie request failed; using local fallback rules.", aiError);
+      console.warn("DisneyOS AI Genie request failed.", aiError);
+      if (String(userQuery || "").trim()) {
+        magicContent.innerHTML = `
+          <div class="magic-error">
+            <span class="magic-result-icon">⚠️</span>
+            <h3>Genie could not answer that yet</h3>
+            <p>${escapeHtml(aiError?.message || "Please try again in a moment.")}</p>
+          </div>`;
+        if (magicActions) magicActions.hidden = false;
+        return;
+      }
+      console.warn("Using local fallback rules for automatic recommendation.");
     }
 
     try {
@@ -2448,6 +2466,23 @@ document.addEventListener("DOMContentLoaded", () => {
     "click",
     () => loadMagicRecommendation(true)
   );
+
+  async function askMagicQuestion() {
+    const question = String(magicQuestionInput?.value || "").trim();
+    if (!question) {
+      magicQuestionInput?.focus();
+      return;
+    }
+    await loadMagicRecommendation(false, question);
+  }
+
+  magicAskButton?.addEventListener("click", askMagicQuestion);
+  magicQuestionInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      askMagicQuestion();
+    }
+  });
 
   magicWaitTimesButton?.addEventListener(
     "click",
