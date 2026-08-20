@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     preferredPark: "disneyos-preferred-park",
     todaysPark: "disneyos-todays-park",
     membershipProfile: "disneyos-member-profile",
+    deviceToken: "disneyos-member-device-token",
     weatherCache: "disneyos-cache-weather-v1",
     tripCache: "disneyos-cache-trip-v1",
     parkDayCachePrefix: "disneyos-cache-park-day-v1:"
@@ -1250,7 +1251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="magic-loading">
         <div class="loading-spinner" aria-hidden="true"></div>
         <strong>Asking Genie for your best next move…</strong>
-        <p>Comparing waits, shows, weather, and remaining park time.</p>
+        <p>Reasoning across waits, shows, weather, park time, and your trip plans.</p>
       </div>
     `;
 
@@ -1259,11 +1260,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
+      const token = window.localStorage.getItem(storageKeys.deviceToken);
+      if (!token) {
+        throw new Error("DisneyOS membership authorization is missing.");
+      }
+
+      const response = await fetchWithTimeout(
+        `${PLANNER_API_BASE}/genie/recommendation`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ park: getActiveParkSlug() })
+        },
+        30000
+      );
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.success || !payload?.data?.recommendation) {
+        throw new Error(payload?.error?.message || `Genie request failed: ${response.status}`);
+      }
+
+      renderMagicRecommendation(payload.data.recommendation, true);
+
+      if (magicActions) {
+        magicActions.hidden = false;
+      }
+      return;
+    } catch (aiError) {
+      console.warn("DisneyOS AI Genie request failed; using local fallback rules.", aiError);
+    }
+
+    try {
       let combinedData = lastMagicData;
 
       if (!useCachedData || !combinedData) {
         const slug = getActiveParkSlug();
-
         const [parkDayResult, waitTimesResult, weatherResult] =
           await Promise.allSettled([
             fetchParkDay(slug),
@@ -1271,33 +1306,18 @@ document.addEventListener("DOMContentLoaded", () => {
             fetchWeather()
           ]);
 
-        const parkDay =
-          parkDayResult.status === "fulfilled"
-            ? parkDayResult.value
-            : null;
-
-        const waitTimes =
-          waitTimesResult.status === "fulfilled"
-            ? waitTimesResult.value
-            : [];
-
-        const weather =
-          weatherResult.status === "fulfilled"
-            ? weatherResult.value
-            : null;
+        const parkDay = parkDayResult.status === "fulfilled" ? parkDayResult.value : null;
+        const waitTimes = waitTimesResult.status === "fulfilled" ? waitTimesResult.value : [];
+        const weather = weatherResult.status === "fulfilled" ? weatherResult.value : null;
 
         if (!parkDay && waitTimes.length === 0 && !weather) {
-          throw new Error(
-            "No live DisneyOS data sources were available."
-          );
+          throw new Error("No live DisneyOS data sources were available.");
         }
 
         combinedData = {
           parkDay: parkDay || {
             park: {
-              name:
-                getSelectedParkName?.() ||
-                "Selected park",
+              name: getSelectedParkName?.() || "Selected park",
               status: "Live status unavailable"
             },
             hours: {},
@@ -1307,38 +1327,22 @@ document.addEventListener("DOMContentLoaded", () => {
           waitTimes,
           weather
         };
-
         lastMagicData = combinedData;
       }
 
-      const recommendation =
-        createMagicRecommendation(combinedData);
-
-      renderMagicRecommendation(recommendation);
-
-      if (magicActions) {
-        magicActions.hidden = false;
-      }
+      renderMagicRecommendation(createMagicRecommendation(combinedData), false);
+      if (magicActions) magicActions.hidden = false;
     } catch (error) {
-      console.warn(
-        "DisneyOS Genie could not create a recommendation.",
-        error
-      );
-
+      console.warn("DisneyOS Genie could not create a recommendation.", error);
       magicContent.innerHTML = `
         <div class="magic-error">
           <span class="magic-result-icon">⚠️</span>
           <h3>Genie is temporarily unavailable</h3>
-          <p>Genie could not reach any usable live data. Please try again in a moment.</p>
+          <p>Genie could not reach usable planning data. Please try again in a moment.</p>
           <button class="primary-button" id="magic-retry-button" type="button">Try Again</button>
         </div>
       `;
-
-      document
-        .getElementById("magic-retry-button")
-        ?.addEventListener("click", () =>
-          loadMagicRecommendation(false)
-        );
+      document.getElementById("magic-retry-button")?.addEventListener("click", () => loadMagicRecommendation(false));
     }
   }
 
@@ -1840,7 +1844,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `${hours} hr`;
   }
 
-  function renderMagicRecommendation(result) {
+  function renderMagicRecommendation(result, aiPowered = false) {
     magicContent.innerHTML = `
       <article class="magic-result-card">
         <div class="magic-result-heading">
@@ -1873,7 +1877,9 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <p class="magic-disclaimer">
-          Recommendations use live third-party data and simple DisneyOS rules. Always confirm operating conditions in the official Disney app.
+          ${aiPowered
+            ? "AI-powered recommendation based on current DisneyOS trip and park data. Always confirm operating conditions in the official Disney app."
+            : "Fallback recommendation using live third-party data and local DisneyOS rules. Always confirm operating conditions in the official Disney app."}
         </p>
       </article>
     `;
