@@ -57,7 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
     displayName: "disneyos-display-name",
     preferredPark: "disneyos-preferred-park",
     todaysPark: "disneyos-todays-park",
-    membershipProfile: "disneyos-member-profile"
+    membershipProfile: "disneyos-member-profile",
+    weatherCache: "disneyos-cache-weather-v1",
+    tripCache: "disneyos-cache-trip-v1",
+    parkDayCachePrefix: "disneyos-cache-park-day-v1:"
   };
 
   const parkOptions = [
@@ -149,6 +152,45 @@ document.addEventListener("DOMContentLoaded", () => {
         error
       );
     }
+  }
+
+  function readCachedData(key) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.data ? parsed : null;
+    } catch (error) {
+      console.warn(`DisneyOS could not read cached data: ${key}`, error);
+      return null;
+    }
+  }
+
+  function writeCachedData(key, data) {
+    try {
+      window.localStorage.setItem(
+        key,
+        JSON.stringify({ savedAt: new Date().toISOString(), data })
+      );
+    } catch (error) {
+      console.warn(`DisneyOS could not save cached data: ${key}`, error);
+    }
+  }
+
+  function getParkDayCacheKey(slug) {
+    return `${storageKeys.parkDayCachePrefix}${slug}`;
+  }
+
+  function formatCacheAge(savedAt) {
+    if (!savedAt) return null;
+    const ageMs = Date.now() - new Date(savedAt).getTime();
+    if (!Number.isFinite(ageMs) || ageMs < 0) return null;
+    const minutes = Math.floor(ageMs / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes === 1) return "1 min ago";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    return hours === 1 ? "1 hr ago" : `${hours} hr ago`;
   }
 
   function getActivePark() {
@@ -339,7 +381,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const requestId = ++loadSequence;
-    setLoadingState(parkName);
+    const cachedParkDay = readCachedData(getParkDayCacheKey(slug));
+    const cachedWeather = readCachedData(storageKeys.weatherCache);
+
+    if (cachedParkDay?.data) {
+      renderParkDay(cachedParkDay.data);
+    }
+
+    if (cachedWeather?.data) {
+      renderWeather(cachedWeather.data);
+    }
+
+    if (!cachedParkDay?.data) {
+      setLoadingState(parkName);
+      if (cachedWeather?.data) renderWeather(cachedWeather.data);
+    }
 
     const [parkDayResult, weatherResult] =
       await Promise.allSettled([
@@ -352,22 +408,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (parkDayResult.status === "fulfilled") {
+      writeCachedData(getParkDayCacheKey(slug), parkDayResult.value);
       renderParkDay(parkDayResult.value);
-    } else {
-      console.warn(
-        "DisneyOS could not load park-day data.",
-        parkDayResult.reason
-      );
+    } else if (!cachedParkDay?.data) {
       renderParkDayError(parkName);
     }
 
     if (weatherResult.status === "fulfilled") {
+      writeCachedData(storageKeys.weatherCache, weatherResult.value);
       renderWeather(weatherResult.value);
-    } else {
-      console.warn(
-        "DisneyOS could not load weather.",
-        weatherResult.reason
-      );
+    } else if (!cachedWeather?.data) {
       renderWeatherError();
     }
   }
@@ -380,13 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       try {
-        const separator =
-          endpoint.includes("?") ? "&" : "?";
-
         const response = await fetch(
-          `${endpoint}${separator}refresh=${Date.now()}`,
+          endpoint,
           {
-            cache: "no-store",
             headers: {
               Accept: "application/json"
             }
@@ -1866,8 +1912,7 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         headers: {
           Accept: "application/json"
-        },
-        cache: "no-store"
+        }
       }
     );
 
@@ -2069,24 +2114,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const summaryCard = document.getElementById("trip-summary-card");
     const emptySection = document.getElementById("trip-empty-section");
+    const cachedTrip = readCachedData(storageKeys.tripCache);
 
-    if (summaryCard) {
-      summaryCard.innerHTML = `
-        <div class="trip-loading-state">
-          <div class="loading-spinner" aria-hidden="true"></div>
-          <div>
-            <strong>Loading your trip</strong>
-            <p>Checking upcoming plans, dining reservations, and tickets.</p>
+    if (cachedTrip?.data && !force) {
+      renderTripSummary(cachedTrip.data);
+      renderUpcomingPlans(cachedTrip.data);
+      renderDiningReservations(cachedTrip.data);
+
+      if (emptySection) {
+        emptySection.hidden =
+          Number(cachedTrip.data.summary?.planCount || 0) > 0;
+      }
+
+      const age = formatCacheAge(cachedTrip.savedAt);
+      setTripStatus(
+        age
+          ? `Showing saved plans from ${age} · checking for updates…`
+          : "Showing saved plans · checking for updates…",
+        "online"
+      );
+    } else {
+      if (summaryCard) {
+        summaryCard.innerHTML = `
+          <div class="trip-loading-state">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <div>
+              <strong>Loading your trip</strong>
+              <p>Checking upcoming plans, dining reservations, and tickets.</p>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
+      if (emptySection) emptySection.hidden = true;
+      setTripStatus("Connecting to Disney Planner…", "loading");
     }
-
-    if (emptySection) emptySection.hidden = true;
-    setTripStatus("Connecting to Disney Planner…", "loading");
 
     tripLoadPromise = fetchTripPlans()
       .then((data) => {
+        writeCachedData(storageKeys.tripCache, data);
         renderTripSummary(data);
         renderUpcomingPlans(data);
         renderDiningReservations(data);
@@ -2096,17 +2161,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         setTripStatus(
-          `Live plans updated ${new Intl.DateTimeFormat("en-US", {
+          `Plans updated ${new Intl.DateTimeFormat("en-US", {
             hour: "numeric",
             minute: "2-digit"
           }).format(new Date())}`,
           "online"
         );
-
         return data;
       })
       .catch((error) => {
-        console.warn("DisneyOS could not load My Trip.", error);
+        console.warn("DisneyOS could not refresh My Trip.", error);
+        if (cachedTrip?.data) {
+          const age = formatCacheAge(cachedTrip.savedAt);
+          setTripStatus(
+            age
+              ? `Refresh failed · showing saved plans from ${age}`
+              : "Refresh failed · showing saved plans",
+            "error"
+          );
+          return cachedTrip.data;
+        }
         renderTripError(error);
         throw error;
       })
