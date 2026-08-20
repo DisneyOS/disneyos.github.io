@@ -1280,7 +1280,12 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           body: JSON.stringify({
             park: getActiveParkSlug(),
-            query: String(userQuery || "").trim()
+            query: String(userQuery || "").trim(),
+            clientContext: {
+              localDateTime: new Date().toString(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+              utcOffsetMinutes: -new Date().getTimezoneOffset()
+            }
           })
         },
         30000
@@ -2473,7 +2478,13 @@ document.addEventListener("DOMContentLoaded", () => {
       magicQuestionInput?.focus();
       return;
     }
+
+    if (magicQuestionInput) {
+      magicQuestionInput.value = "";
+    }
+
     await loadMagicRecommendation(false, question);
+    magicQuestionInput?.focus();
   }
 
   magicAskButton?.addEventListener("click", askMagicQuestion);
