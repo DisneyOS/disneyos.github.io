@@ -397,29 +397,38 @@ document.addEventListener("DOMContentLoaded", () => {
       if (cachedWeather?.data) renderWeather(cachedWeather.data);
     }
 
-    const [parkDayResult, weatherResult] =
-      await Promise.allSettled([
-        fetchParkDay(slug),
-        fetchWeather()
-      ]);
+    // Refresh each home-data source independently. A slow or failed weather
+    // request must never block park hours, entertainment, or transportation.
+    const parkDayRefresh = fetchParkDay(slug)
+      .then((data) => {
+        if (requestId !== loadSequence) return;
+        writeCachedData(getParkDayCacheKey(slug), data);
+        renderParkDay(data);
+      })
+      .catch((error) => {
+        console.warn("DisneyOS park-day refresh failed:", error);
+        if (requestId === loadSequence && !cachedParkDay?.data) {
+          renderParkDayError(parkName);
+        }
+      });
 
-    if (requestId !== loadSequence) {
-      return;
-    }
+    const weatherRefresh = fetchWeather()
+      .then((data) => {
+        if (requestId !== loadSequence) return;
+        writeCachedData(storageKeys.weatherCache, data);
+        renderWeather(data);
+      })
+      .catch((error) => {
+        console.warn("DisneyOS weather refresh failed:", error);
+        if (requestId === loadSequence && !cachedWeather?.data) {
+          renderWeatherError();
+        }
+      });
 
-    if (parkDayResult.status === "fulfilled") {
-      writeCachedData(getParkDayCacheKey(slug), parkDayResult.value);
-      renderParkDay(parkDayResult.value);
-    } else if (!cachedParkDay?.data) {
-      renderParkDayError(parkName);
-    }
-
-    if (weatherResult.status === "fulfilled") {
-      writeCachedData(storageKeys.weatherCache, weatherResult.value);
-      renderWeather(weatherResult.value);
-    } else if (!cachedWeather?.data) {
-      renderWeatherError();
-    }
+    // Do not make rendering wait on either source. These promises are kept
+    // alive only so errors are handled above.
+    void parkDayRefresh;
+    void weatherRefresh;
   }
 
   async function fetchParkDay(slug) {
@@ -430,13 +439,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           endpoint,
           {
             headers: {
               Accept: "application/json"
             }
-          }
+          },
+          8000
         );
 
         if (!response.ok) {
@@ -469,18 +479,32 @@ document.addEventListener("DOMContentLoaded", () => {
       new Error("Park-day data is unavailable.");
   }
 
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   async function fetchWeather() {
-    const response = await fetch(
-      "https://api.open-meteo.com/v1/forecast" +
-        "?latitude=28.3772" +
-        "&longitude=-81.5707" +
-        "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
-        "&hourly=precipitation_probability" +
-        "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-        "&temperature_unit=fahrenheit" +
-        "&wind_speed_unit=mph" +
-        "&timezone=America%2FNew_York" +
-        "&forecast_days=1"
+    // Weather now comes through the DisneyOS Cloudflare API instead of the
+    // phone contacting Open-Meteo directly. The Worker caches the upstream
+    // forecast, giving the PWA a fast, same-origin-style API path.
+    const response = await fetchWithTimeout(
+      `${API_BASE}/weather`,
+      {
+        headers: {
+          Accept: "application/json"
+        }
+      },
+      8000
     );
 
     if (!response.ok) {
@@ -489,7 +513,13 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    return response.json();
+    const payload = await response.json();
+
+    if (!payload?.success || !payload?.data) {
+      throw new Error("Weather response did not contain data.");
+    }
+
+    return payload.data;
   }
 
   function renderParkDay(data) {
