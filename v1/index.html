@@ -107,6 +107,15 @@
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
+<style>
+.magic-question-box{padding:16px 22px;border-top:1px solid rgba(255,255,255,.10)}
+.magic-question-box label{display:block;margin-bottom:8px;font-weight:700}
+.magic-question-row{display:flex;gap:10px}
+.magic-question-row input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:rgba(255,255,255,.06);color:inherit;padding:13px 14px;font:inherit}
+.magic-question-row input::placeholder{color:rgba(255,255,255,.48)}
+.magic-question-hint{margin:8px 2px 0;font-size:.78rem;opacity:.62}
+@media(max-width:560px){.magic-question-row{flex-direction:column}.magic-question-row button{width:100%}}
+</style>
 </head>
 <body>
 <div aria-hidden="true" class="ambient one"></div>
@@ -639,7 +648,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.12"></script>
+<script src="js/app.js?v=2.0.13"></script>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">
@@ -656,6 +665,14 @@
 <strong>Finding your best next move…</strong>
 <p>Comparing waits, shows, weather, and remaining park time.</p>
 </div>
+</div>
+<div class="magic-question-box">
+<label for="magic-question-input">Ask Genie anything</label>
+<div class="magic-question-row">
+<input id="magic-question-input" type="text" maxlength="600" autocomplete="off" placeholder="I want to see a show…">
+<button class="primary-button" id="magic-ask-button" type="button">Ask ✨</button>
+</div>
+<p class="magic-question-hint">Try “quick snack,” “something indoors,” or “what fits before my next plan?”</p>
 </div>
 <footer class="magic-sheet-footer" hidden="" id="magic-actions">
 <button class="secondary-button" id="magic-another-button" type="button">🔄 Give me another</button>
