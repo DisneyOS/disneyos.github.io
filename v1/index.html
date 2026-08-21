@@ -103,7 +103,7 @@
 </script>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.9" rel="stylesheet"/>
+<link href="css/styles.css?v=2.0.18" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -636,12 +636,19 @@
             Connections
           </p>
 <div class="settings-card">
-<button class="settings-row settings-row-coming-soon" disabled="" type="button">
+<div class="settings-row static-row">
 <span>
-<strong>Disney Planner</strong>
-<small>Trip connection</small>
+<strong>Disney Profile</strong>
+<small id="settings-disney-profile">Checking connection…</small>
 </span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
+<span class="status-badge" id="settings-disney-profile-badge">Live</span>
+</div>
+<button class="settings-row" id="party-manager-button" type="button">
+<span>
+<strong>People & Parties</strong>
+<small id="settings-party-summary">Loading party…</small>
+</span>
+<span>›</span>
 </button>
 <button class="settings-row settings-row-coming-soon" disabled="" type="button">
 <span>
@@ -704,7 +711,86 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.16"></script>
+<script src="js/app.js?v=2.0.18"></script>
+<div class="party-modal" hidden id="party-modal">
+<div class="party-modal-backdrop" data-action="close-party-manager"></div>
+<section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
+<header class="party-sheet-header">
+<div>
+<p class="eyebrow">DisneyOS</p>
+<h2 id="party-manager-title">People & Parties</h2>
+<p>Link your Disney identity, approve your people, and build reusable parties.</p>
+</div>
+<button class="party-close-button" data-action="close-party-manager" type="button" aria-label="Close party management">×</button>
+</header>
+<div class="party-sheet-content">
+<div class="party-message" id="party-message" hidden></div>
+<section class="party-section">
+<div class="party-section-heading">
+<div>
+<p class="settings-group-label">My Disney Profile</p>
+<small>This identifies which Disney profile belongs to your DisneyOS membership.</small>
+</div>
+</div>
+<article class="party-identity-card" id="party-identity-card">
+<div class="party-avatar-placeholder">D</div>
+<div>
+<strong>Loading Disney profile…</strong>
+<small>Checking your linked identity</small>
+</div>
+</article>
+<button class="party-secondary-action" id="party-link-self-button" type="button" hidden>Link My Disney Profile</button>
+</section>
+<section class="party-section">
+<div class="party-section-heading">
+<div>
+<p class="settings-group-label">My People</p>
+<small>Only these approved Disney profiles can be used in your parties.</small>
+</div>
+<button class="party-inline-action" id="party-add-people-button" type="button" hidden>Add People</button>
+</div>
+<div class="party-people-list" id="party-people-list">
+<div class="party-loading">Loading your people…</div>
+</div>
+<div class="party-link-session" id="party-link-session" hidden>
+<div class="party-link-session-copy">
+<strong id="party-link-session-title">Link Disney profiles</strong>
+<p id="party-link-session-instructions"></p>
+</div>
+<div class="party-link-session-actions">
+<button class="party-secondary-button" id="party-link-scan-button" type="button">Scan for New Profiles</button>
+<button class="party-text-button" id="party-link-cancel-button" type="button">Cancel</button>
+</div>
+<div class="party-discovered-list" id="party-discovered-list"></div>
+<button class="party-primary-button" id="party-link-confirm-button" type="button" hidden>Confirm Selection</button>
+</div>
+</section>
+<section class="party-section">
+<div class="party-section-heading">
+<div>
+<p class="settings-group-label">Saved Parties</p>
+<small>Your active party becomes DisneyOS planning context.</small>
+</div>
+</div>
+<div class="party-saved-list" id="party-saved-list">
+<div class="party-loading">Loading saved parties…</div>
+</div>
+</section>
+<section class="party-section party-create-section">
+<div>
+<p class="settings-group-label">Create a Saved Party</p>
+<small>Choose from My People. The full DisneyOS Planner directory is never shown here.</small>
+</div>
+<label class="party-field">
+<span>Party name</span>
+<input id="party-name-input" type="text" maxlength="50" placeholder="Family, Family + Rookstools…" autocomplete="off">
+</label>
+<div class="party-profile-list" id="party-profile-list"></div>
+<button class="party-primary-button" id="party-create-button" type="button">Create Party</button>
+</section>
+</div>
+</section>
+</div>
 <div class="magic-modal" hidden="" id="magic-modal">
 <div class="magic-modal-backdrop" data-action="close-magic"></div>
 <section aria-labelledby="magic-title" aria-modal="true" class="magic-sheet" role="dialog">

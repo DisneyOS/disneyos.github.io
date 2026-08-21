@@ -1,5 +1,5 @@
 /**
- * DisneyOS v1.4
+ * DisneyOS v1.4.1
  * Dynamic home dashboard powered by the DisneyOS API.
  */
 
@@ -22,6 +22,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsMemberStatusElement = document.getElementById("settings-member-status");
   const settingsMemberStatusBadge = document.getElementById("settings-member-status-badge");
   const adminConsoleLink = document.getElementById("admin-console-link");
+  const settingsDisneyProfileElement = document.getElementById("settings-disney-profile");
+  const settingsDisneyProfileBadge = document.getElementById("settings-disney-profile-badge");
+  const settingsPartySummaryElement = document.getElementById("settings-party-summary");
+  const partyManagerButton = document.getElementById("party-manager-button");
+  const partyModal = document.getElementById("party-modal");
+  const partyCloseButtons = document.querySelectorAll('[data-action="close-party-manager"]');
+  const partyIdentityCard = document.getElementById("party-identity-card");
+  const partySavedList = document.getElementById("party-saved-list");
+  const partyProfileList = document.getElementById("party-profile-list");
+  const partyNameInput = document.getElementById("party-name-input");
+  const partyCreateButton = document.getElementById("party-create-button");
+  const partyMessage = document.getElementById("party-message");
+  const partyLinkSelfButton = document.getElementById("party-link-self-button");
+  const partyAddPeopleButton = document.getElementById("party-add-people-button");
+  const partyPeopleList = document.getElementById("party-people-list");
+  const partyLinkSession = document.getElementById("party-link-session");
+  const partyLinkSessionTitle = document.getElementById("party-link-session-title");
+  const partyLinkSessionInstructions = document.getElementById("party-link-session-instructions");
+  const partyLinkScanButton = document.getElementById("party-link-scan-button");
+  const partyLinkCancelButton = document.getElementById("party-link-cancel-button");
+  const partyDiscoveredList = document.getElementById("party-discovered-list");
+  const partyLinkConfirmButton = document.getElementById("party-link-confirm-button");
   const editNameButton = document.getElementById("edit-name-button");
   const editParkButton = document.getElementById("edit-park-button");
   const waitTimesShortcut = document.getElementById("wait-times-shortcut");
@@ -290,12 +312,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const memberId = membership?.memberNumber || membership?.memberId || "Not available";
     const status = membership?.memberStatus || "active";
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+    const disneyProfileName = membership?.disneyProfile?.displayName || "Not linked";
+    const defaultParty = Array.isArray(membership?.parties)
+      ? membership.parties.find((party) => party.id === membership?.defaultPartyId)
+      : null;
 
     if (settingsMemberIdElement) settingsMemberIdElement.textContent = memberId;
     if (settingsMemberStatusElement) settingsMemberStatusElement.textContent = statusLabel;
     if (settingsMemberStatusBadge) {
       settingsMemberStatusBadge.textContent = statusLabel;
       settingsMemberStatusBadge.classList.toggle("inactive", status !== "active");
+    }
+    if (settingsDisneyProfileElement) {
+      settingsDisneyProfileElement.textContent = disneyProfileName;
+    }
+    if (settingsDisneyProfileBadge) {
+      const linked = Boolean(membership?.disneyProfile);
+      settingsDisneyProfileBadge.textContent = linked ? "Live" : "Setup";
+      settingsDisneyProfileBadge.classList.toggle("inactive", !linked);
+    }
+    if (settingsPartySummaryElement) {
+      settingsPartySummaryElement.textContent = defaultParty?.displayName || "Set up your party";
     }
     if (adminConsoleLink) adminConsoleLink.hidden = membership?.role !== "admin";
   }
@@ -2257,6 +2294,416 @@ document.addEventListener("DOMContentLoaded", () => {
     return tripLoadPromise;
   }
 
+  function getDeviceToken() {
+    try {
+      return window.localStorage.getItem(storageKeys.deviceToken) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  async function plannerRequest(path, options = {}) {
+    const token = getDeviceToken();
+    if (!token) throw new Error("DisneyOS membership credential is unavailable.");
+
+    const response = await fetch(`${PLANNER_API_BASE}${path}`, {
+      cache: "no-store",
+      ...options,
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(options.headers || {})
+      }
+    });
+
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch {
+      // Keep the user-facing error concise if the Worker returns HTML.
+    }
+
+    if (!response.ok || !payload?.success) {
+      throw new Error(
+        payload?.error?.message || `DisneyOS returned ${response.status}.`
+      );
+    }
+
+    return payload.data;
+  }
+
+  function setPartyMessage(message = "", type = "info") {
+    if (!partyMessage) return;
+    partyMessage.textContent = message;
+    partyMessage.hidden = !message;
+    partyMessage.dataset.type = type;
+  }
+
+  function renderPartyIdentity(membership) {
+    if (!partyIdentityCard) return;
+    const disneyProfile = membership?.disneyProfile;
+    if (!disneyProfile) {
+      partyIdentityCard.innerHTML = `
+        <div class="party-avatar-placeholder">?</div>
+        <div>
+          <strong>Disney profile not linked</strong>
+          <small>Link your Disney identity before adding people or creating parties.</small>
+        </div>
+      `;
+      if (partyLinkSelfButton) partyLinkSelfButton.hidden = false;
+      if (partyAddPeopleButton) partyAddPeopleButton.hidden = true;
+      return;
+    }
+
+    if (partyLinkSelfButton) partyLinkSelfButton.hidden = true;
+    if (partyAddPeopleButton) partyAddPeopleButton.hidden = false;
+
+    const avatar = disneyProfile.avatar
+      ? `<img class="party-avatar" src="${escapeHtml(disneyProfile.avatar)}" alt="">`
+      : `<div class="party-avatar-placeholder">${escapeHtml((disneyProfile.firstName || "D").charAt(0))}</div>`;
+
+    partyIdentityCard.innerHTML = `
+      ${avatar}
+      <div>
+        <strong>${escapeHtml(disneyProfile.displayName || "Disney profile")}</strong>
+        <small>Linked to ${escapeHtml(membership.displayName || "this DisneyOS member")}</small>
+      </div>
+      <span class="feature-state-badge live">Live</span>
+    `;
+  }
+
+  function renderAccessibleProfiles(membership) {
+    if (!partyProfileList) return;
+    const profiles = Array.isArray(membership?.profileAccess)
+      ? membership.profileAccess
+      : [];
+
+    if (!profiles.length) {
+      partyProfileList.innerHTML = `
+        <div class="party-empty-state">No Disney profiles are available to this member yet.</div>
+      `;
+      if (partyCreateButton) partyCreateButton.disabled = true;
+      return;
+    }
+
+    if (partyCreateButton) partyCreateButton.disabled = false;
+    partyProfileList.innerHTML = profiles.map((item) => `
+      <label class="party-profile-option">
+        <input type="checkbox" value="${escapeHtml(item.disneyProfileId)}" ${item.isSelf ? "checked" : ""}>
+        ${item.avatar ? `<img class="party-avatar small" src="${escapeHtml(item.avatar)}" alt="">` : `<span class="party-avatar-placeholder small">${escapeHtml((item.firstName || item.displayName || "D").charAt(0))}</span>`}
+        <span class="party-profile-copy">
+          <strong>${escapeHtml(item.displayName || "Disney profile")}</strong>
+          <small>${item.isSelf ? "You" : escapeHtml(item.accessLevel || "view")}</small>
+        </span>
+      </label>
+    `).join("");
+  }
+
+
+  function renderMyPeople(membership) {
+    if (!partyPeopleList) return;
+    const profiles = Array.isArray(membership?.profileAccess)
+      ? membership.profileAccess
+      : [];
+
+    if (!profiles.length) {
+      partyPeopleList.innerHTML = `
+        <div class="party-empty-state">No approved Disney profiles yet.</div>
+      `;
+      return;
+    }
+
+    partyPeopleList.innerHTML = profiles.map((item) => `
+      <article class="party-person-card">
+        ${item.avatar ? `<img class="party-avatar small" src="${escapeHtml(item.avatar)}" alt="">` : `<span class="party-avatar-placeholder small">${escapeHtml((item.firstName || item.displayName || "D").charAt(0))}</span>`}
+        <span class="party-profile-copy">
+          <strong>${escapeHtml(item.displayName || "Disney profile")}</strong>
+          <small>${item.isSelf ? "You · " : ""}${escapeHtml(item.accessLevel || "view")}</small>
+        </span>
+        ${item.isSelf ? '<span class="feature-state-badge live">You</span>' : ""}
+      </article>
+    `).join("");
+  }
+
+  function resetLinkSessionUi() {
+    if (partyLinkSession) partyLinkSession.hidden = true;
+    if (partyDiscoveredList) partyDiscoveredList.innerHTML = "";
+    if (partyLinkConfirmButton) partyLinkConfirmButton.hidden = true;
+  }
+
+  function renderLinkSession(session) {
+    if (!partyLinkSession) return;
+    if (!session) {
+      resetLinkSessionUi();
+      return;
+    }
+
+    const selfLink = session.sessionType === "self";
+    partyLinkSession.hidden = false;
+    if (partyLinkSessionTitle) {
+      partyLinkSessionTitle.textContent = selfLink
+        ? "Link My Disney Profile"
+        : "Add My People";
+    }
+    if (partyLinkSessionInstructions) {
+      partyLinkSessionInstructions.textContent = selfLink
+        ? "Connect your Disney profile to the DisneyOS Planner in My Disney Experience, then return here and scan. DisneyOS will show only profiles added after this linking session began."
+        : "Add the family or friends you want DisneyOS to manage to the DisneyOS Planner in My Disney Experience, then return here and scan. Only newly added profiles will be offered to you.";
+    }
+
+    renderDiscoveredProfiles(session.discoveredProfiles || [], selfLink);
+  }
+
+  function renderDiscoveredProfiles(profiles = [], selfLink = false) {
+    if (!partyDiscoveredList || !partyLinkConfirmButton) return;
+
+    if (!profiles.length) {
+      partyDiscoveredList.innerHTML = `
+        <div class="party-empty-state compact">No new profiles found yet. Add them in Disney, then scan again.</div>
+      `;
+      partyLinkConfirmButton.hidden = true;
+      return;
+    }
+
+    const inputType = selfLink ? "radio" : "checkbox";
+    partyDiscoveredList.innerHTML = profiles.map((item, index) => `
+      <label class="party-profile-option discovered">
+        <input type="${inputType}" name="party-discovered-profile" value="${escapeHtml(item.id)}" ${selfLink && index === 0 ? "checked" : ""}>
+        ${item.avatar ? `<img class="party-avatar small" src="${escapeHtml(item.avatar)}" alt="">` : `<span class="party-avatar-placeholder small">${escapeHtml((item.first_name || item.display_name || "D").charAt(0))}</span>`}
+        <span class="party-profile-copy">
+          <strong>${escapeHtml(item.display_name || "Disney profile")}</strong>
+          <small>Newly discovered</small>
+        </span>
+      </label>
+    `).join("");
+    partyLinkConfirmButton.hidden = false;
+  }
+
+  async function loadCurrentLinkSession() {
+    try {
+      const data = await plannerRequest("/profile-link/current");
+      renderLinkSession(data?.session || null);
+      return data?.session || null;
+    } catch (error) {
+      resetLinkSessionUi();
+      throw error;
+    }
+  }
+
+  async function startProfileLink(sessionType) {
+    const selfLink = sessionType === "self";
+    const button = selfLink ? partyLinkSelfButton : partyAddPeopleButton;
+    if (button) button.disabled = true;
+    try {
+      await plannerRequest("/profile-link/start", {
+        method: "POST",
+        body: JSON.stringify({ sessionType })
+      });
+      setPartyMessage(
+        selfLink
+          ? "Linking session started. Connect your Disney profile, then scan."
+          : "Add People session started. Add them in Disney, then scan.",
+        "success"
+      );
+      await loadCurrentLinkSession();
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function scanProfileLink() {
+    if (partyLinkScanButton) partyLinkScanButton.disabled = true;
+    try {
+      const result = await plannerRequest("/profile-link/scan", { method: "POST" });
+      renderDiscoveredProfiles(
+        result?.discoveredProfiles || [],
+        result?.sessionType === "self"
+      );
+      setPartyMessage(
+        result?.discoveredCount
+          ? `${result.discoveredCount} new Disney profile${result.discoveredCount === 1 ? "" : "s"} found.`
+          : "No new Disney profiles found yet.",
+        result?.discoveredCount ? "success" : "info"
+      );
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (partyLinkScanButton) partyLinkScanButton.disabled = false;
+    }
+  }
+
+  async function confirmProfileLink() {
+    const profileIds = partyDiscoveredList
+      ? Array.from(partyDiscoveredList.querySelectorAll('input:checked')).map((input) => input.value)
+      : [];
+
+    if (!profileIds.length) {
+      setPartyMessage("Select at least one newly discovered profile.", "error");
+      return;
+    }
+
+    if (partyLinkConfirmButton) partyLinkConfirmButton.disabled = true;
+    try {
+      const result = await plannerRequest("/profile-link/complete", {
+        method: "POST",
+        body: JSON.stringify({ profileIds })
+      });
+      setPartyMessage(
+        result?.sessionType === "self"
+          ? "Your Disney profile is linked."
+          : "Your people were added to DisneyOS.",
+        "success"
+      );
+      resetLinkSessionUi();
+      await loadPartyManager();
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (partyLinkConfirmButton) partyLinkConfirmButton.disabled = false;
+    }
+  }
+
+  async function cancelProfileLink() {
+    if (partyLinkCancelButton) partyLinkCancelButton.disabled = true;
+    try {
+      await plannerRequest("/profile-link/cancel", { method: "POST" });
+      resetLinkSessionUi();
+      setPartyMessage("Linking session cancelled.", "info");
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (partyLinkCancelButton) partyLinkCancelButton.disabled = false;
+    }
+  }
+
+  function renderSavedParties(parties = [], defaultPartyId = null) {
+    if (!partySavedList) return;
+    if (!parties.length) {
+      partySavedList.innerHTML = `
+        <div class="party-empty-state">No saved parties yet. Create one below.</div>
+      `;
+      return;
+    }
+
+    partySavedList.innerHTML = parties.map((party) => {
+      const isDefault = party.id === defaultPartyId || party.isDefault;
+      const names = Array.isArray(party.members)
+        ? party.members.map((member) => member.firstName || member.displayName).filter(Boolean)
+        : [];
+      return `
+        <article class="party-saved-card ${isDefault ? "is-default" : ""}">
+          <div>
+            <div class="party-card-title-row">
+              <strong>${escapeHtml(party.displayName)}</strong>
+              ${isDefault ? '<span class="feature-state-badge live">Active</span>' : ""}
+            </div>
+            <small>${escapeHtml(names.length ? names.join(", ") : "Saved party")}</small>
+          </div>
+          ${isDefault ? "" : `<button class="party-secondary-button" type="button" data-party-default="${escapeHtml(party.id)}">Use Party</button>`}
+        </article>
+      `;
+    }).join("");
+
+    partySavedList.querySelectorAll("[data-party-default]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try {
+          await plannerRequest(`/parties/${encodeURIComponent(button.dataset.partyDefault)}/default`, {
+            method: "POST"
+          });
+          setPartyMessage("Active party updated.", "success");
+          await loadPartyManager();
+        } catch (error) {
+          setPartyMessage(error.message, "error");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+  }
+
+  async function refreshMembershipContext() {
+    const membership = await plannerRequest("/membership/me");
+    try {
+      window.localStorage.setItem(storageKeys.membershipProfile, JSON.stringify(membership));
+    } catch {
+      // The current screen can still render even if persistence is unavailable.
+    }
+    renderMembershipSettings();
+    return membership;
+  }
+
+  async function loadPartyManager() {
+    setPartyMessage("");
+    if (partySavedList) partySavedList.innerHTML = '<div class="party-loading">Loading saved parties…</div>';
+
+    try {
+      const [membership, partyData] = await Promise.all([
+        refreshMembershipContext(),
+        plannerRequest("/parties")
+      ]);
+      renderPartyIdentity(membership);
+      renderMyPeople(membership);
+      renderAccessibleProfiles(membership);
+      renderSavedParties(partyData?.parties || [], membership.defaultPartyId);
+      await loadCurrentLinkSession();
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+      if (partySavedList) {
+        partySavedList.innerHTML = '<div class="party-empty-state">DisneyOS could not load saved parties.</div>';
+      }
+    }
+  }
+
+  async function openPartyManager() {
+    if (!partyModal) return;
+    partyModal.hidden = false;
+    document.body.classList.add("party-modal-open");
+    await loadPartyManager();
+  }
+
+  function closePartyManager() {
+    if (!partyModal) return;
+    partyModal.hidden = true;
+    document.body.classList.remove("party-modal-open");
+    setPartyMessage("");
+  }
+
+  async function createParty() {
+    const displayName = String(partyNameInput?.value || "").trim();
+    const profileIds = partyProfileList
+      ? Array.from(partyProfileList.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value)
+      : [];
+
+    if (!displayName) {
+      setPartyMessage("Enter a name for this party.", "error");
+      partyNameInput?.focus();
+      return;
+    }
+    if (!profileIds.length) {
+      setPartyMessage("Select at least one person for this party.", "error");
+      return;
+    }
+
+    if (partyCreateButton) partyCreateButton.disabled = true;
+    try {
+      await plannerRequest("/parties", {
+        method: "POST",
+        body: JSON.stringify({ displayName, profileIds })
+      });
+      if (partyNameInput) partyNameInput.value = "";
+      setPartyMessage(`${displayName} was saved.`, "success");
+      await loadPartyManager();
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (partyCreateButton) partyCreateButton.disabled = false;
+    }
+  }
+
   function editDisplayName() {
     const enteredName = window.prompt(
       "Enter the name DisneyOS should display:",
@@ -2363,6 +2810,23 @@ document.addEventListener("DOMContentLoaded", () => {
     "click",
     editPreferredPark
   );
+
+  partyManagerButton?.addEventListener("click", openPartyManager);
+  partyCloseButtons.forEach((button) => {
+    button.addEventListener("click", closePartyManager);
+  });
+  partyCreateButton?.addEventListener("click", createParty);
+  partyLinkSelfButton?.addEventListener("click", () => startProfileLink("self"));
+  partyAddPeopleButton?.addEventListener("click", () => startProfileLink("household"));
+  partyLinkScanButton?.addEventListener("click", scanProfileLink);
+  partyLinkConfirmButton?.addEventListener("click", confirmProfileLink);
+  partyLinkCancelButton?.addEventListener("click", cancelProfileLink);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && partyModal && !partyModal.hidden) {
+      closePartyManager();
+    }
+  });
 
   waitTimesShortcut?.addEventListener(
     "click",

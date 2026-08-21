@@ -1,0 +1,30 @@
+DisneyOS People & Parties UI
+===========================
+
+This build moves profile onboarding into the DisneyOS app.
+
+Settings > Connections > People & Parties
+
+1. My Disney Profile
+   - If the DisneyOS member is not linked, the app shows Link My Disney Profile.
+   - Starting the link creates a self linking session and snapshots the current Planner directory.
+   - The member connects their Disney profile to the DisneyOS Planner in My Disney Experience.
+   - Back in DisneyOS, Scan for New Profiles returns only profiles added after the session began.
+   - The member confirms exactly one profile; it becomes their linked Disney identity and manage/self access.
+
+2. My People
+   - Once self-linked, Add People becomes available.
+   - Starting it creates a household linking session and snapshots the current directory.
+   - The member adds their family/friends to the DisneyOS Planner in My Disney Experience.
+   - Scan shows only profiles newly added during that session.
+   - The member confirms the people; they become member_profile_access entries.
+   - The full central Planner directory is never displayed in this screen.
+
+3. Saved Parties
+   - Parties can only be built from My People/profileAccess.
+   - The active/default party is DisneyOS planning context.
+   - Existing party creation and switching remain intact.
+
+Important current limitation
+----------------------------
+The Disney-side Friends & Family connection itself still occurs in My Disney Experience. DisneyOS manages the before/after discovery and association, but it does not yet create the Disney relationship automatically.

@@ -2974,3 +2974,64 @@ body {
   background: rgba(255, 132, 132, .13);
   color: #ffaaaa;
 }
+
+
+/* ---------------------------------------------------------
+   Party Management
+   --------------------------------------------------------- */
+
+body.party-modal-open { overflow: hidden; }
+.party-modal { position: fixed; z-index: 1100; inset: 0; display: grid; align-items: end; }
+.party-modal[hidden] { display: none; }
+.party-modal-backdrop { position: absolute; inset: 0; background: rgba(5, 8, 18, .76); backdrop-filter: blur(10px); }
+.party-sheet { position: relative; z-index: 1; width: min(100%, 760px); max-height: min(92vh, 900px); margin: 0 auto; overflow: auto; border: 1px solid var(--border); border-bottom: 0; border-radius: 28px 28px 0 0; background: var(--background); box-shadow: 0 -24px 80px rgba(0,0,0,.45); }
+.party-sheet-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px; border-bottom: 1px solid var(--border); background: rgba(12,17,31,.94); backdrop-filter: blur(18px); }
+.party-sheet-header h2 { margin: 2px 0 6px; }
+.party-sheet-header p:last-child { margin: 0; color: var(--text-secondary); font-size: .86rem; max-width: 520px; }
+.party-close-button { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--text-primary); font-size: 1.55rem; }
+.party-sheet-content { display: grid; gap: 24px; padding: 22px; padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+.party-section { display: grid; gap: 12px; }
+.party-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.party-section-heading small, .party-create-section > div > small { color: var(--text-secondary); }
+.party-identity-card, .party-saved-card, .party-profile-option, .party-empty-state { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.party-identity-card { display: flex; align-items: center; gap: 12px; padding: 14px; }
+.party-identity-card > div:nth-child(2) { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.party-identity-card small, .party-saved-card small, .party-profile-copy small { color: var(--text-secondary); }
+.party-avatar, .party-avatar-placeholder { width: 48px; height: 48px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.party-avatar-placeholder { display: grid; place-items: center; background: var(--surface-soft); color: var(--text-primary); font-weight: 800; }
+.party-avatar.small, .party-avatar-placeholder.small { width: 40px; height: 40px; }
+.party-saved-list, .party-profile-list { display: grid; gap: 10px; }
+.party-saved-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; }
+.party-saved-card.is-default { border-color: rgba(62, 155, 255, .5); background: rgba(30, 91, 157, .16); }
+.party-saved-card > div { min-width: 0; }
+.party-card-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 3px; }
+.party-secondary-button, .party-primary-button { border: 0; border-radius: 14px; font-weight: 750; }
+.party-secondary-button { flex: 0 0 auto; padding: 9px 12px; background: var(--surface-soft); color: var(--text-primary); }
+.party-primary-button { width: 100%; min-height: 48px; padding: 12px 16px; background: var(--accent); color: white; }
+.party-primary-button:disabled, .party-secondary-button:disabled { opacity: .55; }
+.party-field { display: grid; gap: 7px; }
+.party-field > span { color: var(--text-secondary); font-size: .82rem; font-weight: 700; }
+.party-field input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text-primary); font: inherit; }
+.party-profile-option { display: flex; align-items: center; gap: 11px; padding: 12px; cursor: pointer; }
+.party-profile-option input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--accent); }
+.party-profile-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.party-empty-state, .party-loading { padding: 16px; color: var(--text-secondary); text-align: center; }
+.party-message { padding: 12px 14px; border-radius: 14px; background: var(--surface-soft); color: var(--text-secondary); }
+.party-message[data-type="success"] { border: 1px solid rgba(81, 205, 135, .35); color: var(--text-primary); }
+.party-message[data-type="error"] { border: 1px solid rgba(255, 99, 99, .42); color: #ffb2b2; }
+
+/* Disney profile onboarding + My People */
+.party-people-list,
+.party-discovered-list { display: grid; gap: 10px; }
+.party-person-card { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.party-person-card .party-profile-copy { flex: 1; }
+.party-inline-action { flex: 0 0 auto; padding: 8px 11px; border: 0; border-radius: 12px; background: var(--surface-soft); color: var(--text-primary); font-weight: 750; }
+.party-secondary-action { width: 100%; min-height: 46px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); color: var(--text-primary); font-weight: 750; }
+.party-link-session { display: grid; gap: 12px; padding: 14px; border: 1px solid rgba(62, 155, 255, .35); border-radius: 18px; background: rgba(30, 91, 157, .12); }
+.party-link-session[hidden] { display: none; }
+.party-link-session-copy { display: grid; gap: 5px; }
+.party-link-session-copy p { margin: 0; color: var(--text-secondary); font-size: .86rem; line-height: 1.45; }
+.party-link-session-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.party-text-button { border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-weight: 700; padding: 9px 6px; }
+.party-profile-option.discovered { background: rgba(255,255,255,.035); }
+.party-empty-state.compact { padding: 12px; font-size: .86rem; }
