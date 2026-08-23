@@ -1,0 +1,14 @@
+DisneyOS Identity Phase 1 Frontend v2
+
+Reason for this patch:
+The existing legacy member_disney_profiles link can already show a user under
+"My Disney Profile", which caused the Phase 1 discovery button to remain hidden.
+
+This version preserves the existing legacy profile link and exposes:
+  Verify Disney Account
+
+That button runs the new /v1/disney-identity/find discovery flow in parallel.
+It does not remove, replace, or bind the existing profile.
+
+Deploy this full repository replacement to GitHub Pages, then open:
+Settings -> People & Parties -> My Disney Profile -> Verify Disney Account

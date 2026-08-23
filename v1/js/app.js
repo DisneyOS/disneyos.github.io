@@ -2360,8 +2360,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeDisneyIdentityFind() {
     if (disneyIdentityFind) disneyIdentityFind.hidden = true;
-    const membership = getMembershipProfile();
-    if (partyLinkSelfButton && !membership?.disneyProfile) {
+    if (partyLinkSelfButton) {
       partyLinkSelfButton.hidden = false;
     }
   }
@@ -2453,6 +2452,13 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <span class="feature-state-badge live">Live</span>
     `;
+    if (partyLinkSelfButton) {
+      partyLinkSelfButton.hidden = false;
+      partyLinkSelfButton.textContent = membership?.disneyProfile
+        ? "Verify Disney Account"
+        : "Find My Disney Account";
+    }
+
   }
 
   function renderAccessibleProfiles(membership) {
