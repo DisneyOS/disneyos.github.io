@@ -1,0 +1,22 @@
+DisneyOS Phase 1 Frontend
+
+This package is based directly on the uploaded current disneyos.github.io repository.
+
+Changed files:
+- v1/index.html
+- v1/js/app.js
+- v1/css/styles.css
+
+Behavior:
+People & Parties -> Link My Disney Profile now opens a Phase 1 Find My Disney Account form.
+The form uses the existing stored DisneyOS device token via plannerRequest(), so no token is exposed manually.
+It POSTs to /v1/disney-identity/find and displays:
+- Disney profile found
+- Planner connection status
+- Binding status (UNVERIFIED)
+
+This intentionally does not bind the account yet.
+
+Deployment:
+Replace/upload the repository as you normally do to GitHub Pages.
+Then open DisneyOS -> Settings -> People & Parties -> Link My Disney Profile.

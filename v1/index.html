@@ -711,7 +711,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.0.18"></script>
+<script src="js/app.js?v=2.0.19"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
@@ -740,6 +740,31 @@
 </div>
 </article>
 <button class="party-secondary-action" id="party-link-self-button" type="button" hidden>Link My Disney Profile</button>
+<div class="disney-identity-find" id="disney-identity-find" hidden>
+  <div class="party-link-session-copy">
+    <strong>Find My Disney Account</strong>
+    <p>Enter the name and email used on your Disney account. DisneyOS will find the matching profile but will not link it until verification is completed.</p>
+  </div>
+  <div class="disney-identity-fields">
+    <label>
+      <span>First Name</span>
+      <input id="disney-identity-first-name" type="text" autocomplete="given-name">
+    </label>
+    <label>
+      <span>Last Name</span>
+      <input id="disney-identity-last-name" type="text" autocomplete="family-name">
+    </label>
+    <label class="wide">
+      <span>Disney Account Email</span>
+      <input id="disney-identity-email" type="email" autocomplete="email" inputmode="email">
+    </label>
+  </div>
+  <div class="party-link-session-actions">
+    <button class="party-primary-button" id="disney-identity-find-button" type="button">Find My Disney Account</button>
+    <button class="party-text-button" id="disney-identity-find-cancel" type="button">Cancel</button>
+  </div>
+  <div class="disney-identity-result" id="disney-identity-result" hidden></div>
+</div>
 </section>
 <section class="party-section">
 <div class="party-section-heading">

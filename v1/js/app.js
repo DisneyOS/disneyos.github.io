@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const partyCreateButton = document.getElementById("party-create-button");
   const partyMessage = document.getElementById("party-message");
   const partyLinkSelfButton = document.getElementById("party-link-self-button");
+  const disneyIdentityFind = document.getElementById("disney-identity-find");
+  const disneyIdentityFirstName = document.getElementById("disney-identity-first-name");
+  const disneyIdentityLastName = document.getElementById("disney-identity-last-name");
+  const disneyIdentityEmail = document.getElementById("disney-identity-email");
+  const disneyIdentityFindButton = document.getElementById("disney-identity-find-button");
+  const disneyIdentityFindCancel = document.getElementById("disney-identity-find-cancel");
+  const disneyIdentityResult = document.getElementById("disney-identity-result");
   const partyAddPeopleButton = document.getElementById("party-add-people-button");
   const partyPeopleList = document.getElementById("party-people-list");
   const partyLinkSession = document.getElementById("party-link-session");
@@ -2340,6 +2347,81 @@ document.addEventListener("DOMContentLoaded", () => {
     partyMessage.dataset.type = type;
   }
 
+  function openDisneyIdentityFind() {
+    if (!disneyIdentityFind) return;
+    disneyIdentityFind.hidden = false;
+    if (partyLinkSelfButton) partyLinkSelfButton.hidden = true;
+    if (disneyIdentityResult) {
+      disneyIdentityResult.hidden = true;
+      disneyIdentityResult.innerHTML = "";
+    }
+    disneyIdentityFirstName?.focus();
+  }
+
+  function closeDisneyIdentityFind() {
+    if (disneyIdentityFind) disneyIdentityFind.hidden = true;
+    const membership = getMembershipProfile();
+    if (partyLinkSelfButton && !membership?.disneyProfile) {
+      partyLinkSelfButton.hidden = false;
+    }
+  }
+
+  async function findDisneyIdentity() {
+    const firstName = String(disneyIdentityFirstName?.value || "").trim();
+    const lastName = String(disneyIdentityLastName?.value || "").trim();
+    const email = String(disneyIdentityEmail?.value || "").trim();
+
+    if (!firstName || !lastName || !email) {
+      setPartyMessage("Enter your first name, last name, and Disney account email.", "error");
+      return;
+    }
+
+    if (disneyIdentityFindButton) disneyIdentityFindButton.disabled = true;
+    setPartyMessage("Searching Disney for your account…", "info");
+
+    try {
+      const result = await plannerRequest("/disney-identity/find", {
+        method: "POST",
+        body: JSON.stringify({ firstName, lastName, email })
+      });
+
+      if (!result?.found) {
+        setPartyMessage("DisneyOS could not find a matching Disney account.", "info");
+        if (disneyIdentityResult) disneyIdentityResult.hidden = true;
+        return;
+      }
+
+      const profile = result.profile || {};
+      const claim = result.claim || {};
+
+      if (disneyIdentityResult) {
+        disneyIdentityResult.innerHTML = `
+          <div class="disney-identity-result-row">
+            <span>Disney profile</span>
+            <strong>${escapeHtml([profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Found")}</strong>
+          </div>
+          <div class="disney-identity-result-row">
+            <span>Planner connection</span>
+            <strong>${escapeHtml(profile.plannerConnectionStatus || "UNKNOWN")}</strong>
+          </div>
+          <div class="disney-identity-result-row">
+            <span>Binding status</span>
+            <strong>${escapeHtml(claim.bindingStatus || "UNVERIFIED")}</strong>
+          </div>
+          <small>Identity discovered. DisneyOS has not linked this Disney profile to your membership yet.</small>
+        `;
+        disneyIdentityResult.hidden = false;
+      }
+
+      setPartyMessage("Disney account found. Identity verification is the next step.", "success");
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+      if (disneyIdentityResult) disneyIdentityResult.hidden = true;
+    } finally {
+      if (disneyIdentityFindButton) disneyIdentityFindButton.disabled = false;
+    }
+  }
+
   function renderPartyIdentity(membership) {
     if (!partyIdentityCard) return;
     const disneyProfile = membership?.disneyProfile;
@@ -2816,7 +2898,9 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", closePartyManager);
   });
   partyCreateButton?.addEventListener("click", createParty);
-  partyLinkSelfButton?.addEventListener("click", () => startProfileLink("self"));
+  partyLinkSelfButton?.addEventListener("click", openDisneyIdentityFind);
+  disneyIdentityFindButton?.addEventListener("click", findDisneyIdentity);
+  disneyIdentityFindCancel?.addEventListener("click", closeDisneyIdentityFind);
   partyAddPeopleButton?.addEventListener("click", () => startProfileLink("household"));
   partyLinkScanButton?.addEventListener("click", scanProfileLink);
   partyLinkConfirmButton?.addEventListener("click", confirmProfileLink);
