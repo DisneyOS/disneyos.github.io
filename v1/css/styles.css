@@ -3449,3 +3449,54 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
     flex-basis: 46px;
   }
 }
+
+
+/* DisneyOS People & Parties v3.3.2 — connected adult expand control */
+.people-person-main .people-state-pill {
+  margin-right: 58px;
+}
+
+.people-expand-control {
+  position: absolute;
+  right: 11px;
+  bottom: 10px;
+  width: 36px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(52, 156, 255, 0.48);
+  border-radius: 10px;
+  background: rgba(28, 63, 101, 0.72);
+  box-shadow: 0 0 14px rgba(52, 156, 255, 0.14);
+}
+
+.people-chevron {
+  width: 10px;
+  height: 10px;
+  display: block;
+  border-right: 2.5px solid #f6f8fb;
+  border-bottom: 2.5px solid #f6f8fb;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 160ms ease;
+}
+
+.people-person-card.managed-open .people-chevron {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+
+.people-person-expand:hover .people-expand-control,
+.people-person-expand:focus-visible .people-expand-control {
+  border-color: rgba(63, 191, 255, 0.85);
+  background: rgba(32, 80, 128, 0.88);
+}
+
+@media (max-width: 560px) {
+  .people-expand-control {
+    width: 40px;
+    height: 34px;
+  }
+
+  .people-person-main .people-state-pill {
+    margin-right: 62px;
+  }
+}

@@ -1,0 +1,8 @@
+DisneyOS People & Parties v3.3.2 — Frontend UX correction
+
+- Replaces the tiny managed-guest dropdown glyph with a prominent dedicated chevron control.
+- Chevron rotates to indicate expanded/collapsed state.
+- Preserves expanded manager cards across People list rerenders.
+- Hides Request Selected Guests when all managed guests are already pending/approved.
+- Clarifies pending managed-guest copy as Waiting for [manager] approval.
+- No Worker or D1 changes required.

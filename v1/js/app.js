@@ -2825,9 +2825,20 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) { setPartyMessage(error.message, "error"); }
   }
 
+  const expandedPeopleManagerIds = new Set();
+
   function togglePeopleManaged(disneyIdentityId) {
     const panel = document.querySelector(`[data-managed-expand="${CSS.escape(disneyIdentityId)}"]`);
-    if (panel) panel.hidden = !panel.hidden;
+    const card = document.querySelector(`[data-people-card="${CSS.escape(disneyIdentityId)}"]`);
+    if (!panel) return;
+
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    card?.classList.toggle("managed-open", willOpen);
+    card?.querySelector("[data-people-expand]")?.setAttribute("aria-expanded", String(willOpen));
+
+    if (willOpen) expandedPeopleManagerIds.add(disneyIdentityId);
+    else expandedPeopleManagerIds.delete(disneyIdentityId);
   }
 
   function renderPartyIdentity(membership) {
@@ -2954,7 +2965,7 @@ document.addEventListener("DOMContentLoaded", () => {
               : disneyStep
                 ? "Disney step required"
                 : pending
-                  ? `Waiting for ${escapeHtml(manager.firstName || "manager")}`
+                  ? `Waiting for ${escapeHtml(manager.firstName || "manager")} approval`
                   : "Not connected";
 
             return `
@@ -2974,9 +2985,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }).join("")}
         </div>
 
-        <button class="party-secondary-button managed-request-button" data-manager-request="${escapeHtml(manager.disneyIdentityId)}" type="button">
-          Request Selected Guests
-        </button>
+        ${guests.some((guest) =>
+          guest.request_status !== "pending" &&
+          guest.request_status !== "approved"
+        ) ? `
+          <button class="party-secondary-button managed-request-button" data-manager-request="${escapeHtml(manager.disneyIdentityId)}" type="button">
+            Request Selected Guests
+          </button>
+        ` : ""}
 
         ${disneyStepGuests.length ? `
           <div class="managed-disney-step">
@@ -3021,18 +3037,19 @@ document.addEventListener("DOMContentLoaded", () => {
         </article>`;
       }
 
-      return `<article class="people-person-card connected" data-people-card="${escapeHtml(person.disneyIdentityId)}">
-        <button class="people-person-main people-person-expand" data-people-expand="${escapeHtml(person.disneyIdentityId)}" type="button">
+      const managerOpen = expandedPeopleManagerIds.has(person.disneyIdentityId);
+      return `<article class="people-person-card connected ${managerOpen ? "managed-open" : ""}" data-people-card="${escapeHtml(person.disneyIdentityId)}">
+        <button class="people-person-main people-person-expand" data-people-expand="${escapeHtml(person.disneyIdentityId)}" type="button" aria-expanded="${managerOpen ? "true" : "false"}">
           <span class="people-person-avatar">${escapeHtml((person.firstName || "?").charAt(0))}</span>
           <span class="people-person-copy"><strong>${escapeHtml(displayName)}</strong><small>${person.verifiedDisneyOsMember ? "Verified DisneyOS member" : "Connected"}</small></span>
           <span class="people-state-pill connected">Connected</span>
-          <span class="people-chevron">⌄</span>
+          <span class="people-expand-control" aria-hidden="true"><span class="people-chevron"></span></span>
         </button>
         <div class="people-person-menu-row">
           <button class="people-more-button" data-people-more="${escapeHtml(person.disneyIdentityId)}" type="button" aria-label="Manage ${escapeHtml(displayName)}">•••</button>
           <div class="people-more-menu" data-people-menu="${escapeHtml(person.disneyIdentityId)}" hidden><button type="button" data-people-remove="${escapeHtml(person.disneyIdentityId)}">Remove from My People</button></div>
         </div>
-        <div class="people-managed-expand" data-managed-expand="${escapeHtml(person.disneyIdentityId)}" hidden>${renderManagedGuests(person)}</div>
+        <div class="people-managed-expand" data-managed-expand="${escapeHtml(person.disneyIdentityId)}" ${managerOpen ? "" : "hidden"}>${renderManagedGuests(person)}</div>
       </article>`;
     }).join("");
   }
