@@ -1,0 +1,8 @@
+DisneyOS People & Parties v3.0.1
+
+Fixes:
+- Prevents iPhone/Safari auto-zoom when search fields receive focus by keeping mobile input text at 16px.
+- Clears First Name, Last Name, and Disney Account Email after a completed search.
+- No-match result now explains that either the account details may be incorrect or Disney account discovery/search may be disabled.
+- Does not claim Disney can distinguish those two conditions when the lookup only returns no match.
+- Service-worker cache bumped to disneyos-v3.0.1.

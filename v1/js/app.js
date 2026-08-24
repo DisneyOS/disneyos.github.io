@@ -2610,6 +2610,12 @@ document.addEventListener("DOMContentLoaded", () => {
     setPeopleFlowStatus("");
   }
 
+  function clearPeopleSearchFields() {
+    if (peopleSearchFirstName) peopleSearchFirstName.value = "";
+    if (peopleSearchLastName) peopleSearchLastName.value = "";
+    if (peopleSearchEmail) peopleSearchEmail.value = "";
+  }
+
   async function searchPeopleDisney() {
     const firstName = String(peopleSearchFirstName?.value || "").trim();
     const lastName = String(peopleSearchLastName?.value || "").trim();
@@ -2623,10 +2629,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await plannerRequest("/people/search", { method: "POST", body: JSON.stringify({ firstName, lastName, email }) });
       if (!result?.found || !result?.person) {
         currentPeopleSearchResult = null;
+        clearPeopleSearchFields();
         if (peopleSearchResult) peopleSearchResult.hidden = true;
-        return setPeopleFlowStatus("No matching Disney account was found.", "info");
+        return setPeopleFlowStatus(
+          "We couldn't find a matching Disney account. Double-check the account information. If it is correct, the person may need to enable Disney account search/discovery in My Disney Experience before you try again.",
+          "info"
+        );
       }
       currentPeopleSearchResult = result.person;
+      clearPeopleSearchFields();
       const person = result.person;
       const approval = person.approval || {};
       if (peopleSearchResult) {

@@ -3327,3 +3327,16 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
 .managed-guest-grid{display:grid;gap:7px}.managed-guest-card{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid rgba(133,172,219,.12);border-radius:12px;background:rgba(255,255,255,.025)}.managed-guest-card.unconnected{opacity:.48;filter:saturate(.4)}.managed-guest-card.pending{opacity:.62}.managed-guest-card.connected{opacity:1;filter:none}.managed-guest-card input{accent-color:var(--primary)}.managed-request-button{width:100%}
 .party-empty-card{display:grid;gap:4px;padding:15px;border:1px dashed rgba(133,172,219,.18);border-radius:14px;color:var(--text-secondary)}.party-empty-card strong{color:var(--text-primary)}
 @media(max-width:560px){.people-search-fields{grid-template-columns:1fr}.people-search-fields label.wide{grid-column:auto}.approval-card-actions{display:grid;grid-template-columns:1fr 1fr}}
+
+
+/* DisneyOS People & Parties v3.0.1 — mobile form behavior */
+@media (max-width: 760px) {
+  .people-search-fields input,
+  .disney-identity-find input,
+  .disney-identity-otp-entry input,
+  .party-create-section input,
+  .party-create-section select,
+  .party-create-section textarea {
+    font-size: 16px !important;
+  }
+}
