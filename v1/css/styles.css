@@ -3388,3 +3388,64 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
   font-size:.78rem;
   line-height:1.4;
 }
+
+
+/* DisneyOS People & Parties v3.3.1 — managed guest UX polish */
+.party-person-details > summary {
+  cursor: pointer;
+}
+
+.party-person-expand-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 156, 255, 0.55);
+  background: rgba(21, 45, 73, 0.9);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 42px;
+  box-shadow:
+    0 0 0 1px rgba(52, 156, 255, 0.08),
+    0 0 18px rgba(52, 156, 255, 0.18);
+}
+
+.party-person-chevron {
+  width: 12px;
+  height: 12px;
+  display: block;
+  border-right: 3px solid #f6f8fb;
+  border-bottom: 3px solid #f6f8fb;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 160ms ease;
+}
+
+.party-person-details[open] .party-person-chevron {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+.party-person-menu {
+  margin-right: 7px;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.managed-guest-card.pending {
+  opacity: 0.72;
+}
+
+.managed-guest-card.pending .managed-guest-copy small {
+  color: #c9b26d;
+}
+
+.managed-request-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .party-person-expand-button {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+}

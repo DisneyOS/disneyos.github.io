@@ -1,0 +1,11 @@
+DisneyOS People & Parties v3.3.1 — Frontend UX Patch
+
+Frontend-only changes:
+- Fixes managed-guest approval page JavaScript syntax error.
+- Makes adult expand/collapse control a prominent chevron button.
+- Preserves expanded adult cards across People list refreshes.
+- Pending managed guests now say "Waiting for [manager] approval".
+- Hides Request Selected Guests when no managed guests remain selectable.
+- Bumps service-worker cache to disneyos-v3.3.1.
+
+No Worker or D1 changes required.
