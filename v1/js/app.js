@@ -2699,7 +2699,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await plannerRequest(
-        `/people/requests/${encodeURIComponent(requestId)}/send-email-otp`,
+        `/people/requests/${encodeURIComponent(requestId)}/send-approval-email`,
         { method: "POST" }
       );
       await loadPeopleV3();
