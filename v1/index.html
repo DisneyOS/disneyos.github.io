@@ -103,7 +103,7 @@
 </script>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
-<link href="css/styles.css?v=2.0.18" rel="stylesheet"/>
+<link href="css/styles.css?v=2.2.0" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -711,7 +711,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.1.0"></script>
+<script src="js/app.js?v=2.2.0"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
@@ -725,7 +725,7 @@
 </header>
 <div class="party-sheet-content">
 <div class="party-message" id="party-message" hidden></div>
-<section class="party-section">
+<section class="party-section party-section-panel party-section-profile">
 <div class="party-section-heading">
 <div>
 <p class="settings-group-label">My Disney Profile</p>
@@ -763,21 +763,22 @@
     <button class="party-primary-button" id="disney-identity-find-button" type="button">Find My Disney Account</button>
     <button class="party-text-button" id="disney-identity-find-cancel" type="button">Cancel</button>
   </div>
+  <div class="disney-identity-local-status" id="disney-identity-local-status" hidden></div>
   <div class="disney-identity-result" id="disney-identity-result" hidden></div>
 <div class="disney-identity-verify" id="disney-identity-verify" hidden>
-  <button class="party-primary-button" id="disney-identity-send-otp" type="button">Send Verification Code</button>
+  <button class="primary-button party-primary-button disney-identity-action-button" id="disney-identity-send-otp" type="button">Send Verification Code</button>
   <div class="disney-identity-otp-entry" id="disney-identity-otp-entry" hidden>
     <label>
       <span>Verification Code</span>
       <input id="disney-identity-otp-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
     </label>
-    <button class="party-primary-button" id="disney-identity-verify-otp" type="button">Verify Disney Account</button>
+    <button class="primary-button party-primary-button disney-identity-action-button" id="disney-identity-verify-otp" type="button">Verify Disney Account</button>
   </div>
   <small id="disney-identity-otp-copy"></small>
 </div>
 </div>
 </section>
-<section class="party-section">
+<section class="party-section party-section-panel party-section-people">
 <div class="party-section-heading">
 <div>
 <p class="settings-group-label">My People</p>
@@ -801,7 +802,7 @@
 <button class="party-primary-button" id="party-link-confirm-button" type="button" hidden>Confirm Selection</button>
 </div>
 </section>
-<section class="party-section">
+<section class="party-section party-section-panel party-section-parties">
 <div class="party-section-heading">
 <div>
 <p class="settings-group-label">Saved Parties</p>

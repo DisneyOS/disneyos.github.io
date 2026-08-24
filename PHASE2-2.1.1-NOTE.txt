@@ -1,0 +1,11 @@
+DisneyOS Identity Phase 2.1.1
+
+Fixes:
+- Send Verification Code rendered as plain text because --accent was undefined.
+- Uses the established DisneyOS primary-button styling and gradient fallback.
+- Gives immediate "Sending Code..." feedback on click.
+- Bumps app.js/styles.css to 2.1.1.
+- Bumps service-worker cache to disneyos-v2.1.1 so installed/PWA clients cannot keep the old JS shell.
+
+Deploy this as a full replacement of the disneyos.github.io repository.
+After deployment, fully close and reopen DisneyOS once before testing OTP.

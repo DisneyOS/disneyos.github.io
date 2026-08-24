@@ -3125,3 +3125,162 @@ body.party-modal-open { overflow: hidden; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* DisneyOS Identity Phase 2.1.1 — OTP action button fix */
+.disney-identity-action-button {
+  display: inline-flex !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px 18px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: var(--gradient, var(--primary)) !important;
+  color: #00101b !important;
+  box-shadow: 0 12px 30px rgba(35, 136, 255, .20) !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+.disney-identity-action-button:active {
+  transform: scale(.985);
+}
+.disney-identity-action-button:disabled {
+  opacity: .55;
+}
+
+
+/* DisneyOS People & Parties UI cleanup — v2.2 */
+.party-sheet-content {
+  display: grid;
+  gap: 22px;
+}
+
+.party-section-panel {
+  position: relative;
+  padding: 22px 20px;
+  border: 1px solid rgba(135, 170, 215, .18);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(20, 31, 49, .72), rgba(9, 17, 29, .86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.party-section-panel + .party-section-panel {
+  margin-top: 2px;
+}
+
+.party-section-heading {
+  padding-bottom: 15px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(135, 170, 215, .16);
+}
+
+.party-section-heading .settings-group-label,
+.party-create-section .settings-group-label {
+  margin: 0 0 7px;
+  font-size: 1.02rem;
+  line-height: 1.1;
+  letter-spacing: .105em;
+  font-weight: 900;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+
+.party-section-heading small,
+.party-create-section > div > small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: .84rem;
+  line-height: 1.45;
+}
+
+.party-section-profile {
+  border-color: rgba(62, 155, 255, .28);
+}
+
+.party-section-people {
+  border-color: rgba(82, 211, 226, .22);
+}
+
+.party-identity-card {
+  margin-top: 2px;
+}
+
+.party-identity-state {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.party-identity-state.verified {
+  color: #07131d;
+  background: var(--gradient, var(--primary));
+  box-shadow: 0 0 22px rgba(69, 186, 255, .16);
+}
+
+.party-identity-state.unverified {
+  color: #ffd4d4;
+  background: rgba(199, 74, 82, .16);
+  border: 1px solid rgba(255, 118, 126, .24);
+}
+
+.disney-identity-find {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(62, 155, 255, .25);
+  background: rgba(6, 17, 30, .72);
+}
+
+.disney-identity-local-status {
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  font-size: .84rem;
+  line-height: 1.4;
+  border: 1px solid rgba(135, 170, 215, .18);
+  background: rgba(255,255,255,.035);
+  color: var(--text-secondary);
+}
+
+.disney-identity-local-status[hidden] {
+  display: none;
+}
+
+.disney-identity-local-status[data-type="success"] {
+  border-color: rgba(88, 219, 164, .28);
+  background: rgba(88, 219, 164, .08);
+  color: #c9f8e3;
+}
+
+.disney-identity-local-status[data-type="error"] {
+  border-color: rgba(255, 105, 115, .34);
+  background: rgba(255, 105, 115, .08);
+  color: #ffc5c9;
+}
+
+.disney-identity-local-status[data-type="info"] {
+  border-color: rgba(62, 155, 255, .28);
+  background: rgba(62, 155, 255, .07);
+  color: #c6dcf6;
+}
+
+/* The global party message remains for section-level operations, but identity
+   discovery uses its own local status beneath the search controls. */
+.party-section-profile .party-secondary-action {
+  margin-top: 14px;
+}
+
+@media (max-width: 560px) {
+  .party-section-panel {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+}
