@@ -1,0 +1,12 @@
+DisneyOS People & Parties v3.1 — External Adult Email Approval
+
+Live workflow:
+1. Requester finds an adult already connected to DisneyOS Planner who is not a verified DisneyOS member.
+2. DisneyOS creates the specific People relationship request.
+3. DisneyOS sends the target adult a six-digit approval code and a DisneyOS approval-page link.
+4. The target adult opens the link and enters the code themselves.
+5. Approval activates only that requester → target relationship in member_people.
+6. Managed guests are NOT approved by this action.
+7. This does not create a DisneyOS membership for the target adult.
+
+Existing pending email-approval requests gain Send/Resend Approval Email in My People.

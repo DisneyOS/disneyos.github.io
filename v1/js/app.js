@@ -2665,11 +2665,15 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const result = await plannerRequest("/people/requests", { method: "POST", body: JSON.stringify({ disneyIdentityId: person.disneyIdentityId }) });
       if (result?.automationStatus === "COMING_SOON") {
-        setPeopleFlowStatus(result.approvalMethod === "disney_invitation"
-          ? "Request created. Disney invitation automation is the next backend step; this person will remain pending until that path is wired."
-          : "Request created. The external email approval handoff is the next backend step; this person will remain pending until that path is wired.", "info");
+        setPeopleFlowStatus(
+          "Request created. Disney invitation automation is the next backend step; this person will remain pending until that path is wired.",
+          "info"
+        );
       } else {
-        setPeopleFlowStatus(result?.message || "Request sent.", "success");
+        setPeopleFlowStatus(
+          result?.message || "Request sent.",
+          result?.emailSent === false ? "error" : "success"
+        );
       }
       await loadPeopleV3();
       window.setTimeout(closePeopleAddFlow, 900);
@@ -2683,6 +2687,30 @@ document.addEventListener("DOMContentLoaded", () => {
       await plannerRequest(`/people/requests/${encodeURIComponent(requestId)}/${decision}`, { method: "POST" });
       await Promise.all([loadPeopleApprovals(), loadPeopleV3(), refreshNotificationSummary()]);
     } catch (error) { setPartyMessage(error.message, "error"); }
+  }
+
+  async function sendPeopleApprovalEmail(requestId, button = null) {
+    const originalText = button?.textContent || "Send Approval Email";
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Sending…";
+    }
+
+    try {
+      await plannerRequest(
+        `/people/requests/${encodeURIComponent(requestId)}/send-email-otp`,
+        { method: "POST" }
+      );
+      await loadPeopleV3();
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (button?.isConnected) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
   }
 
   async function cancelPeopleRequest(requestId) {
@@ -2788,7 +2816,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function peoplePendingLabel(person) {
     if (person.pendingStatus === "waiting_in_app") return `Waiting for ${person.firstName || "approval"}`;
     if (person.pendingStatus === "waiting_disney") return "Waiting for Disney connection";
-    if (person.pendingStatus === "waiting_email_otp") return "Email approval required";
+    if (person.pendingStatus === "waiting_email_otp") {
+      return person.emailOtpSent
+        ? "Approval email sent"
+        : "Email approval required";
+    }
     if (person.pendingStatus === "disney_step_required") return "Disney step required";
     return "Pending approval";
   }
@@ -2836,7 +2868,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="people-person-copy"><strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(peoplePendingLabel(person))}</small></div>
             <span class="people-state-pill pending">Pending</span>
           </div>
-          <div class="people-pending-actions"><button class="party-text-button" data-people-cancel="${escapeHtml(person.requestId || "")}" type="button">Cancel Request</button></div>
+          <div class="people-pending-actions">
+            ${person.approvalMethod === "email_otp"
+              ? `<button class="party-secondary-button" data-people-send-email="${escapeHtml(person.requestId || "")}" type="button">${person.emailOtpSent ? "Resend Approval Email" : "Send Approval Email"}</button>`
+              : ""}
+            <button class="party-text-button" data-people-cancel="${escapeHtml(person.requestId || "")}" type="button">Cancel Request</button>
+          </div>
         </article>`;
       }
 
@@ -3274,6 +3311,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const remove = event.target.closest("[data-people-remove]");
     if (remove) return removePersonFromMyPeople(remove.dataset.peopleRemove);
+    const emailButton = event.target.closest("[data-people-send-email]");
+    if (emailButton) {
+      return sendPeopleApprovalEmail(
+        emailButton.dataset.peopleSendEmail,
+        emailButton
+      );
+    }
+
     const cancel = event.target.closest("[data-people-cancel]");
     if (cancel) return cancelPeopleRequest(cancel.dataset.peopleCancel);
     const managedRequest = event.target.closest("[data-manager-request]");

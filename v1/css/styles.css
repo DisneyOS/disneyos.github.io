@@ -3340,3 +3340,23 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
     font-size: 16px !important;
   }
 }
+
+
+/* DisneyOS People & Parties v3.1 — external adult email approval */
+.people-pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.people-pending-actions .party-secondary-button {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
+@media (max-width: 560px) {
+  .people-pending-actions {
+    padding-left: 13px;
+  }
+}
