@@ -42,6 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const disneyIdentityFindButton = document.getElementById("disney-identity-find-button");
   const disneyIdentityFindCancel = document.getElementById("disney-identity-find-cancel");
   const disneyIdentityResult = document.getElementById("disney-identity-result");
+  const disneyIdentityVerify = document.getElementById("disney-identity-verify");
+  const disneyIdentitySendOtp = document.getElementById("disney-identity-send-otp");
+  const disneyIdentityOtpEntry = document.getElementById("disney-identity-otp-entry");
+  const disneyIdentityOtpCode = document.getElementById("disney-identity-otp-code");
+  const disneyIdentityVerifyOtp = document.getElementById("disney-identity-verify-otp");
+  const disneyIdentityOtpCopy = document.getElementById("disney-identity-otp-copy");
+  let currentDisneyIdentityClaimId = null;
   const partyAddPeopleButton = document.getElementById("party-add-people-button");
   const partyPeopleList = document.getElementById("party-people-list");
   const partyLinkSession = document.getElementById("party-link-session");
@@ -2351,10 +2358,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!disneyIdentityFind) return;
     disneyIdentityFind.hidden = false;
     if (partyLinkSelfButton) partyLinkSelfButton.hidden = true;
+    currentDisneyIdentityClaimId = null;
     if (disneyIdentityResult) {
       disneyIdentityResult.hidden = true;
       disneyIdentityResult.innerHTML = "";
     }
+    if (disneyIdentityVerify) disneyIdentityVerify.hidden = true;
+    if (disneyIdentityOtpEntry) disneyIdentityOtpEntry.hidden = true;
+    if (disneyIdentityOtpCode) disneyIdentityOtpCode.value = "";
+    if (disneyIdentityOtpCopy) disneyIdentityOtpCopy.textContent = "";
     disneyIdentityFirstName?.focus();
   }
 
@@ -2392,6 +2404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const profile = result.profile || {};
       const claim = result.claim || {};
+      currentDisneyIdentityClaimId = claim.id || null;
 
       if (disneyIdentityResult) {
         disneyIdentityResult.innerHTML = `
@@ -2412,12 +2425,82 @@ document.addEventListener("DOMContentLoaded", () => {
         disneyIdentityResult.hidden = false;
       }
 
+      if (disneyIdentityVerify && currentDisneyIdentityClaimId) {
+        disneyIdentityVerify.hidden = false;
+      }
       setPartyMessage("Disney account found. Identity verification is the next step.", "success");
     } catch (error) {
       setPartyMessage(error.message, "error");
       if (disneyIdentityResult) disneyIdentityResult.hidden = true;
     } finally {
       if (disneyIdentityFindButton) disneyIdentityFindButton.disabled = false;
+    }
+  }
+
+  async function sendDisneyIdentityOtp() {
+    if (!currentDisneyIdentityClaimId) {
+      setPartyMessage("Find your Disney account first.", "error");
+      return;
+    }
+
+    if (disneyIdentitySendOtp) disneyIdentitySendOtp.disabled = true;
+    setPartyMessage("Sending verification code…", "info");
+
+    try {
+      const result = await plannerRequest(
+        `/disney-identity/claims/${encodeURIComponent(currentDisneyIdentityClaimId)}/send-otp`,
+        { method: "POST" }
+      );
+
+      if (disneyIdentityOtpEntry) disneyIdentityOtpEntry.hidden = false;
+      if (disneyIdentityOtpCopy) {
+        disneyIdentityOtpCopy.textContent =
+          `Code sent to ${result.destination || "your verified Disney email"}. It expires in 10 minutes.`;
+      }
+      disneyIdentityOtpCode?.focus();
+      setPartyMessage("Verification code sent.", "success");
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (disneyIdentitySendOtp) disneyIdentitySendOtp.disabled = false;
+    }
+  }
+
+  async function verifyDisneyIdentityOtp() {
+    const code = String(disneyIdentityOtpCode?.value || "").trim();
+
+    if (!currentDisneyIdentityClaimId || !/^\d{6}$/.test(code)) {
+      setPartyMessage("Enter the six-digit verification code.", "error");
+      return;
+    }
+
+    if (disneyIdentityVerifyOtp) disneyIdentityVerifyOtp.disabled = true;
+    setPartyMessage("Verifying Disney account…", "info");
+
+    try {
+      const result = await plannerRequest(
+        `/disney-identity/claims/${encodeURIComponent(currentDisneyIdentityClaimId)}/verify-otp`,
+        {
+          method: "POST",
+          body: JSON.stringify({ code })
+        }
+      );
+
+      if (disneyIdentityResult) {
+        disneyIdentityResult.innerHTML += `
+          <div class="disney-identity-result-row">
+            <span>Binding status</span>
+            <strong>${escapeHtml(result.bindingStatus || "VERIFIED")}</strong>
+          </div>
+        `;
+      }
+
+      if (disneyIdentityVerify) disneyIdentityVerify.hidden = true;
+      setPartyMessage("Disney account verified and securely bound to this DisneyOS membership.", "success");
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (disneyIdentityVerifyOtp) disneyIdentityVerifyOtp.disabled = false;
     }
   }
 
@@ -2907,6 +2990,8 @@ document.addEventListener("DOMContentLoaded", () => {
   partyLinkSelfButton?.addEventListener("click", openDisneyIdentityFind);
   disneyIdentityFindButton?.addEventListener("click", findDisneyIdentity);
   disneyIdentityFindCancel?.addEventListener("click", closeDisneyIdentityFind);
+  disneyIdentitySendOtp?.addEventListener("click", sendDisneyIdentityOtp);
+  disneyIdentityVerifyOtp?.addEventListener("click", verifyDisneyIdentityOtp);
   partyAddPeopleButton?.addEventListener("click", () => startProfileLink("household"));
   partyLinkScanButton?.addEventListener("click", scanProfileLink);
   partyLinkConfirmButton?.addEventListener("click", confirmProfileLink);

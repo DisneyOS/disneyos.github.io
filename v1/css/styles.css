@@ -3079,3 +3079,49 @@ body.party-modal-open { overflow: hidden; }
   .disney-identity-fields { grid-template-columns: 1fr; }
   .disney-identity-fields label.wide { grid-column: auto; }
 }
+
+
+/* Disney identity OTP verification */
+.disney-identity-verify {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+.disney-identity-verify[hidden],
+.disney-identity-otp-entry[hidden] {
+  display: none;
+}
+.disney-identity-otp-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+.disney-identity-otp-entry label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.disney-identity-otp-entry input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  font: inherit;
+  letter-spacing: .18em;
+}
+#disney-identity-otp-copy {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+@media (max-width: 560px) {
+  .disney-identity-otp-entry {
+    grid-template-columns: 1fr;
+  }
+}
