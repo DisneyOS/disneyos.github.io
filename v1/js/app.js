@@ -2960,16 +2960,22 @@ document.addEventListener("DOMContentLoaded", () => {
               guest.planner_connection_status !== "ALREADY_CONNECTED";
             const pending = guest.request_status === "pending";
 
+            const connecting =
+              guest.request_status === "approved" &&
+              String(guest.pending_status || guest.pendingStatus || "").toLowerCase() === "waiting_disney";
+
             const stateLabel = connected
               ? "Connected"
-              : disneyStep
-                ? "Disney step required"
-                : pending
-                  ? `Waiting for ${escapeHtml(manager.firstName || "manager")} approval`
-                  : "Not connected";
+              : connecting
+                ? "Connecting"
+                : disneyStep
+                  ? "Disney step required"
+                  : pending
+                    ? `Waiting for ${escapeHtml(manager.firstName || "manager")} approval`
+                    : "Approval needed";
 
             return `
-              <label class="managed-guest-card ${connected ? "connected" : "unconnected"} ${pending ? "pending" : ""} ${disneyStep ? "disney-step" : ""}">
+              <label class="managed-guest-card ${connected ? "connected" : "unconnected"} ${pending ? "pending" : ""} ${disneyStep ? "disney-step" : ""} ${connecting ? "connecting" : ""}">
                 <input
                   type="checkbox"
                   data-managed-guest-select="${escapeHtml(guest.id)}"
@@ -2997,15 +3003,15 @@ document.addEventListener("DOMContentLoaded", () => {
         ${disneyStepGuests.length ? `
           <div class="managed-disney-step">
             <strong>Finish the Disney connection</strong>
-            <p>${escapeHtml(manager.firstName || "The manager")} approved your request. Disney requires one final Family & Friends step before DisneyOS Planner can manage ${disneyStepGuests.length === 1 ? "this guest" : "these guests"}.</p>
+            <p>${escapeHtml(manager.firstName || "The manager")} approved your DisneyOS request. The managing adult now needs to share the approved managed guest${disneyStepGuests.length === 1 ? "" : "s"} with DisneyOS Planner through Disney Family & Friends.</p>
             <ol>
-              <li>Open My Disney Experience.</li>
+              <li>${escapeHtml(manager.firstName || "The managing adult")} opens My Disney Experience.</li>
               <li>Go to Profile → Family & Friends List.</li>
-              <li>Tap Add a Guest.</li>
-              <li>Choose <strong>Find through my connected guests</strong>.</li>
-              <li>Select ${escapeHtml(manager.firstName || "the managing adult")} and add the approved managed guest${disneyStepGuests.length === 1 ? "" : "s"}.</li>
+              <li>Open <strong>DisneyOS Planner</strong> in the Family & Friends list.</li>
+              <li>Choose <strong>Connect My Managed Guests</strong>.</li>
+              <li>Select the approved managed guest${disneyStepGuests.length === 1 ? "" : "s"} and send the invitation to DisneyOS Planner.</li>
             </ol>
-            <small>DisneyOS will mark them Connected once Planner can see the completed Disney connection.</small>
+            <small>Do not accept the invitation manually in the DisneyOS Planner account. DisneyOS will detect the invitation, connect the exact approved guest, verify the Disney relationship, and change this status to Connected.</small>
           </div>
         ` : ""}
       </div>`;

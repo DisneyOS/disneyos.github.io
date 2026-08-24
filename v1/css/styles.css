@@ -3500,3 +3500,7 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
     margin-right: 62px;
   }
 }
+
+/* DisneyOS People & Parties v3.4 — managed guest connection states */
+.managed-guest-card.connecting{opacity:.92;filter:none;border-color:rgba(68,217,237,.32);background:rgba(68,217,237,.06)}
+.managed-guest-card.connecting .managed-guest-copy small{color:var(--cyan,#44d9ed)}
