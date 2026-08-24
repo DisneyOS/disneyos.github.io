@@ -2568,16 +2568,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadPeopleApprovals() {
     try {
-      const result = await plannerRequest("/people/approvals");
-      const requests = Array.isArray(result?.requests) ? result.requests : [];
-      if (partyApprovalsPanel) partyApprovalsPanel.hidden = requests.length === 0;
-      if (partyApprovalsCount) partyApprovalsCount.textContent = String(requests.length);
+      const [peopleResult, managedResult] = await Promise.all([
+        plannerRequest("/people/approvals"),
+        plannerRequest("/managed-guest-access/pending")
+      ]);
+
+      const peopleRequests = Array.isArray(peopleResult?.requests)
+        ? peopleResult.requests
+        : [];
+      const managedRequests = Array.isArray(managedResult?.requests)
+        ? managedResult.requests
+        : [];
+
+      const total = peopleRequests.length + managedRequests.length;
+
+      if (partyApprovalsPanel) partyApprovalsPanel.hidden = total === 0;
+      if (partyApprovalsCount) partyApprovalsCount.textContent = String(total);
+
       if (partyApprovalsList) {
-        partyApprovalsList.innerHTML = requests.map(item => `
+        const peopleHtml = peopleRequests.map(item => `
           <article class="approval-card">
-            <div><strong>${escapeHtml(item.requesterName || "A DisneyOS member")} wants to add you</strong><small>Approving lets them include your Disney profile in their DisneyOS planning and parties.</small></div>
-            <div class="approval-card-actions"><button class="primary-button" data-people-approve="${escapeHtml(item.id)}" type="button">Approve</button><button class="party-text-button" data-people-deny="${escapeHtml(item.id)}" type="button">Decline</button></div>
+            <div>
+              <strong>${escapeHtml(item.requesterName || "A DisneyOS member")} wants to add you</strong>
+              <small>Approving lets them include your Disney profile in their DisneyOS planning and parties.</small>
+            </div>
+            <div class="approval-card-actions">
+              <button class="primary-button" data-people-approve="${escapeHtml(item.id)}" type="button">Approve</button>
+              <button class="party-text-button" data-people-deny="${escapeHtml(item.id)}" type="button">Decline</button>
+            </div>
           </article>`).join("");
+
+        const managedHtml = managedRequests.map(item => {
+          const names = (item.managedGuests || [])
+            .map(guest => guest.displayName)
+            .filter(Boolean);
+
+          return `
+            <article class="approval-card managed-approval-card">
+              <div>
+                <strong>${escapeHtml(item.requesterName || "A DisneyOS member")} is requesting managed guests</strong>
+                <small>${escapeHtml(names.join(", "))}</small>
+                <p>Approve only if you want this DisneyOS member to have access to the listed guests you manage.</p>
+              </div>
+              <div class="approval-card-actions">
+                <button class="primary-button" data-managed-batch-approve="${escapeHtml(item.batchId)}" type="button">Approve</button>
+                <button class="party-text-button" data-managed-batch-deny="${escapeHtml(item.batchId)}" type="button">Decline</button>
+              </div>
+            </article>`;
+        }).join("");
+
+        partyApprovalsList.innerHTML = peopleHtml + managedHtml;
       }
     } catch {
       if (partyApprovalsPanel) partyApprovalsPanel.hidden = true;
@@ -2665,15 +2705,11 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const result = await plannerRequest("/people/requests", { method: "POST", body: JSON.stringify({ disneyIdentityId: person.disneyIdentityId }) });
       if (result?.automationStatus === "COMING_SOON") {
-        setPeopleFlowStatus(
-          "Request created. Disney invitation automation is the next backend step; this person will remain pending until that path is wired.",
-          "info"
-        );
+        setPeopleFlowStatus(result.approvalMethod === "disney_invitation"
+          ? "Request created. Disney invitation automation is the next backend step; this person will remain pending until that path is wired."
+          : "Request created. The external email approval handoff is the next backend step; this person will remain pending until that path is wired.", "info");
       } else {
-        setPeopleFlowStatus(
-          result?.message || "Request sent.",
-          result?.emailSent === false ? "error" : "success"
-        );
+        setPeopleFlowStatus(result?.message || "Request sent.", "success");
       }
       await loadPeopleV3();
       window.setTimeout(closePeopleAddFlow, 900);
@@ -2690,8 +2726,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function sendPeopleApprovalEmail(requestId, button = null) {
-    const originalText = button?.textContent || "Send Approval Email";
-
+    const original = button?.textContent || "Send Approval Email";
     if (button) {
       button.disabled = true;
       button.textContent = "Sending…";
@@ -2708,8 +2743,71 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (button?.isConnected) {
         button.disabled = false;
-        button.textContent = originalText;
+        button.textContent = original;
       }
+    }
+  }
+
+  async function requestSelectedManagedGuests(managerId, button = null) {
+    const selected = [
+      ...document.querySelectorAll(
+        `[data-manager-id="${CSS.escape(managerId)}"][data-managed-guest-select]:checked`
+      )
+    ].map((input) => input.dataset.managedGuestSelect);
+
+    if (!selected.length) {
+      setPartyMessage("Select at least one managed guest first.", "error");
+      return;
+    }
+
+    const original = button?.textContent || "Request Selected Guests";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Sending Request…";
+    }
+
+    try {
+      const result = await plannerRequest("/managed-guest-access/requests", {
+        method: "POST",
+        body: JSON.stringify({
+          managedDisneyIdentityIds: selected
+        })
+      });
+
+      setPartyMessage(
+        result?.message || "Managed-guest request sent.",
+        "success"
+      );
+
+      await Promise.all([
+        loadPeopleV3(),
+        loadPeopleApprovals(),
+        refreshNotificationSummary()
+      ]);
+    } catch (error) {
+      setPartyMessage(error.message, "error");
+    } finally {
+      if (button?.isConnected) {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    }
+  }
+
+  async function decideManagedGuestBatch(batchId, decision) {
+    try {
+      await plannerRequest(
+        `/managed-guest-access/batches/${encodeURIComponent(batchId)}/${decision}`,
+        { method: "POST" }
+      );
+
+      await Promise.all([
+        loadPeopleApprovals(),
+        loadPeopleV3(),
+        refreshNotificationSummary()
+      ]);
+    } catch (error) {
+      setPartyMessage(error.message, "error");
     }
   }
 
@@ -2817,9 +2915,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (person.pendingStatus === "waiting_in_app") return `Waiting for ${person.firstName || "approval"}`;
     if (person.pendingStatus === "waiting_disney") return "Waiting for Disney connection";
     if (person.pendingStatus === "waiting_email_otp") {
-      return person.emailOtpSent
-        ? "Approval email sent"
-        : "Email approval required";
+      return person.emailApprovalSent ? "Approval email sent" : "Email approval required";
     }
     if (person.pendingStatus === "disney_step_required") return "Disney step required";
     return "Pending approval";
@@ -2827,7 +2923,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderManagedGuests(manager) {
     const guests = Array.isArray(manager.managedGuests) ? manager.managedGuests : [];
-    if (!guests.length) return `<div class="managed-guest-empty"><small>No managed guests are available through this connection yet.</small></div>`;
+    if (!guests.length) {
+      return `<div class="managed-guest-empty"><small>No managed guests are available through this connection yet.</small></div>`;
+    }
+
+    const disneyStepGuests = guests.filter((guest) =>
+      guest.request_status === "approved" &&
+      guest.planner_connection_status !== "ALREADY_CONNECTED"
+    );
 
     return `
       <div class="managed-guest-section">
@@ -2835,22 +2938,63 @@ document.addEventListener("DOMContentLoaded", () => {
           <strong>Managed by ${escapeHtml(manager.firstName || "this person")}</strong>
           <small>Select unconnected guests to request access.</small>
         </div>
+
         <div class="managed-guest-grid">
           ${guests.map((guest) => {
-            const connected = guest.request_status === "approved";
+            const connected =
+              guest.request_status === "approved" &&
+              guest.planner_connection_status === "ALREADY_CONNECTED";
+            const disneyStep =
+              guest.request_status === "approved" &&
+              guest.planner_connection_status !== "ALREADY_CONNECTED";
             const pending = guest.request_status === "pending";
-            const stateLabel = connected ? "Connected" : pending ? `Waiting for ${escapeHtml(manager.firstName || "manager")}` : "Not connected";
+
+            const stateLabel = connected
+              ? "Connected"
+              : disneyStep
+                ? "Disney step required"
+                : pending
+                  ? `Waiting for ${escapeHtml(manager.firstName || "manager")}`
+                  : "Not connected";
+
             return `
-              <label class="managed-guest-card ${connected ? "connected" : "unconnected"} ${pending ? "pending" : ""}">
-                <input type="checkbox" data-managed-guest-select="${escapeHtml(guest.id)}" data-manager-id="${escapeHtml(manager.disneyIdentityId)}" ${connected || pending ? "disabled" : ""}>
+              <label class="managed-guest-card ${connected ? "connected" : "unconnected"} ${pending ? "pending" : ""} ${disneyStep ? "disney-step" : ""}">
+                <input
+                  type="checkbox"
+                  data-managed-guest-select="${escapeHtml(guest.id)}"
+                  data-manager-id="${escapeHtml(manager.disneyIdentityId)}"
+                  ${connected || pending || disneyStep ? "disabled" : ""}
+                >
                 <span class="managed-guest-avatar">${escapeHtml((guest.first_name || "?").charAt(0))}</span>
-                <span class="managed-guest-copy"><strong>${escapeHtml([guest.first_name, guest.last_name].filter(Boolean).join(" ") || "Managed Guest")}</strong><small>${stateLabel}</small></span>
+                <span class="managed-guest-copy">
+                  <strong>${escapeHtml([guest.first_name, guest.last_name].filter(Boolean).join(" ") || "Managed Guest")}</strong>
+                  <small>${stateLabel}</small>
+                </span>
               </label>`;
           }).join("")}
         </div>
-        <button class="party-secondary-button managed-request-button" data-manager-request="${escapeHtml(manager.disneyIdentityId)}" type="button">Request Selected Guests</button>
+
+        <button class="party-secondary-button managed-request-button" data-manager-request="${escapeHtml(manager.disneyIdentityId)}" type="button">
+          Request Selected Guests
+        </button>
+
+        ${disneyStepGuests.length ? `
+          <div class="managed-disney-step">
+            <strong>Finish the Disney connection</strong>
+            <p>${escapeHtml(manager.firstName || "The manager")} approved your request. Disney requires one final Family & Friends step before DisneyOS Planner can manage ${disneyStepGuests.length === 1 ? "this guest" : "these guests"}.</p>
+            <ol>
+              <li>Open My Disney Experience.</li>
+              <li>Go to Profile → Family & Friends List.</li>
+              <li>Tap Add a Guest.</li>
+              <li>Choose <strong>Find through my connected guests</strong>.</li>
+              <li>Select ${escapeHtml(manager.firstName || "the managing adult")} and add the approved managed guest${disneyStepGuests.length === 1 ? "" : "s"}.</li>
+            </ol>
+            <small>DisneyOS will mark them Connected once Planner can see the completed Disney connection.</small>
+          </div>
+        ` : ""}
       </div>`;
   }
+
 
   function renderMyPeople(people = []) {
     if (!partyPeopleList) return;
@@ -2870,7 +3014,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="people-pending-actions">
             ${person.approvalMethod === "email_otp"
-              ? `<button class="party-secondary-button" data-people-send-email="${escapeHtml(person.requestId || "")}" type="button">${person.emailOtpSent ? "Resend Approval Email" : "Send Approval Email"}</button>`
+              ? `<button class="party-secondary-button" data-people-send-email="${escapeHtml(person.requestId || "")}" type="button">${person.emailApprovalSent ? "Resend Approval Email" : "Send Approval Email"}</button>`
               : ""}
             <button class="party-text-button" data-people-cancel="${escapeHtml(person.requestId || "")}" type="button">Cancel Request</button>
           </div>
@@ -3322,13 +3466,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancel = event.target.closest("[data-people-cancel]");
     if (cancel) return cancelPeopleRequest(cancel.dataset.peopleCancel);
     const managedRequest = event.target.closest("[data-manager-request]");
-    if (managedRequest) setPartyMessage("Managed-guest batching UI is ready. The manager-approval backend will be wired in the next People & Parties step.", "info");
+    if (managedRequest) {
+      return requestSelectedManagedGuests(
+        managedRequest.dataset.managerRequest,
+        managedRequest
+      );
+    }
   });
   partyApprovalsList?.addEventListener("click", (event) => {
     const approve = event.target.closest("[data-people-approve]");
     if (approve) return decidePeopleApproval(approve.dataset.peopleApprove, "approve");
     const deny = event.target.closest("[data-people-deny]");
-    if (deny) decidePeopleApproval(deny.dataset.peopleDeny, "deny");
+    if (deny) {
+      decidePeopleApproval(deny.dataset.peopleDeny, "deny");
+      return;
+    }
+
+    const managedApprove = event.target.closest("[data-managed-batch-approve]");
+    if (managedApprove) {
+      decideManagedGuestBatch(
+        managedApprove.dataset.managedBatchApprove,
+        "approve"
+      );
+      return;
+    }
+
+    const managedDeny = event.target.closest("[data-managed-batch-deny]");
+    if (managedDeny) {
+      decideManagedGuestBatch(
+        managedDeny.dataset.managedBatchDeny,
+        "deny"
+      );
+    }
   });
 
   partyLinkScanButton?.addEventListener("click", scanProfileLink);

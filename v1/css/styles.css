@@ -3341,22 +3341,50 @@ button.people-person-main{border:0;background:transparent;color:inherit;text-ali
   }
 }
 
+.people-pending-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.people-pending-actions .party-secondary-button{min-height:38px;padding:8px 12px}
+@media(max-width:560px){.people-pending-actions{padding-left:13px}}
 
-/* DisneyOS People & Parties v3.1 — external adult email approval */
-.people-pending-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+
+/* DisneyOS People & Parties v3.3 — managed guests */
+.managed-guest-card.disney-step{
+  opacity:.82;
+  filter:none;
+  border-color:rgba(255,190,80,.28);
+  background:rgba(255,190,80,.055);
 }
-
-.people-pending-actions .party-secondary-button {
-  min-height: 38px;
-  padding: 8px 12px;
+.managed-guest-card.disney-step .managed-guest-copy small{
+  color:#ffd98c;
 }
-
-@media (max-width: 560px) {
-  .people-pending-actions {
-    padding-left: 13px;
-  }
+.managed-disney-step{
+  display:grid;
+  gap:8px;
+  margin-top:6px;
+  padding:14px;
+  border:1px solid rgba(255,190,80,.24);
+  border-radius:14px;
+  background:rgba(255,190,80,.055);
+}
+.managed-disney-step strong{
+  color:#ffe3a6;
+}
+.managed-disney-step p,
+.managed-disney-step small,
+.managed-disney-step li{
+  color:var(--text-secondary);
+  font-size:.78rem;
+  line-height:1.45;
+}
+.managed-disney-step p,
+.managed-disney-step ol{
+  margin:0;
+}
+.managed-disney-step ol{
+  padding-left:20px;
+}
+.managed-approval-card p{
+  margin:6px 0 0;
+  color:var(--text-secondary);
+  font-size:.78rem;
+  line-height:1.4;
 }

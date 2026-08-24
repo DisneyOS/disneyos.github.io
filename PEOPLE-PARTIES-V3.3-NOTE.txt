@@ -1,0 +1,11 @@
+DisneyOS People & Parties v3.3 — Managed Guest Workflow
+
+- Request multiple managed guests from one manager in a single batch.
+- Manager must already be connected in the requester's My People.
+- Verified DisneyOS manager receives one grouped in-app approval.
+- External manager receives one secure DisneyOS Review Request email.
+- No relationship approval codes are used.
+- Approval updates each managed guest's individual authorization record.
+- After approval, guests show Disney Step Required until Planner connection is visible.
+- UI provides the My Disney Experience → Find through my connected guests instructions.
+- Automatic Disney completion detection is intentionally the next step.
