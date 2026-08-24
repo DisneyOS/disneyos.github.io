@@ -103,7 +103,7 @@
 </script>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
-<link href="css/styles.css?v=2.2.0" rel="stylesheet"/>
+<link href="css/styles.css?v=3.0.0" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -194,6 +194,7 @@
 <span id="profile-initial">
             D
           </span>
+<span class="profile-notification-badge" id="profile-notification-badge" hidden>0</span>
 </button>
 </div>
 </header>
@@ -711,7 +712,7 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=2.2.0"></script>
+<script src="js/app.js?v=3.0.0"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
@@ -782,25 +783,45 @@
 <div class="party-section-heading">
 <div>
 <p class="settings-group-label">My People</p>
-<small>Only these approved Disney profiles can be used in your parties.</small>
+<small>Adults you are approved to plan with. Managed guests stay nested under the adult who manages them.</small>
 </div>
 <button class="party-inline-action" id="party-add-people-button" type="button" hidden>Add People</button>
 </div>
-<div class="party-people-list" id="party-people-list">
-<div class="party-loading">Loading your people…</div>
+
+<section class="party-approvals-panel" id="party-approvals-panel" hidden>
+<div class="party-subsection-heading">
+<div><strong>Approvals</strong><small>Requests that need your decision.</small></div>
+<span class="party-count-badge" id="party-approvals-count">0</span>
 </div>
-<div class="party-link-session" id="party-link-session" hidden>
-<div class="party-link-session-copy">
-<strong id="party-link-session-title">Link Disney profiles</strong>
-<p id="party-link-session-instructions"></p>
+<div class="party-approvals-list" id="party-approvals-list"></div>
+</section>
+
+<div class="people-add-flow" id="people-add-flow" hidden>
+<div class="people-add-flow-header">
+<div>
+<strong>Find Someone</strong>
+<p>Search for the adult using their Disney account information. DisneyOS will determine how they need to approve your request.</p>
 </div>
-<div class="party-link-session-actions">
-<button class="party-secondary-button" id="party-link-scan-button" type="button">Scan for New Profiles</button>
-<button class="party-text-button" id="party-link-cancel-button" type="button">Cancel</button>
+<button class="party-text-button" id="people-add-close" type="button">Close</button>
 </div>
-<div class="party-discovered-list" id="party-discovered-list"></div>
-<button class="party-primary-button" id="party-link-confirm-button" type="button" hidden>Confirm Selection</button>
+<button class="people-help-toggle" id="people-help-toggle" type="button" aria-expanded="false">ⓘ How adding people works</button>
+<div class="people-help-panel" id="people-help-panel" hidden>
+<div class="people-help-item"><strong>If they use DisneyOS</strong><p>They approve your request inside their own DisneyOS account. No email code is needed.</p></div>
+<div class="people-help-item"><strong>If they are new to DisneyOS Planner</strong><p>DisneyOS Planner sends a Disney Family & Friends invitation. Accepting that Disney invitation approves the request.</p></div>
+<div class="people-help-item"><strong>If they are already connected to Planner but do not use DisneyOS</strong><p>They must approve this specific request using a new code sent to their Disney-verified email.</p></div>
+<div class="people-help-item"><strong>Managed guests</strong><p>Managed guests are not searched independently. Add their managing adult first, then expand that adult in My People to request their managed guests.</p></div>
 </div>
+<div class="people-search-fields">
+<label><span>First Name</span><input id="people-search-first-name" type="text" autocomplete="given-name"></label>
+<label><span>Last Name</span><input id="people-search-last-name" type="text" autocomplete="family-name"></label>
+<label class="wide"><span>Disney Account Email</span><input id="people-search-email" type="email" autocomplete="email" inputmode="email"></label>
+</div>
+<button class="primary-button people-search-button" id="people-search-button" type="button">Search Disney</button>
+<div class="people-flow-status" id="people-flow-status" hidden></div>
+<div class="people-search-result" id="people-search-result" hidden></div>
+</div>
+
+<div class="party-people-list" id="party-people-list"><div class="party-loading">Loading your people…</div></div>
 </section>
 <section class="party-section party-section-panel party-section-parties">
 <div class="party-section-heading">

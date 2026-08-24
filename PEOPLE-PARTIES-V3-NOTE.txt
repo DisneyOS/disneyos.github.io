@@ -1,0 +1,18 @@
+DisneyOS People & Parties v3
+
+- Removes Scan for New Profiles.
+- Adds smart adult Disney search.
+- Adds inline contextual instructions.
+- Adds authorization-aware result text.
+- Makes verified-DisneyOS-member in-app approval live.
+- Shows outgoing requests in My People.
+- Shows incoming Approvals only when needed.
+- Adds upper-right notification badge hook.
+- Keeps managed guests nested beneath their manager and visually mutes unconnected guests.
+- Adds batch managed-guest selection UI.
+- Remove from My People does not disconnect DisneyOS Planner.
+
+Intentionally Coming Soon in this package:
+- automatic Disney Family & Friends invitation sending for non-member adults
+- external adult approval OTP handoff for already-connected non-members
+- final managed-guest batch request wiring / Disney Step Required detection

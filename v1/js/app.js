@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentParkElement = document.getElementById("current-park");
   const profileInitialElement = document.getElementById("profile-initial");
   const profileButton = document.getElementById("profile-button");
+  const profileNotificationBadge = document.getElementById("profile-notification-badge");
   const settingsNameElement = document.getElementById("settings-name");
   const settingsParkElement = document.getElementById("settings-park");
   const settingsMemberIdElement = document.getElementById("settings-member-id");
@@ -51,6 +52,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const disneyIdentityLocalStatus = document.getElementById("disney-identity-local-status");
   let currentDisneyIdentityClaimId = null;
   const partyAddPeopleButton = document.getElementById("party-add-people-button");
+  const peopleAddFlow = document.getElementById("people-add-flow");
+  const peopleAddClose = document.getElementById("people-add-close");
+  const peopleHelpToggle = document.getElementById("people-help-toggle");
+  const peopleHelpPanel = document.getElementById("people-help-panel");
+  const peopleSearchFirstName = document.getElementById("people-search-first-name");
+  const peopleSearchLastName = document.getElementById("people-search-last-name");
+  const peopleSearchEmail = document.getElementById("people-search-email");
+  const peopleSearchButton = document.getElementById("people-search-button");
+  const peopleFlowStatus = document.getElementById("people-flow-status");
+  const peopleSearchResult = document.getElementById("people-search-result");
+  const partyApprovalsPanel = document.getElementById("party-approvals-panel");
+  const partyApprovalsList = document.getElementById("party-approvals-list");
+  const partyApprovalsCount = document.getElementById("party-approvals-count");
+  let currentPeopleSearchResult = null;
   const partyPeopleList = document.getElementById("party-people-list");
   const partyLinkSession = document.getElementById("party-link-session");
   const partyLinkSessionTitle = document.getElementById("party-link-session-title");
@@ -2535,6 +2550,149 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function setPeopleFlowStatus(message = "", type = "info") {
+    if (!peopleFlowStatus) return;
+    peopleFlowStatus.textContent = message;
+    peopleFlowStatus.hidden = !message;
+    peopleFlowStatus.dataset.type = type;
+  }
+
+  async function loadPeopleV3() {
+    try {
+      const result = await plannerRequest("/people");
+      renderMyPeople(result.people || []);
+    } catch (error) {
+      if (partyPeopleList) partyPeopleList.innerHTML = `<div class="party-empty-card"><strong>Unable to load My People</strong><small>${escapeHtml(error.message)}</small></div>`;
+    }
+  }
+
+  async function loadPeopleApprovals() {
+    try {
+      const result = await plannerRequest("/people/approvals");
+      const requests = Array.isArray(result?.requests) ? result.requests : [];
+      if (partyApprovalsPanel) partyApprovalsPanel.hidden = requests.length === 0;
+      if (partyApprovalsCount) partyApprovalsCount.textContent = String(requests.length);
+      if (partyApprovalsList) {
+        partyApprovalsList.innerHTML = requests.map(item => `
+          <article class="approval-card">
+            <div><strong>${escapeHtml(item.requesterName || "A DisneyOS member")} wants to add you</strong><small>Approving lets them include your Disney profile in their DisneyOS planning and parties.</small></div>
+            <div class="approval-card-actions"><button class="primary-button" data-people-approve="${escapeHtml(item.id)}" type="button">Approve</button><button class="party-text-button" data-people-deny="${escapeHtml(item.id)}" type="button">Decline</button></div>
+          </article>`).join("");
+      }
+    } catch {
+      if (partyApprovalsPanel) partyApprovalsPanel.hidden = true;
+    }
+  }
+
+  async function refreshNotificationSummary() {
+    try {
+      const result = await plannerRequest("/notifications/summary");
+      const total = Number(result?.total || 0);
+      if (profileNotificationBadge) {
+        profileNotificationBadge.hidden = total === 0;
+        profileNotificationBadge.textContent = total > 9 ? "9+" : String(total);
+      }
+    } catch {
+      if (profileNotificationBadge) profileNotificationBadge.hidden = true;
+    }
+  }
+
+  function openPeopleAddFlow() {
+    if (peopleAddFlow) peopleAddFlow.hidden = false;
+    currentPeopleSearchResult = null;
+    if (peopleSearchResult) { peopleSearchResult.hidden = true; peopleSearchResult.innerHTML = ""; }
+    setPeopleFlowStatus("");
+    peopleSearchFirstName?.focus();
+  }
+
+  function closePeopleAddFlow() {
+    if (peopleAddFlow) peopleAddFlow.hidden = true;
+    setPeopleFlowStatus("");
+  }
+
+  async function searchPeopleDisney() {
+    const firstName = String(peopleSearchFirstName?.value || "").trim();
+    const lastName = String(peopleSearchLastName?.value || "").trim();
+    const email = String(peopleSearchEmail?.value || "").trim();
+    if (!firstName || !lastName || !email) return setPeopleFlowStatus("Enter the adult's first name, last name, and Disney account email.", "error");
+
+    if (peopleSearchButton) { peopleSearchButton.disabled = true; peopleSearchButton.textContent = "Searching Disney…"; }
+    setPeopleFlowStatus("Searching Disney for the matching adult account…", "info");
+
+    try {
+      const result = await plannerRequest("/people/search", { method: "POST", body: JSON.stringify({ firstName, lastName, email }) });
+      if (!result?.found || !result?.person) {
+        currentPeopleSearchResult = null;
+        if (peopleSearchResult) peopleSearchResult.hidden = true;
+        return setPeopleFlowStatus("No matching Disney account was found.", "info");
+      }
+      currentPeopleSearchResult = result.person;
+      const person = result.person;
+      const approval = person.approval || {};
+      if (peopleSearchResult) {
+        peopleSearchResult.innerHTML = `<article class="people-search-result-card">
+          <div class="people-search-result-top"><span class="people-person-avatar">${escapeHtml((person.firstName || "?").charAt(0))}</span><div><strong>${escapeHtml(person.displayName || "Disney Account")}</strong><small>Disney Account Found</small></div></div>
+          <div class="people-approval-explanation"><strong>What happens next</strong><p>${escapeHtml(approval.explanation || "DisneyOS will determine the appropriate approval path.")}</p></div>
+          <button class="primary-button people-send-request-button" id="people-send-request-button" type="button">${escapeHtml(approval.actionLabel || "Send Request")}</button>
+        </article>`;
+        peopleSearchResult.hidden = false;
+      }
+      setPeopleFlowStatus("Account found. Review the approval path before sending the request.", "success");
+    } catch (error) {
+      currentPeopleSearchResult = null;
+      if (peopleSearchResult) peopleSearchResult.hidden = true;
+      setPeopleFlowStatus(error.message, "error");
+    } finally {
+      if (peopleSearchButton) { peopleSearchButton.disabled = false; peopleSearchButton.textContent = "Search Disney"; }
+    }
+  }
+
+  async function sendPeopleRequest() {
+    const person = currentPeopleSearchResult;
+    if (!person?.disneyIdentityId) return;
+    setPeopleFlowStatus("Creating your approval request…", "info");
+    try {
+      const result = await plannerRequest("/people/requests", { method: "POST", body: JSON.stringify({ disneyIdentityId: person.disneyIdentityId }) });
+      if (result?.automationStatus === "COMING_SOON") {
+        setPeopleFlowStatus(result.approvalMethod === "disney_invitation"
+          ? "Request created. Disney invitation automation is the next backend step; this person will remain pending until that path is wired."
+          : "Request created. The external email approval handoff is the next backend step; this person will remain pending until that path is wired.", "info");
+      } else {
+        setPeopleFlowStatus(result?.message || "Request sent.", "success");
+      }
+      await loadPeopleV3();
+      window.setTimeout(closePeopleAddFlow, 900);
+    } catch (error) {
+      setPeopleFlowStatus(error.message, "error");
+    }
+  }
+
+  async function decidePeopleApproval(requestId, decision) {
+    try {
+      await plannerRequest(`/people/requests/${encodeURIComponent(requestId)}/${decision}`, { method: "POST" });
+      await Promise.all([loadPeopleApprovals(), loadPeopleV3(), refreshNotificationSummary()]);
+    } catch (error) { setPartyMessage(error.message, "error"); }
+  }
+
+  async function cancelPeopleRequest(requestId) {
+    try {
+      await plannerRequest(`/people/requests/${encodeURIComponent(requestId)}/cancel`, { method: "POST" });
+      await loadPeopleV3();
+    } catch (error) { setPartyMessage(error.message, "error"); }
+  }
+
+  async function removePersonFromMyPeople(disneyIdentityId) {
+    try {
+      await plannerRequest(`/people/${encodeURIComponent(disneyIdentityId)}/remove`, { method: "POST" });
+      await loadPeopleV3();
+    } catch (error) { setPartyMessage(error.message, "error"); }
+  }
+
+  function togglePeopleManaged(disneyIdentityId) {
+    const panel = document.querySelector(`[data-managed-expand="${CSS.escape(disneyIdentityId)}"]`);
+    if (panel) panel.hidden = !panel.hidden;
+  }
+
   function renderPartyIdentity(membership) {
     if (!partyIdentityCard) return;
 
@@ -2616,30 +2774,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  function renderMyPeople(membership) {
-    if (!partyPeopleList) return;
-    const profiles = Array.isArray(membership?.profileAccess)
-      ? membership.profileAccess
-      : [];
+  function peoplePendingLabel(person) {
+    if (person.pendingStatus === "waiting_in_app") return `Waiting for ${person.firstName || "approval"}`;
+    if (person.pendingStatus === "waiting_disney") return "Waiting for Disney connection";
+    if (person.pendingStatus === "waiting_email_otp") return "Email approval required";
+    if (person.pendingStatus === "disney_step_required") return "Disney step required";
+    return "Pending approval";
+  }
 
-    if (!profiles.length) {
-      partyPeopleList.innerHTML = `
-        <div class="party-empty-state">No approved Disney profiles yet.</div>
-      `;
+  function renderManagedGuests(manager) {
+    const guests = Array.isArray(manager.managedGuests) ? manager.managedGuests : [];
+    if (!guests.length) return `<div class="managed-guest-empty"><small>No managed guests are available through this connection yet.</small></div>`;
+
+    return `
+      <div class="managed-guest-section">
+        <div class="managed-guest-section-heading">
+          <strong>Managed by ${escapeHtml(manager.firstName || "this person")}</strong>
+          <small>Select unconnected guests to request access.</small>
+        </div>
+        <div class="managed-guest-grid">
+          ${guests.map((guest) => {
+            const connected = guest.request_status === "approved";
+            const pending = guest.request_status === "pending";
+            const stateLabel = connected ? "Connected" : pending ? `Waiting for ${escapeHtml(manager.firstName || "manager")}` : "Not connected";
+            return `
+              <label class="managed-guest-card ${connected ? "connected" : "unconnected"} ${pending ? "pending" : ""}">
+                <input type="checkbox" data-managed-guest-select="${escapeHtml(guest.id)}" data-manager-id="${escapeHtml(manager.disneyIdentityId)}" ${connected || pending ? "disabled" : ""}>
+                <span class="managed-guest-avatar">${escapeHtml((guest.first_name || "?").charAt(0))}</span>
+                <span class="managed-guest-copy"><strong>${escapeHtml([guest.first_name, guest.last_name].filter(Boolean).join(" ") || "Managed Guest")}</strong><small>${stateLabel}</small></span>
+              </label>`;
+          }).join("")}
+        </div>
+        <button class="party-secondary-button managed-request-button" data-manager-request="${escapeHtml(manager.disneyIdentityId)}" type="button">Request Selected Guests</button>
+      </div>`;
+  }
+
+  function renderMyPeople(people = []) {
+    if (!partyPeopleList) return;
+    if (!Array.isArray(people) || !people.length) {
+      partyPeopleList.innerHTML = `<div class="party-empty-card"><strong>No one added yet</strong><small>Use Add People to search for an adult Disney account. Managed guests are added through their manager.</small></div>`;
       return;
     }
 
-    partyPeopleList.innerHTML = profiles.map((item) => `
-      <article class="party-person-card">
-        ${item.avatar ? `<img class="party-avatar small" src="${escapeHtml(item.avatar)}" alt="">` : `<span class="party-avatar-placeholder small">${escapeHtml((item.firstName || item.displayName || "D").charAt(0))}</span>`}
-        <span class="party-profile-copy">
-          <strong>${escapeHtml(item.displayName || "Disney profile")}</strong>
-          <small>${item.isSelf ? "You · " : ""}${escapeHtml(item.accessLevel || "view")}</small>
-        </span>
-        ${item.isSelf ? '<span class="feature-state-badge live">You</span>' : ""}
-      </article>
-    `).join("");
+    partyPeopleList.innerHTML = people.map((person) => {
+      const displayName = person.displayName || [person.firstName, person.lastName].filter(Boolean).join(" ") || "Disney Guest";
+      if (person.status === "pending") {
+        return `<article class="people-person-card pending">
+          <div class="people-person-main">
+            <span class="people-person-avatar">${escapeHtml((person.firstName || "?").charAt(0))}</span>
+            <div class="people-person-copy"><strong>${escapeHtml(displayName)}</strong><small>${escapeHtml(peoplePendingLabel(person))}</small></div>
+            <span class="people-state-pill pending">Pending</span>
+          </div>
+          <div class="people-pending-actions"><button class="party-text-button" data-people-cancel="${escapeHtml(person.requestId || "")}" type="button">Cancel Request</button></div>
+        </article>`;
+      }
+
+      return `<article class="people-person-card connected" data-people-card="${escapeHtml(person.disneyIdentityId)}">
+        <button class="people-person-main people-person-expand" data-people-expand="${escapeHtml(person.disneyIdentityId)}" type="button">
+          <span class="people-person-avatar">${escapeHtml((person.firstName || "?").charAt(0))}</span>
+          <span class="people-person-copy"><strong>${escapeHtml(displayName)}</strong><small>${person.verifiedDisneyOsMember ? "Verified DisneyOS member" : "Connected"}</small></span>
+          <span class="people-state-pill connected">Connected</span>
+          <span class="people-chevron">⌄</span>
+        </button>
+        <div class="people-person-menu-row">
+          <button class="people-more-button" data-people-more="${escapeHtml(person.disneyIdentityId)}" type="button" aria-label="Manage ${escapeHtml(displayName)}">•••</button>
+          <div class="people-more-menu" data-people-menu="${escapeHtml(person.disneyIdentityId)}" hidden><button type="button" data-people-remove="${escapeHtml(person.disneyIdentityId)}">Remove from My People</button></div>
+        </div>
+        <div class="people-managed-expand" data-managed-expand="${escapeHtml(person.disneyIdentityId)}" hidden>${renderManagedGuests(person)}</div>
+      </article>`;
+    }).join("");
   }
+
 
   function resetLinkSessionUi() {
     if (partyLinkSession) partyLinkSession.hidden = true;
@@ -2721,7 +2926,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : "Add People session started. Add them in Disney, then scan.",
         "success"
       );
-      await loadCurrentLinkSession();
+      await Promise.all([loadPeopleApprovals(), refreshNotificationSummary()]);
     } catch (error) {
       setPartyMessage(error.message, "error");
     } finally {
@@ -2861,7 +3066,7 @@ document.addEventListener("DOMContentLoaded", () => {
         plannerRequest("/parties")
       ]);
       renderPartyIdentity(membership);
-      renderMyPeople(membership);
+      await loadPeopleV3();
       renderAccessibleProfiles(membership);
       renderSavedParties(partyData?.parties || [], membership.defaultPartyId);
       await loadCurrentLinkSession();
@@ -3036,7 +3241,40 @@ document.addEventListener("DOMContentLoaded", () => {
   disneyIdentityFindCancel?.addEventListener("click", closeDisneyIdentityFind);
   disneyIdentitySendOtp?.addEventListener("click", sendDisneyIdentityOtp);
   disneyIdentityVerifyOtp?.addEventListener("click", verifyDisneyIdentityOtp);
-  partyAddPeopleButton?.addEventListener("click", () => startProfileLink("household"));
+  partyAddPeopleButton?.addEventListener("click", openPeopleAddFlow);
+  peopleAddClose?.addEventListener("click", closePeopleAddFlow);
+  peopleSearchButton?.addEventListener("click", searchPeopleDisney);
+  peopleHelpToggle?.addEventListener("click", () => {
+    const expanded = peopleHelpToggle.getAttribute("aria-expanded") === "true";
+    peopleHelpToggle.setAttribute("aria-expanded", String(!expanded));
+    if (peopleHelpPanel) peopleHelpPanel.hidden = expanded;
+  });
+  peopleSearchResult?.addEventListener("click", (event) => {
+    if (event.target.closest("#people-send-request-button")) sendPeopleRequest();
+  });
+  partyPeopleList?.addEventListener("click", (event) => {
+    const expand = event.target.closest("[data-people-expand]");
+    if (expand) return togglePeopleManaged(expand.dataset.peopleExpand);
+    const more = event.target.closest("[data-people-more]");
+    if (more) {
+      const menu = document.querySelector(`[data-people-menu="${CSS.escape(more.dataset.peopleMore)}"]`);
+      if (menu) menu.hidden = !menu.hidden;
+      return;
+    }
+    const remove = event.target.closest("[data-people-remove]");
+    if (remove) return removePersonFromMyPeople(remove.dataset.peopleRemove);
+    const cancel = event.target.closest("[data-people-cancel]");
+    if (cancel) return cancelPeopleRequest(cancel.dataset.peopleCancel);
+    const managedRequest = event.target.closest("[data-manager-request]");
+    if (managedRequest) setPartyMessage("Managed-guest batching UI is ready. The manager-approval backend will be wired in the next People & Parties step.", "info");
+  });
+  partyApprovalsList?.addEventListener("click", (event) => {
+    const approve = event.target.closest("[data-people-approve]");
+    if (approve) return decidePeopleApproval(approve.dataset.peopleApprove, "approve");
+    const deny = event.target.closest("[data-people-deny]");
+    if (deny) decidePeopleApproval(deny.dataset.peopleDeny, "deny");
+  });
+
   partyLinkScanButton?.addEventListener("click", scanProfileLink);
   partyLinkConfirmButton?.addEventListener("click", confirmProfileLink);
   partyLinkCancelButton?.addEventListener("click", cancelProfileLink);
@@ -3220,3 +3458,5 @@ document.addEventListener("DOMContentLoaded", () => {
       : "home"
   );
 });
+
+  window.setTimeout(() => { refreshNotificationSummary(); }, 1800);
