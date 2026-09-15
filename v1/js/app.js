@@ -2040,17 +2040,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchTripPlans() {
-    const token = getDeviceToken();
-    if (!token) {
-      throw new Error("DisneyOS membership credential is unavailable.");
-    }
-
     const response = await fetch(
       `${PLANNER_API_BASE}/planner/plans`,
       {
         headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`
+          Accept: "application/json"
         }
       }
     );
