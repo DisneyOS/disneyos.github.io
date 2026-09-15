@@ -10,8 +10,6 @@
   const memberList = document.getElementById("member-list");
   const template = document.getElementById("member-template");
   const message = document.getElementById("message");
-  const gate12Button = document.getElementById("gate12-smoke-button");
-  const gate12Result = document.getElementById("gate12-smoke-result");
 
   function token() { return localStorage.getItem(TOKEN_KEY) || ""; }
   function profile() {
@@ -140,30 +138,6 @@
     mutate(`/admin/cards/${encodeURIComponent(id)}/status`, { status }, button, `Membership card ${status}.`);
   }
 
-  async function runGate12Smoke() {
-    if (!confirm("Run the one-time Phase 4 Gate 12 controlled synthetic production verification?")) return;
-    gate12Button.disabled = true;
-    gate12Button.textContent = "Running controlled test…";
-    gate12Result.hidden = true;
-    try {
-      const result = await api("/admin/availability/phase4-smoke", {
-        method: "POST",
-        body: JSON.stringify({ confirmation: "RUN_PHASE4_GATE12_V1" })
-      });
-      gate12Result.textContent = `${result.gate12}: ${result.assertions.map((item) => `${item.name} ${item.status}`).join(" · ")} · cleanup ${result.cleanup.status}`;
-      gate12Result.hidden = false;
-      showMessage("Controlled Gate 12 verification completed.");
-    } catch (error) {
-      gate12Result.textContent = "Controlled verification did not complete successfully.";
-      gate12Result.hidden = false;
-      showMessage(error.message, true);
-    } finally {
-      gate12Button.disabled = true;
-      gate12Button.textContent = "Controlled Gate 12 test completed";
-    }
-  }
-
   document.getElementById("refresh-button").addEventListener("click", load);
-  gate12Button.addEventListener("click", runGate12Smoke, { once:true });
   load();
 })();
