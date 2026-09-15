@@ -48,6 +48,18 @@
       </div>
 
       <div id="message" class="message" hidden></div>
+      <section class="member-card" aria-labelledby="gate12-heading">
+        <header class="member-header">
+          <div class="member-heading">
+            <h2 id="gate12-heading">Phase 4 controlled verification</h2>
+            <p class="member-id">Temporary, admin-only Gate 12 synthetic smoke test</p>
+          </div>
+        </header>
+        <div class="member-actions">
+          <button id="gate12-smoke-button" class="secondary-button" type="button">Run controlled Gate 12 test</button>
+        </div>
+        <div id="gate12-smoke-result" class="subsection" hidden aria-live="polite"></div>
+      </section>
       <section id="member-list" class="member-list" aria-live="polite"></section>
     </section>
   </main>
@@ -76,6 +88,6 @@
     </article>
   </template>
 
-  <script src="admin.js?v=1.0.0"></script>
+  <script src="admin.js?v=1.0.1"></script>
 </body>
 </html>
