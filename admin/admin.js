@@ -12,7 +12,6 @@
   const message = document.getElementById("message");
   const gate12Button = document.getElementById("gate12-smoke-button");
   const gate12Result = document.getElementById("gate12-smoke-result");
-  let gate12Confirmed = false;
 
   function token() { return localStorage.getItem(TOKEN_KEY) || ""; }
   function profile() {
@@ -142,13 +141,7 @@
   }
 
   async function runGate12Smoke() {
-    if (!gate12Confirmed) {
-      gate12Confirmed = true;
-      gate12Button.textContent = "Confirm and run controlled Gate 12 test";
-      gate12Result.textContent = "Confirm the one-time controlled production verification using the button again.";
-      gate12Result.hidden = false;
-      return;
-    }
+    if (!confirm("Run the one-time Phase 4 Gate 12 controlled synthetic production verification?")) return;
     gate12Button.disabled = true;
     gate12Button.textContent = "Running controlled test…";
     gate12Result.hidden = true;
@@ -171,6 +164,6 @@
   }
 
   document.getElementById("refresh-button").addEventListener("click", load);
-  gate12Button.addEventListener("click", runGate12Smoke);
+  gate12Button.addEventListener("click", runGate12Smoke, { once:true });
   load();
 })();
