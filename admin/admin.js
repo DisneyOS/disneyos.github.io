@@ -139,23 +139,5 @@
   }
 
   document.getElementById("refresh-button").addEventListener("click", load);
-  // Temporary verification control; no request until two explicit owner actions.
-  const gate13=document.createElement('section');
-  gate13.setAttribute('aria-label','Gate 13 controlled verification');
-  const gate13Button=document.createElement('button');
-  gate13Button.type='button';gate13Button.textContent='Arm one Gate 13 verification';
-  const gate13Output=document.createElement('pre');
-  gate13.append(gate13Button,gate13Output);adminContent.append(gate13);
-  let gate13Armed=false,gate13Sent=false;
-  gate13Button.addEventListener('click',async()=>{
-    if(gate13Sent)return;
-    if(!gate13Armed){gate13Armed=true;gate13Button.textContent='Confirm one authorized Gate 13 verification';return;}
-    gate13Sent=true;gate13Button.disabled=true;
-    try{
-      const {safeGate13Text}=await import('./gate13-diagnostic.mjs');
-      const response=await fetch(`${API_BASE}/admin/availability/phase4-gate13-verify`,{method:'POST',cache:'no-store',headers:headers(true),body:JSON.stringify({confirmation:'RUN_PHASE4_GATE13_V1'})});
-      gate13Output.textContent=safeGate13Text(await response.json().catch(()=>null));
-    }catch{gate13Output.textContent='Verification outcome unavailable. Do not retry.';}
-  });
   load();
 })();
