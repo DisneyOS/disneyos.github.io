@@ -1,0 +1,111 @@
+export const time = n => Number.isInteger(n) ? `${Math.floor(n / 60) % 12 || 12}:${String(n % 60).padStart(2, '0')} ${n >= 720 ? 'PM' : 'AM'}` : 'Time unavailable';
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const windowText = b => `${time(b.startMinute)}${b.endMinute != null ? ' – ' + time(b.endMinute) : ''}`;
+export function freshness(b, now = Date.now()) { if (b.refreshRequired || Date.parse(b.expiresAt) <= now) return 'Last known — refresh required'; const age = Math.floor((now - Date.parse(b.observedAt)) / 60000); return !Number.isFinite(age) || age >= 5 ? 'Last known — refresh required' : age < 1 ? 'Just now' : `${age} min ago`; }
+export function criterionText(c) { return ({ EARLIEST_AVAILABLE: 'Earliest available', AFTER_TIME: `At or after ${time(c.startMinute)}`, BEFORE_TIME: `At or before ${time(c.endMinute)}`, BETWEEN_TIMES: `${time(c.startMinute)} – ${time(c.endMinute)}` })[c.type]; }
+const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing dry run', VERIFYING: 'Verifying dry run', SUCCESS: 'Dry run successful', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Failed', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
+export function candidateCard(w, now = Date.now()) {
+  if (w.result) return `<div class="result"><strong>${w.status === 'CONFIRMED_AWAITING_EXECUTION' ? 'Confirmed — awaiting execution' : 'Dry run successful'}</strong><p>${esc(w.result.message)}</p></div>`;
+  if (w.status !== 'READY_FOR_CONFIRMATION') return `<p class="muted">${esc(w.status === 'CANCELLED' ? 'Previous proposal closed.' : statuses[w.status] || 'Status unavailable')}</p>`;
+  const expired = Date.parse(w.expiresAt) <= now;
+  const delta = w.current.startMinute - w.proposed.startMinute;
+  return `<section class="candidate"><p class="eyebrow">BETTER LIGHTNING LANE FOUND</p><h3>${esc(w.proposed.experienceName)}</h3><div class="comparison"><div><span>Current · ${esc(w.current.experienceName)}</span><strong>${esc(windowText(w.current))}</strong></div><div><span>${esc(w.availabilityLabel)}</span><strong>${esc(windowText(w.proposed))}</strong></div></div>${delta > 0 ? `<p class="earlier">${delta} minutes earlier</p>` : ''}<p class="muted">${esc(w.evidenceLabel)}</p><p class="muted">${expired ? 'Expired — search again' : 'Confirmation expires at ' + esc(new Date(w.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }))}</p><div class="actions"><button class="primary" data-confirm="${esc(w.id)}" ${expired ? 'disabled' : ''}>Confirm ${time(w.proposed.startMinute)} · dry run</button><button data-ignore="${esc(w.id)}">Ignore</button></div></section>`;
+}
+
+if (typeof document !== 'undefined') {
+  const local = ['127.0.0.1', 'localhost'].includes(location.hostname);
+  const apiBase = local ? '/v1' : 'https://disneyos-api-dev.disneyosplanner.workers.dev/v1';
+  const $ = id => document.getElementById(id), form = $('search-form');
+  let data = { plans: [], profiles: [], parties: [], experiences: [] }, searches = [], editing = null, busy = false;
+  const field = name => form.elements.namedItem(name);
+  if (local) $('demo-notice').textContent = 'Local synthetic demo · Kyle’s Safaris example · No real booking will change.';
+  async function api(path, method = 'GET', body) {
+    const headers = { Accept: 'application/json' };
+    if (!local) { const token = localStorage.getItem('disneyos-member-device-token'); if (!token) throw new Error('Sign in to DisneyOS to view Lightning Lanes.'); headers.Authorization = `Bearer ${token}`; }
+    if (body != null) headers['Content-Type'] = 'application/json';
+    const response = await fetch(apiBase + path, { method, cache: 'no-store', headers, ...(body != null ? { body: JSON.stringify(body) } : {}) });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(({ UNAUTHORIZED: 'Please sign in again.', FORBIDDEN: 'You no longer have access to this profile or party.', CONCURRENT_CHANGE: 'This search changed. Refresh and review the latest option.', WORKFLOW_NOT_ACTIVE: 'This proposal is no longer active.', SERVICE_UNAVAILABLE: 'Lightning Lanes is temporarily unavailable.', NOT_FOUND: 'Lightning Lanes is not enabled in this environment.' })[result.error?.code] || 'The request could not be completed. Refresh and try again.');
+    return result.data;
+  }
+  function feedback(message, error = false) { $('feedback').textContent = message; $('feedback').className = error ? 'error' : ''; }
+  function render() {
+    $('plans').innerHTML = data.plans.length ? data.plans.map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p><div class="actions"><button data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div></article>`).join('') : '<div class="empty">No verified canonical plans are available.<br>Refresh required before a booking can be improved.</div>';
+    $('searches').innerHTML = searches.length ? searches.map(s => {
+      const latest = s.workflows.at(-1), party = data.parties.find(p => p.id === s.partyContextId)?.name || 'Your party';
+      const current = data.plans.find(b => b.id === s.currentBookingId);
+      const terminal = ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
+      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status])}</span></div><p class="muted">${s.searchType === 'MODIFY_UNTIL_STOPPED' ? 'Modify Until Stopped' : s.searchType === 'NEW_BOOKING' ? 'New Booking · execution unavailable' : 'Modify Booking'} · ${esc(party)}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${s.reason === 'AVAILABILITY_REFRESH_REQUIRED' ? '<p class="muted">Searching — waiting for fresh availability. No current option can be confirmed.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
+    }).join('') : '<div class="empty">No searches yet.<br>Improve a current plan or create a search.</div>';
+  }
+  async function load(evaluate = false) {
+    try {
+    [data, searches] = await Promise.all([api('/lightning-lane/current-plans'), api('/lightning-lane/searches')]);
+    if (evaluate) { for (const s of searches.filter(s => !['PAUSED', 'CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status))) await api(`/lightning-lane/searches/${encodeURIComponent(s.id)}/evaluate`, 'POST', {}); searches = await api('/lightning-lane/searches'); }
+    render(); $('create').disabled = false;
+    } catch (e) {
+      data.plans = data.plans.map(b => ({ ...b, refreshRequired: true })); render();
+      document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); $('create').disabled = true;
+      throw e;
+    }
+  }
+  const options = rows => rows.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+  function syncForm() {
+    const type = field('criterionType').value;
+    $('start-field').hidden = !['AFTER_TIME', 'BETWEEN_TIMES'].includes(type); $('end-field').hidden = !['BEFORE_TIME', 'BETWEEN_TIMES'].includes(type);
+    field('startTime').required = !$('start-field').hidden; field('endTime').required = !$('end-field').hidden;
+    const isNew = field('searchType').value === 'NEW_BOOKING'; field('currentBookingId').disabled = isNew;
+    $('search-note').textContent = isNew ? 'This search is saved for future support. New booking execution is unavailable.' : 'Every proposed change needs your confirmation.';
+    if (!editing && !isNew) {
+      const b = data.plans.find(x => x.id === field('currentBookingId').value);
+      if (b) for (const k of ['profileId', 'partyContextId', 'serviceDate', 'productType']) field(k).value = b[k];
+    }
+    for (const k of ['profileId', 'partyContextId', 'serviceDate', 'productType']) field(k).disabled = !isNew;
+    $('save-search').disabled = !editing && (!data.experiences.length || !data.parties.length || !isNew && !data.plans.some(b => b.id === field('currentBookingId').value && !freshness(b).startsWith('Last')));
+  }
+  function openForm(bookingId = null, edit = null, change = false) {
+    editing = edit; form.reset(); $('form-error').textContent = '';
+    field('currentBookingId').innerHTML = options(data.plans.map(b => ({ id: b.id, name: `${b.experienceName} · ${time(b.startMinute)}` })));
+    field('profileId').innerHTML = options(data.profiles); field('partyContextId').innerHTML = options(data.parties); field('experienceId').innerHTML = options(data.experiences);
+    $('identity-fields').hidden = Boolean(edit); $('form-title').textContent = edit ? 'Edit Search' : 'Create Search'; $('save-search').textContent = edit ? 'Save Search' : 'Start Search';
+    if (bookingId) field('currentBookingId').value = bookingId;
+    const b = data.plans.find(x => x.id === field('currentBookingId').value);
+    if (b) field('experienceId').value = b.experienceId;
+    if (edit) {
+      field('experienceId').value = edit.experienceId; field('criterionType').value = edit.criterion.type;
+      for (const [key, f] of [['startMinute', 'startTime'], ['endMinute', 'endTime']]) if (edit.criterion[key] != null) field(f).value = `${String(Math.floor(edit.criterion[key] / 60)).padStart(2, '0')}:${String(edit.criterion[key] % 60).padStart(2, '0')}`;
+    }
+    syncForm(); $('search-dialog').showModal(); if (change) field('experienceId').focus();
+  }
+  form.addEventListener('change', syncForm); $('close-form').onclick = () => $('search-dialog').close(); $('create').onclick = () => openForm();
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (busy) return; busy = true; $('save-search').disabled = true;
+    try {
+      const criterion = { type: field('criterionType').value }, minute = v => Number(v.split(':')[0]) * 60 + Number(v.split(':')[1]);
+      if (!$('start-field').hidden) criterion.startMinute = minute(field('startTime').value);
+      if (!$('end-field').hidden) criterion.endMinute = minute(field('endTime').value);
+      if (criterion.startMinute > criterion.endMinute) throw new Error('The end time must be at or after the start time.');
+      if (editing) await api(`/lightning-lane/searches/${editing.id}`, 'PATCH', { action: 'EDIT', criterion, experienceId: field('experienceId').value });
+      else { const input = Object.fromEntries(['searchType', 'currentBookingId', 'profileId', 'partyContextId', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value])); input.criterion = criterion; await api('/lightning-lane/searches', 'POST', input); }
+      $('search-dialog').close(); await load(); feedback('Search saved.');
+    } catch (e) { $('form-error').textContent = e.message; } finally { busy = false; syncForm(); }
+  });
+  document.addEventListener('click', async event => {
+    const button = event.target.closest('button'); if (!button || busy) return;
+    const a = button.dataset;
+    if (a.improve || a.change) { openForm(a.improve || a.change, null, Boolean(a.change)); return; }
+    if (a.edit) { openForm(null, searches.find(s => s.id === a.edit)); return; }
+    if (!Object.keys(a).length && button.id !== 'refresh') return;
+    busy = true; button.disabled = true;
+    try {
+      if (a.confirm || a.ignore) { const id = a.confirm || a.ignore; const result = await api(`/lightning-lane/workflows/${id}/${a.confirm ? 'confirm' : 'cancel'}`, 'POST', { action: a.confirm ? 'CONFIRM' : 'CANCEL' }); feedback(a.ignore ? 'Proposal ignored. Search continues.' : result.result?.message || statuses[result.status]); }
+      if (a.pause) await api(`/lightning-lane/searches/${a.pause}`, 'PATCH', { action: searches.find(s => s.id === a.pause).status === 'PAUSED' ? 'RESUME' : 'PAUSE' });
+      if (a.cancel) await api(`/lightning-lane/searches/${a.cancel}`, 'DELETE');
+      if (a.evaluate) await api(`/lightning-lane/searches/${a.evaluate}/evaluate`, 'POST', {});
+      if (button.id === 'refresh' && local) await api('/demo/refresh', 'POST', {});
+      await load(button.id === 'refresh');
+    } catch (e) { feedback(e.message, true); } finally { busy = false; button.disabled = false; }
+  });
+  load(true).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
+  setInterval(() => { if (!busy && !$('search-dialog').open && !document.hidden) load(true).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); }); }, 15000);
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070c"><title>Lightning Lanes · DisneyOS</title><link rel="icon" href="assets/favicon-32.png"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/lightning-lanes.css"><script type="module" src="js/lightning-lanes.mjs"></script></head>
+<body><main class="lane-page">
+  <a class="back" href="index.html#trip">← My Trip</a>
+  <header><p class="eyebrow">DISNEYOS · YOUR DAY, YOUR WAY</p><h1>Lightning Lanes</h1><p class="muted">Keep your plans. Find a time that works better.</p></header>
+  <aside class="notice" id="demo-notice">Confirm a proposed change for later execution. Your bookings will not change in this phase.</aside>
+  <p id="feedback" role="status" aria-live="polite"></p>
+  <div class="section-heading"><h2>My Current Plans</h2><button id="refresh" type="button">Refresh</button></div>
+  <div id="plans"><p class="muted">Loading your plans…</p></div>
+  <div class="section-heading"><div><h2>Active Searches</h2><p class="muted">We’ll ask before any change.</p></div><button id="create" class="primary" type="button">Create Search</button></div>
+  <div id="searches"></div>
+  <p class="footnote">Times are local to the park. Availability may change before confirmation.</p>
+</main>
+<dialog id="search-dialog"><form id="search-form">
+  <div class="section-heading"><h2 id="form-title">Create Search</h2><button type="button" id="close-form" aria-label="Close search form">✕</button></div>
+  <p class="muted">Choose what DisneyOS should look for.</p>
+  <div id="identity-fields">
+    <label>Search type<select name="searchType"><option value="MODIFY_BOOKING">Modify Booking</option><option value="MODIFY_UNTIL_STOPPED">Modify Until Stopped</option><option value="NEW_BOOKING">New Booking — execution unavailable</option></select></label>
+    <label>Current booking<select name="currentBookingId"></select></label>
+    <div class="form-grid"><label>Profile<select name="profileId"></select></label><label>Party<select name="partyContextId"></select></label></div>
+    <div class="form-grid"><label>Service date<input name="serviceDate" type="date" required></label><label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label></div>
+  </div>
+  <label>Experience<select name="experienceId" required></select></label>
+  <label>Desired time<select name="criterionType"><option value="EARLIEST_AVAILABLE">Earliest available</option><option value="AFTER_TIME">At or after a time</option><option value="BEFORE_TIME">At or before a time</option><option value="BETWEEN_TIMES">Between two times</option></select></label>
+  <div class="form-grid"><label id="start-field" hidden>From<input name="startTime" type="time"></label><label id="end-field" hidden>Until<input name="endTime" type="time"></label></div>
+  <label>Action mode<select name="actionMode"><option value="ASK_BEFORE_CHANGING">Ask before changing</option><option value="AUTO_MODIFY" disabled>Auto-modify — unavailable</option></select></label>
+  <p class="muted" id="search-note">Every proposed change needs your confirmation.</p>
+  <p id="form-error" role="alert"></p>
+  <button class="primary full" id="save-search" type="submit">Start Search</button>
+</form></dialog>
+</body></html>
