@@ -4,7 +4,6 @@ const GATE12_SAFE_STAGES = new Set([
   "TARGET_EVALUATE", "EXPIRED_INGEST", "EXPIRED_SUPPRESSION", "CLEANUP", "COMPLETE",
 ]);
 const GATE12_SAFE_MESSAGES = Object.freeze({
-  GATE12_ALREADY_EXECUTED: "Controlled smoke authorization has already been consumed.",
   SMOKE_PASS: "Controlled smoke completed.",
   SMOKE_PREFLIGHT_FAILED: "Controlled smoke preflight failed.",
   SMOKE_INGESTION_FAILED: "Controlled smoke ingestion step failed.",
@@ -24,7 +23,7 @@ function sanitizeGate12Diagnostic(payload) {
   const stage = GATE12_SAFE_STAGES.has(payload?.stage) ? payload.stage : null;
   const lastCompletedStage = GATE12_SAFE_STAGES.has(payload?.lastCompletedStage) ? payload.lastCompletedStage : null;
   const requestId = /^phase4_gate12_[0-9a-f-]{36}$/.test(payload?.requestId || "") ? payload.requestId : null;
-  const cleanupStatus = ["PASS", "FAIL", "NOT_RUN"].includes(payload?.cleanupStatus) ? payload.cleanupStatus : "FAIL";
+  const cleanupStatus = ["PASS", "FAIL"].includes(payload?.cleanupStatus) ? payload.cleanupStatus : "FAIL";
   const cleanupRemainingRows = Number.isInteger(payload?.cleanupRemainingRows) && payload.cleanupRemainingRows >= 0 && payload.cleanupRemainingRows <= 1000000 ? payload.cleanupRemainingRows : null;
   const assertions = Array.isArray(payload?.assertions) ? payload.assertions.slice(0, 7).flatMap((item) => {
     if (!GATE12_SAFE_ASSERTIONS.has(item?.name) || !["PASS", "FAIL"].includes(item?.status)) return [];
