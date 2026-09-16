@@ -1,31 +1,65 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070c"><title>Lightning Lanes · DisneyOS</title><link rel="icon" href="assets/favicon-32.png"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/lightning-lanes.css"><script type="module" src="js/lightning-lanes.mjs"></script></head>
-<body><main class="lane-page">
-  <a class="back" href="index.html#trip">← My Trip</a>
-  <header><p class="eyebrow">DISNEYOS · YOUR DAY, YOUR WAY</p><h1>Lightning Lanes</h1><p class="muted">Keep your plans. Find a time that works better.</p></header>
-  <aside class="notice" id="demo-notice">Confirm a proposed change for later execution. Your bookings will not change in this phase.</aside>
-  <p id="feedback" role="status" aria-live="polite"></p>
-  <div class="section-heading"><h2>My Current Plans</h2><button id="refresh" type="button">Refresh</button></div>
-  <div id="plans"><p class="muted">Loading your plans…</p></div>
-  <div class="section-heading"><div><h2>Active Searches</h2><p class="muted">We’ll ask before any change.</p></div><button id="create" class="primary" type="button">Create Search</button></div>
-  <div id="searches"></div>
-  <p class="footnote">Times are local to the park. Availability may change before confirmation.</p>
-</main>
-<dialog id="search-dialog"><form id="search-form">
-  <div class="section-heading"><h2 id="form-title">Create Search</h2><button type="button" id="close-form" aria-label="Close search form">✕</button></div>
-  <p class="muted">Choose what DisneyOS should look for.</p>
-  <div id="identity-fields">
-    <label>Search type<select name="searchType"><option value="MODIFY_BOOKING">Modify Booking</option><option value="MODIFY_UNTIL_STOPPED">Modify Until Stopped</option><option value="NEW_BOOKING">New Booking — execution unavailable</option></select></label>
-    <label>Current booking<select name="currentBookingId"></select></label>
-    <div class="form-grid"><label>Profile<select name="profileId"></select></label><label>Party<select name="partyContextId"></select></label></div>
-    <div class="form-grid"><label>Service date<input name="serviceDate" type="date" required></label><label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label></div>
-  </div>
-  <label>Experience<select name="experienceId" required></select></label>
-  <label>Desired time<select name="criterionType"><option value="EARLIEST_AVAILABLE">Earliest available</option><option value="AFTER_TIME">At or after a time</option><option value="BEFORE_TIME">At or before a time</option><option value="BETWEEN_TIMES">Between two times</option></select></label>
-  <div class="form-grid"><label id="start-field" hidden>From<input name="startTime" type="time"></label><label id="end-field" hidden>Until<input name="endTime" type="time"></label></div>
-  <label>Action mode<select name="actionMode"><option value="ASK_BEFORE_CHANGING">Ask before changing</option><option value="AUTO_MODIFY" disabled>Auto-modify — unavailable</option></select></label>
-  <p class="muted" id="search-note">Every proposed change needs your confirmation.</p>
-  <p id="form-error" role="alert"></p>
-  <button class="primary full" id="save-search" type="submit">Start Search</button>
-</form></dialog>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05070c">
+  <title>Lightning Lane | DisneyOS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/theme.css?v=2.0.9">
+  <link rel="stylesheet" href="css/styles.css?v=3.5.0">
+  <link rel="stylesheet" href="css/lightning-lanes.css?v=7d.1">
+  <script type="module" src="js/lightning-lanes.mjs?v=7d.1"></script>
+</head>
+<body class="lane-shell">
+  <div class="ambient one" aria-hidden="true"></div>
+  <div class="ambient two" aria-hidden="true"></div>
+  <header class="app-header lane-header">
+    <div class="header-content">
+      <a class="lane-back" id="lane-back" href="index.html?view=home"><span aria-hidden="true">‹</span><span id="lane-back-label">Home</span></a>
+      <a class="header-brand-link" href="index.html?view=home" aria-label="DisneyOS Home"><img src="assets/disneyos-logo-transparent.png" alt="DisneyOS" class="lane-brand"></a>
+    </div>
+  </header>
+  <main class="lane-page">
+    <div class="lane-title">
+      <span class="lane-icon" aria-hidden="true">⚡</span>
+      <div><p class="eyebrow">YOUR PLANS, MORE FLEXIBILITY</p><h1>Lightning Lane</h1></div>
+    </div>
+    <p class="lane-intro">Keep your plans. Find a time that works better.</p>
+    <aside class="notice" id="demo-notice"><span class="notice-dot" aria-hidden="true"></span><p><strong>You’re in control</strong><span>Review each option before confirming. Booking changes are not enabled yet.</span></p></aside>
+    <p id="feedback" role="status" aria-live="polite"></p>
+    <section class="lane-section" aria-labelledby="plans-title">
+      <div class="section-heading"><div><p class="eyebrow">YOUR DAY</p><h2 id="plans-title">Current plans</h2></div><button id="refresh" type="button" class="quiet-button">Refresh</button></div>
+      <div id="plans"><div class="empty">Loading your plans…</div></div>
+    </section>
+    <section class="lane-section" aria-labelledby="searches-title">
+      <div class="section-heading"><div><p class="eyebrow">FIND YOUR NEXT OPTION</p><h2 id="searches-title">Your searches</h2></div><button id="create" class="primary" type="button">Create Search</button></div>
+      <div id="searches"></div>
+    </section>
+    <p class="footnote">Times are local to the park. Availability may change before confirmation.</p>
+  </main>
+  <dialog id="search-dialog" class="lane-dialog" aria-labelledby="form-title" aria-describedby="form-description">
+    <form id="search-form">
+      <header class="form-header"><div><p class="eyebrow">LIGHTNING LANE</p><h2 id="form-title">Create Search</h2></div><button type="button" id="close-form" aria-label="Close search form">×</button></header>
+      <div class="form-body">
+        <p class="muted" id="form-description">Choose your plan and tell us what time works for you.</p>
+        <div id="identity-fields">
+          <label>Search type<select name="searchType"><option value="MODIFY_BOOKING">Modify Booking</option><option value="MODIFY_UNTIL_STOPPED">Modify Until Stopped</option><option value="NEW_BOOKING">New Booking — execution unavailable</option></select></label>
+          <label>Current booking<select name="currentBookingId"></select></label>
+          <div class="form-grid"><label>Profile<select name="profileId"></select></label><label>Party<select name="partyContextId"></select></label></div>
+          <div class="form-grid"><label>Service date<input name="serviceDate" type="date" required></label><label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label></div>
+        </div>
+        <label>Experience<select name="experienceId" required></select></label>
+        <label>Desired time<select name="criterionType"><option value="EARLIEST_AVAILABLE">Earliest available</option><option value="AFTER_TIME">At or after a time</option><option value="BEFORE_TIME">At or before a time</option><option value="BETWEEN_TIMES">Between two times</option></select></label>
+        <div class="form-grid"><label id="start-field" hidden>From<input name="startTime" type="time"></label><label id="end-field" hidden>Until<input name="endTime" type="time"></label></div>
+        <label>Action mode<select name="actionMode"><option value="ASK_BEFORE_CHANGING">Ask before changing</option><option value="AUTO_MODIFY" disabled>Auto-modify — unavailable</option></select></label>
+        <p class="form-note" id="search-note">Every proposed change needs your confirmation.</p>
+        <p id="form-error" role="alert"></p>
+      </div>
+      <footer class="form-footer"><button class="primary full" id="save-search" type="submit">Start Search</button></footer>
+    </form>
+  </dialog>
+</body>
+</html>

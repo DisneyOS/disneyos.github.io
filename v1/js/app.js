@@ -3699,7 +3699,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderProfile();
 
-  const savedPage = getStoredValue(
+  const entryPage = new URLSearchParams(window.location.search).get('view');
+  const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'settings'].includes(entryPage);
+  if (validEntryPage) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  const savedPage = validEntryPage ? entryPage : getStoredValue(
     storageKeys.activePage,
     "home"
   );

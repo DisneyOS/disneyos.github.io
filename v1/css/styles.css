@@ -3,6 +3,10 @@
    Core application styles
    ========================================================= */
 
+/* Destinations share the same card treatment as in-app actions. */
+a.quick-action-card,
+a.shortcut-card { color: inherit; text-decoration: none; }
+
 
 /* ---------------------------------------------------------
    Design tokens

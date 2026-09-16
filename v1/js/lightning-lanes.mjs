@@ -1,6 +1,10 @@
 export const time = n => Number.isInteger(n) ? `${Math.floor(n / 60) % 12 || 12}:${String(n % 60).padStart(2, '0')} ${n >= 720 ? 'PM' : 'AM'}` : 'Time unavailable';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const windowText = b => `${time(b.startMinute)}${b.endMinute != null ? ' – ' + time(b.endMinute) : ''}`;
+export function returnDestination(search) {
+  const from = new URLSearchParams(search).get('from');
+  return from === 'shortcuts' ? { href: 'index.html?view=shortcuts', label: 'Shortcuts' } : { href: 'index.html?view=home', label: 'Home' };
+}
 export function freshness(b, now = Date.now()) { if (b.refreshRequired || Date.parse(b.expiresAt) <= now) return 'Last known — refresh required'; const age = Math.floor((now - Date.parse(b.observedAt)) / 60000); return !Number.isFinite(age) || age >= 5 ? 'Last known — refresh required' : age < 1 ? 'Just now' : `${age} min ago`; }
 export function criterionText(c) { return ({ EARLIEST_AVAILABLE: 'Earliest available', AFTER_TIME: `At or after ${time(c.startMinute)}`, BEFORE_TIME: `At or before ${time(c.endMinute)}`, BETWEEN_TIMES: `${time(c.startMinute)} – ${time(c.endMinute)}` })[c.type]; }
 const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing dry run', VERIFYING: 'Verifying dry run', SUCCESS: 'Dry run successful', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Failed', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
@@ -9,13 +13,16 @@ export function candidateCard(w, now = Date.now()) {
   if (w.status !== 'READY_FOR_CONFIRMATION') return `<p class="muted">${esc(w.status === 'CANCELLED' ? 'Previous proposal closed.' : statuses[w.status] || 'Status unavailable')}</p>`;
   const expired = Date.parse(w.expiresAt) <= now;
   const delta = w.current.startMinute - w.proposed.startMinute;
-  return `<section class="candidate"><p class="eyebrow">BETTER LIGHTNING LANE FOUND</p><h3>${esc(w.proposed.experienceName)}</h3><div class="comparison"><div><span>Current · ${esc(w.current.experienceName)}</span><strong>${esc(windowText(w.current))}</strong></div><div><span>${esc(w.availabilityLabel)}</span><strong>${esc(windowText(w.proposed))}</strong></div></div>${delta > 0 ? `<p class="earlier">${delta} minutes earlier</p>` : ''}<p class="muted">${esc(w.evidenceLabel)}</p><p class="muted">${expired ? 'Expired — search again' : 'Confirmation expires at ' + esc(new Date(w.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }))}</p><div class="actions"><button class="primary" data-confirm="${esc(w.id)}" ${expired ? 'disabled' : ''}>Confirm ${time(w.proposed.startMinute)} · dry run</button><button data-ignore="${esc(w.id)}">Ignore</button></div></section>`;
+  return `<section class="candidate"><p class="eyebrow">BETTER LIGHTNING LANE FOUND</p><h3>${esc(w.proposed.experienceName)}</h3><div class="comparison"><div><span>Current · ${esc(w.current.experienceName)}</span><strong>${esc(windowText(w.current))}</strong></div><div><span>${esc(w.availabilityLabel)}</span><strong>${esc(windowText(w.proposed))}</strong></div></div>${delta > 0 ? `<p class="earlier">${delta} minutes earlier</p>` : ''}<p class="muted">${esc(w.evidenceLabel)}</p><p class="muted">${expired ? 'Expired — search again' : 'Confirmation expires at ' + esc(new Date(w.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }))}</p><div class="actions"><button class="primary" data-confirm="${esc(w.id)}" ${expired ? 'disabled' : ''}>Confirm ${time(w.proposed.startMinute)}</button><button data-ignore="${esc(w.id)}">Ignore</button></div></section>`;
 }
 
 if (typeof document !== 'undefined') {
   const local = ['127.0.0.1', 'localhost'].includes(location.hostname);
   const apiBase = local ? '/v1' : 'https://disneyos-api-dev.disneyosplanner.workers.dev/v1';
   const $ = id => document.getElementById(id), form = $('search-form');
+  const destination = returnDestination(location.search);
+  $('lane-back').href = destination.href;
+  $('lane-back-label').textContent = destination.label;
   let data = { plans: [], profiles: [], parties: [], experiences: [] }, searches = [], editing = null, busy = false;
   const field = name => form.elements.namedItem(name);
   if (local) $('demo-notice').textContent = 'Local synthetic demo · Kyle’s Safaris example · No real booking will change.';
@@ -30,7 +37,7 @@ if (typeof document !== 'undefined') {
   }
   function feedback(message, error = false) { $('feedback').textContent = message; $('feedback').className = error ? 'error' : ''; }
   function render() {
-    $('plans').innerHTML = data.plans.length ? data.plans.map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p><div class="actions"><button data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div></article>`).join('') : '<div class="empty">No verified canonical plans are available.<br>Refresh required before a booking can be improved.</div>';
+    $('plans').innerHTML = data.plans.length ? data.plans.map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p><div class="actions"><button class="primary" data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div></article>`).join('') : '<div class="empty">No current plans to show.<br>Your Lightning Lane plans will appear here when available.</div>';
     $('searches').innerHTML = searches.length ? searches.map(s => {
       const latest = s.workflows.at(-1), party = data.parties.find(p => p.id === s.partyContextId)?.name || 'Your party';
       const current = data.plans.find(b => b.id === s.currentBookingId);
