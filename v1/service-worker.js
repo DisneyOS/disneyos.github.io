@@ -1,11 +1,11 @@
-const CACHE_NAME = "disneyos-v3.5.1";
+const CACHE_NAME = "disneyos-v3.5.2";
 
 const SHELL = [
   "./",
   "./index.html",
   "./lightning-lanes.html",
-  "./css/lightning-lanes.css?v=7d.1",
-  "./js/lightning-lanes.mjs?v=7d.1",
+  "./css/lightning-lanes.css?v=7d.2",
+  "./js/lightning-lanes.mjs?v=7d.2",
   "./wait-times-menu.html",
   "./wait-times.html",
   "./people-approval.html",

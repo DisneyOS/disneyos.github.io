@@ -1,9 +1,13 @@
 /* Lightning Lane uses the shared DisneyOS shell and theme. */
-.lane-shell { min-width: 320px; }
+.lane-root, .lane-shell { width: 100%; max-width: 100%; min-width: 0; overflow-x: clip; overscroll-behavior-x: none; }
+.lane-shell { touch-action: pan-y pinch-zoom; }
+.lane-shell .ambient { max-width: 100%; pointer-events: none; }
+.lane-page, .lane-header, .lane-dialog { box-sizing: border-box; overflow-wrap: anywhere; }
 .lane-header .header-content, .lane-page { width: min(100%, var(--page-max)); margin-inline: auto; }
 .lane-header { padding: max(20px, env(safe-area-inset-top)) 24px 20px; }
 .lane-back { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--secondary); text-decoration: none; font-size: .9rem; font-weight: 600; }
-.lane-back > span:first-child { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--soft); color: var(--text); font-size: 1.8rem; }
+.lane-back > .back-icon { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--soft); color: var(--text); line-height: 1; }
+.back-icon svg { display: block; }
 .lane-brand { display: block; width: 100px; height: auto; }
 .lane-page { padding: 12px 24px max(36px, env(safe-area-inset-bottom)); }
 .lane-title { display: flex; align-items: center; gap: 16px; margin: 8px 0 14px; }
@@ -18,6 +22,8 @@
 .notice strong { display: block; color: var(--text); margin-bottom: 3px; }
 .notice p span { color: var(--secondary); }
 .lane-section { margin-top: 32px; }
+#search-history { margin-top: 20px; }
+#search-history summary { padding: 12px 0; color: var(--secondary); font-size: .85rem; cursor: pointer; }
 .lane-page .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
 .lane-page .section-heading > div { min-width: 0; }
 .lane-page .section-heading .eyebrow { margin-bottom: 5px; font-size: .6rem; }
@@ -34,6 +40,12 @@
 .lane-page .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 .lane-page button, .lane-dialog button { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--soft); color: var(--text); padding: 11px 15px; font-size: .82rem; line-height: 1.4; font-weight: 650; min-height: 44px; }
 .lane-page button:hover, .lane-dialog button:hover { background: var(--strong); }
+.lane-page .ai-launcher { display: flex; align-items: center; gap: 14px; width: 100%; padding: 20px; text-align: left; background: var(--gradient-soft); border-radius: 20px; }
+.ai-symbol { color: var(--cyan); font-size: 1.7rem; flex-shrink: 0; }
+.ai-copy { display: grid; gap: 7px; flex: 1; min-width: 0; }
+.ai-copy strong { font-size: 1rem; }
+.ai-copy > span { color: var(--secondary); font-size: .8rem; font-weight: 400; }
+.ai-copy .coming-soon { color: var(--cyan); font-size: .7rem; font-weight: 600; }
 .lane-page button:disabled, .lane-dialog button:disabled { opacity: .45; cursor: not-allowed; }
 .lane-page button.primary, .lane-dialog button.primary { background: var(--gradient); border-color: transparent; color: #00101b; box-shadow: 0 8px 24px rgba(35,136,255,.15); }
 .lane-page button.danger { color: #ff9da9; background: transparent; border-color: transparent; }
@@ -58,7 +70,7 @@
 .lane-dialog .form-header h2 { margin: 0; font-size: 1.4rem; letter-spacing: -.035em; }
 .lane-dialog .form-header .eyebrow { font-size: .6rem; margin: 0 0 4px; }
 .lane-dialog #close-form { width: 44px; padding: 0; flex: 0 0 44px; font-size: 1.5rem; }
-.lane-dialog .form-body { padding: 16px 24px 24px; overflow-y: auto; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.lane-dialog .form-body { padding: 16px 24px 24px; overflow-y: auto; overflow-x: hidden; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .lane-dialog label { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: var(--secondary); font-size: .8rem; font-weight: 600; margin: 18px 0 0; }
 .lane-dialog input, .lane-dialog select { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; height: 48px; margin: 0; padding: 10px 12px; color: var(--text); background: #141d2c; border: 1px solid var(--line-strong); border-radius: 12px; font: inherit; font-size: 16px; text-align: left; }
 .lane-dialog input:disabled, .lane-dialog select:disabled { opacity: 1; color: var(--secondary); -webkit-text-fill-color: var(--secondary); background: rgba(255,255,255,.035); }
