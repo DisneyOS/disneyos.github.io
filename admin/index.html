@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>DisneyOS Admin</title>
   <link rel="icon" href="../assets/favicon-32.png">
-  <link rel="stylesheet" href="admin.css?v=1.0.0">
+  <link rel="stylesheet" href="admin.css?v=1.1.0">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -47,7 +47,19 @@
         <article><span id="card-count">0</span><small>Active cards</small></article>
       </div>
 
-      <div id="message" class="message" hidden></div>
+      <details class="member-card create-panel"><summary>Create Member</summary>
+        <form id="create-member-form" class="member-form">
+          <label>First Name<input name="firstName" required maxlength="100" autocomplete="given-name"></label>
+          <label>Last Name<input name="lastName" required maxlength="100" autocomplete="family-name"></label>
+          <label>Enrollment Passphrase<input name="passphrase" type="password" required minlength="8" maxlength="200" autocomplete="new-password"></label>
+          <label>Email (optional)<input name="email" type="email" maxlength="254"></label>
+          <label>Disney Account Email (optional)<input name="disneyAccountEmail" type="email" maxlength="254"></label>
+          <p>A regular membership is created without a card. You can issue the card later.</p>
+          <button class="primary-button" type="submit">Create Member</button>
+        </form>
+      </details>
+      <label class="search-label">Find a member<input id="member-search" type="search" placeholder="Name, Member ID, or email"></label>
+      <div id="message" role="status" class="message" hidden></div>
       <section id="member-list" class="member-list" aria-live="polite"></section>
     </section>
   </main>
@@ -63,6 +75,7 @@
         <span class="member-status"></span>
       </header>
       <div class="member-actions">
+        <button class="secondary-button member-detail" type="button">Member details</button>
         <button class="secondary-button toggle-member" type="button"></button>
       </div>
       <div class="subsection cards-section">
@@ -76,6 +89,11 @@
     </article>
   </template>
 
-  <script src="admin.js?v=1.0.0"></script>
+  <dialog id="member-dialog" class="member-card">
+    <button id="close-detail" class="secondary-button" type="button">Close</button>
+    <div id="detail-content"></div>
+    <p id="detail-message" role="status"></p>
+  </dialog>
+  <script src="admin.js?v=1.1.0"></script>
 </body>
 </html>
