@@ -22,6 +22,22 @@
   const params = new URLSearchParams(window.location.search);
   const cardCode = params.get("card")?.trim() || "";
   const installedAppAuthorization = !cardCode;
+  let suspended = params.get("reason") === "member-suspended";
+  let suspensionTimer;
+  function showSuspended() {
+    suspended = true;
+    showState(activationState);
+    form.hidden = true;
+    document.getElementById("activation-title").textContent = "Contact your DisneyOS administrator";
+    document.getElementById("activation-intro").textContent = "Access is temporarily unavailable. This device remains connected. Access will resume when it is available again.";
+    clearTimeout(suspensionTimer);
+    suspensionTimer = setTimeout(recheckSuspension, 30000);
+  }
+  async function recheckSuspension() {
+    if (suspended) await verifyExistingMembership();
+  }
+  window.addEventListener("focus", recheckSuspension);
+  window.addEventListener("online", recheckSuspension);
 
   function showState(target) {
     [loadingState, activationState, successState].forEach((state) => {
@@ -94,13 +110,25 @@
         headers: { Accept: "application/json", Authorization: `Bearer ${token}` }
       });
 
+      const payload = await response.json().catch(() => null);
+      if (response.status === 403 && payload?.error?.code === "MEMBER_SUSPENDED") {
+        showSuspended();
+        return true;
+      }
       if (response.status === 401 || response.status === 403) {
         clearMembership();
+        if (suspended) { suspended = false; window.location.reload(); return true; }
         return false;
       }
 
-      const payload = await response.json();
-      if (!response.ok || !payload?.success) return false;
+      if (!response.ok || !payload?.success) { if (suspended) { showSuspended(); return true; } return false; }
+
+      if (suspended) {
+        suspended = false;
+        clearTimeout(suspensionTimer);
+        window.location.replace(new URL("../v1/", window.location.href).href);
+        return true;
+      }
 
       localStorage.setItem(PROFILE_KEY, JSON.stringify(payload.data));
       if (payload.data?.displayName) localStorage.setItem(DISPLAY_NAME_KEY, payload.data.displayName);
@@ -108,6 +136,7 @@
       return true;
     } catch (error) {
       console.warn("DisneyOS could not verify the stored membership.", error);
+      if (suspended) { showSuspended(); return true; }
       return false;
     }
   }

@@ -36,7 +36,7 @@
     }
 
     function requireActivation(reason = "installed-app") {
-      clearMembership();
+      if (reason !== "member-suspended") clearMembership();
       const destination = new URL("./authorize.html", window.location.href);
       destination.searchParams.set("reason", reason);
       window.location.replace(destination.href);
@@ -67,7 +67,8 @@
         });
 
         if (response.status === 401 || response.status === 403) {
-          requireActivation("device-revoked");
+          const denied = await response.json().catch(() => null);
+          requireActivation(response.status === 403 && denied?.error?.code === "MEMBER_SUSPENDED" ? "member-suspended" : "device-revoked");
           return;
         }
 
