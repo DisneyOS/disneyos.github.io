@@ -1,19 +1,21 @@
+import {todayPlans} from './home-model.mjs';
 import {parkNow,tripState,orderedTrips,selectedTrip,tripDates,multiDay,sortPlans,destinations,practicalRange,planState,defaultDay,suggestions,planTime} from './trip-model.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=d=>new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'));
 const timeLabel=t=>{if(!t)return '';const [h,m]=t.split(':');return `${+h%12||12}:${m} ${+h>=12?'PM':'AM'}`;};
 const safeUrl=v=>{try {const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}};
 const button=(action,label,extra='')=>`<button type="button" class="party-secondary-button" data-trip-action="${action}" ${extra}>${label}</button>`;
-export function createMyTrip({request,getToken,showPage,openParties,icon}) {
+export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeData=()=>{}}) {
   const root=document.getElementById('my-trip-content'), status=document.getElementById('trip-status-text');
   const dialog=document.getElementById('trip-editor');
+  let homeExpanded=null;
   let data=null, selected=null, expanded=null, pending=null, credential=null, target=null;
   const days=new Map();
-  function message(text){status.textContent=text;}
+  function message(text){status.textContent=text;const homeStatus=document.getElementById('home-trip-status');if(homeStatus)homeStatus.textContent=text;}
   function saveSession() {try {sessionStorage.setItem('disneyos-trip-session',JSON.stringify({selected,days:[...days].map(([k,v])=>[k,[...v]])}));}catch{}}
   try {const saved=JSON.parse(sessionStorage.getItem('disneyos-trip-session'));selected=saved?.selected;for(const [k,v] of saved?.days || [])days.set(k,new Set(v));}catch{}
   function current(){return data?.trips.find(t=>t.id===selected);}
-  function planCard(p) {
+  function planDetails(p) {
     const state=planState(p), practical=practicalRange(p), end=p.endTime;
     const published=[timeLabel(planTime(p)),timeLabel(end)].filter(Boolean).join('–');
     const details=[];
@@ -32,17 +34,25 @@ export function createMyTrip({request,getToken,showPage,openParties,icon}) {
     let conflicts='';
     if(p.conflicts?.length) conflicts=`<aside class="trip-conflict"><strong>Source information differs</strong><p>These reported versions have not been reconciled.</p>${p.conflicts.map(v=>`<p>${esc([v.title,v.date,timeLabel(planTime(v)),timeLabel(v.endTime),v.location,v.status].filter(Boolean).join(' · '))}</p>`).join('')}</aside>`;
     const link=(url,label)=>safeUrl(url)?`<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer">${label}</a>`:'';
-    return `<article class="trip-item ${['Past','Completed'].includes(state)?'is-past':''}"><button type="button" class="trip-item-toggle" data-trip-action="plan" data-id="${esc(p.id)}" aria-expanded="${expanded===p.id}"><span class="trip-plan-icon" aria-hidden="true">${icon(p.type)}</span><span class="trip-item-copy"><span class="trip-time">${esc(published || 'Date only')}${practical?` <span class="trip-practical">(${esc(timeLabel(practical.startTime))}–${esc(timeLabel(practical.endTime))})</span>`:''}</span><strong>${esc(p.title || 'Disney plan')}</strong><span>${esc(p.location || p.area || '')}</span>${p.manual?'<small>Manually Entered</small>':''}${state?`<small class="trip-state">${esc(state)}</small>`:''}${p.conflicts?.length?'<small>Source information differs</small>':''}</span><span aria-hidden="true">${expanded===p.id?'−':'+'}</span></button><div class="trip-item-details" ${expanded===p.id?'':'hidden'}><dl>${details.join('')}</dl>${conflicts}<div class="trip-actions">${link(p.detailsUrl,'View Details')}${link(p.directionsUrl,'Directions')}${p.phone?`<a href="tel:${esc(String(p.phone).replace(/[^+0-9]/g,''))}">Call</a>`:''}${p.manual?button('edit-plan','Edit',`data-id="${esc(p.id)}"`)+button('delete-plan','Delete',`data-id="${esc(p.id)}"`):''}</div></div></article>`;
+    return {state,practical,published,details:details.join(''),conflicts,link};
+  }
+  function planCard(p) {
+    const {state,practical,published,details,conflicts,link}=planDetails(p);
+    return `<article class="trip-item ${['Past','Completed'].includes(state)?'is-past':''}"><button type="button" class="trip-item-toggle" data-trip-action="plan" data-id="${esc(p.id)}" aria-expanded="${expanded===p.id}"><span class="trip-plan-icon" aria-hidden="true">${icon(p.type)}</span><span class="trip-item-copy"><span class="trip-time">${esc(published || 'Date only')}${practical?` <span class="trip-practical">(${esc(timeLabel(practical.startTime))}–${esc(timeLabel(practical.endTime))})</span>`:''}</span><strong>${esc(p.title || 'Disney plan')}</strong><span>${esc(p.location || p.area || '')}</span>${p.manual?'<small>Manually Entered</small>':''}${state?`<small class="trip-state">${esc(state)}</small>`:''}${p.conflicts?.length?'<small>Source information differs</small>':''}</span><span aria-hidden="true">${expanded===p.id?'−':'+'}</span></button><div class="trip-item-details" ${expanded===p.id?'':'hidden'}><dl>${details}</dl>${conflicts}<div class="trip-actions">${link(p.detailsUrl,'View Details')}${link(p.directionsUrl,'Directions')}${p.phone?`<a href="tel:${esc(String(p.phone).replace(/[^+0-9]/g,''))}">Call</a>`:''}${p.manual?button('edit-plan','Edit',`data-id="${esc(p.id)}"`)+button('delete-plan','Delete',`data-id="${esc(p.id)}"`):''}</div></div></article>`;
   }
   function renderHome() {
-    const home=document.getElementById('home-trip-plans');if(!home)return;
-    const now=parkNow(), seen=new Set(), cards=[];
-    for(const t of orderedTrips(data.trips,now.date).filter(t=>tripState(t,now.date)==='current'))for(const p of sortPlans(data.itineraries[t.id] || [])) {
-      if(p.date!==now.date || ['Past','Completed'].includes(planState(p,now)) || multiDay(p) || seen.has(p.id))continue;
-      seen.add(p.id);cards.push(`<button class="trip-home-link" type="button" data-trip-link="${esc(t.id)}" data-date="${esc(p.date)}" data-plan="${esc(p.id)}"><span>${icon(p.type)}</span><span><strong>${esc(p.title)}</strong><small>${esc(timeLabel(planTime(p)) || 'Today')} · ${esc(p.location || t.name)}</small></span><span>→</span></button>`);
-    }
-    home.innerHTML=cards.slice(0,3).join('') || '<p class="secondary-detail">No remaining saved Trip plans for today.</p>';
+    const home=document.getElementById('home-trip-plans');if(!home || !data)return;
+    const focused=home.contains(document.activeElement)?document.activeElement.closest('[data-home-plan]')?.dataset.homePlan:null;
+    home.innerHTML=todayPlans(data).map(p=>{
+      const {state,published,details,conflicts,link}=planDetails(p),open=homeExpanded===p.id;
+      return `<article class="home-plan ${['Past','Completed'].includes(state)?'is-past':''} ${state==='NOW'?'is-current':''}"><button class="home-plan-toggle" type="button" data-home-plan="${esc(p.id)}" aria-expanded="${open}" aria-label="${esc([p.title,published,p.location,state].filter(Boolean).join(' · '))}"><span aria-hidden="true">${icon(p.type)}</span><strong>${esc(p.title || 'Disney plan')}</strong><span class="home-plan-time">${esc(published || 'Today')}</span><span class="home-plan-location">${esc(p.location || p.park || '')}</span><span aria-hidden="true">${state==='Completed'?'✓':open?'−':'+'}</span></button><div class="trip-item-details" ${open?'':'hidden'}><strong>${esc(p.title || 'Disney plan')}</strong><p>${esc(published || 'Today')}${p.manual?' · Manually Entered':''}</p><dl>${details}</dl>${conflicts}<div class="trip-actions">${link(p.detailsUrl,'View Details')}${link(p.directionsUrl,'Directions')}</div></div></article>`;
+    }).join('') || '<p class="secondary-detail">No plans for today.</p>';
+    if(focused)[...home.querySelectorAll('[data-home-plan]')].find(b=>b.dataset.homePlan===focused)?.focus({preventScroll:true});
   }
+  document.getElementById('home-trip-plans')?.addEventListener('click',event=>{
+    const b=event.target.closest('[data-home-plan]');if(!b)return;
+    homeExpanded=homeExpanded===b.dataset.homePlan?null:b.dataset.homePlan;renderHome();
+  });
   function render() {
     if(!data)return;
     const today=parkNow().date,t=selectedTrip(data.trips,today,selected); selected=t?.id || null;
@@ -70,7 +80,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon}) {
   async function load() {
     const token=getToken();
     if(pending)return credential===token?pending:pending.then(()=>load());
-    if(credential!==token){data=null;expanded=null;credential=token;root.replaceChildren();document.getElementById('home-trip-plans')?.replaceChildren();}
+    if(credential!==token){data=null;expanded=null;credential=token;homeExpanded=null;root.replaceChildren();document.getElementById('home-trip-plans')?.replaceChildren();}
     pending=(async()=>{
       const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),b=>b.toString(16).padStart(2,'0')).join('');
       const key='disneyos-trip-cache-v2:'+hash;
@@ -87,7 +97,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon}) {
         message(`${error.message}${data?' · showing saved plans':''}`);
         if(!data)root.innerHTML='<p>Trips could not be loaded. Use Refresh to try again.</p>';
       }
-    })().finally(()=>{pending=null;});
+    })().finally(()=>{pending=null;onHomeData(data);if(!data)document.getElementById('home-trip-plans').innerHTML='<p class="secondary-detail">Today’s plans unavailable.</p>';});
     return pending;
   }
   function editor(title,fields,onSave) {

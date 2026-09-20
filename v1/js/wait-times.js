@@ -6,7 +6,8 @@
     "magic-kingdom": "Magic Kingdom",
     epcot: "EPCOT",
     "hollywood-studios": "Hollywood Studios",
-    "animal-kingdom": "Animal Kingdom"
+    "animal-kingdom": "Animal Kingdom",
+    "disney-springs": "Disney Springs"
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -22,6 +23,7 @@
   const errorMessage = document.getElementById("error-message");
 
   title.textContent = `${PARK_NAMES[park]} Wait Times`;
+  if(park==='disney-springs')select.add(new Option('Disney Springs','disney-springs'));
   select.value = park;
 
   function escapeHtml(value) {
@@ -70,6 +72,10 @@
   }
 
   async function load() {
+    if(park==='disney-springs') {
+      list.innerHTML='<article class="error-panel"><strong>Wait times are not available for Disney Springs.</strong><p>Choose a theme park to see attraction waits.</p></article>';
+      updated.textContent='Disney Springs';return;
+    }
     refresh.disabled = true;
     errorPanel.classList.add("hidden");
     updated.textContent = "Updating…";

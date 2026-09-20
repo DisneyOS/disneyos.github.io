@@ -112,7 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
     activePage: "disneyos-active-page",
     displayName: "disneyos-display-name",
     preferredPark: "disneyos-preferred-park",
-    todaysPark: "disneyos-todays-park",
     membershipProfile: "disneyos-member-profile",
     deviceToken: "disneyos-member-device-token",
     weatherCache: "disneyos-cache-weather-v1",
@@ -123,26 +122,19 @@ document.addEventListener("DOMContentLoaded", () => {
     "Magic Kingdom",
     "EPCOT",
     "Hollywood Studios",
-    "Animal Kingdom"
+    "Animal Kingdom",
+    "Disney Springs"
   ];
 
   const parkSlugs = {
     "Magic Kingdom": "magic-kingdom",
     EPCOT: "epcot",
     "Hollywood Studios": "hollywood-studios",
-    "Animal Kingdom": "animal-kingdom"
+    "Animal Kingdom": "animal-kingdom",
+    "Disney Springs": "disney-springs"
   };
 
-  const parkMaps = {
-    "Magic Kingdom":
-      "https://disneyworld.disney.go.com/destinations/map/",
-    EPCOT:
-      "https://disneyworld.disney.go.com/destinations/map/",
-    "Hollywood Studios":
-      "https://disneyworld.disney.go.com/destinations/map/",
-    "Animal Kingdom":
-      "https://disneyworld.disney.go.com/destinations/map/"
-  };
+  const parkMaps = Object.fromEntries(Object.entries(parkSlugs).map(([name,slug])=>[name,`https://disneyworld.disney.go.com/maps/${slug}/`]));
 
   const entertainmentMeta = {
     nighttime: {
@@ -170,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let loadSequence = 0;
   let magicExcludedNames = new Set();
   let lastMagicData = null;
+  let lastHomeParkDay = null, lastHomeWeather = null;
 
   let profile = {
     displayName:
@@ -179,9 +172,36 @@ document.addEventListener("DOMContentLoaded", () => {
         storageKeys.preferredPark,
         "Magic Kingdom"
       ),
-    todaysPark:
-      getStoredValue(storageKeys.todaysPark, "")
+    todaysPark: "Magic Kingdom"
   };
+
+  let homeDefaultResolved=false, homeManual=false;
+  // A tab-scoped bridge for navigation to sibling pages. Explicit reloads reset it.
+  try {
+    const navigation=performance.getEntriesByType('navigation')[0]?.type;
+    const saved=JSON.parse(sessionStorage.getItem('disneyos-home-session'));
+    const returning=navigation==='back_forward' || document.referrer && new URL(document.referrer).origin===location.origin;
+    if(navigation!=='reload' && returning && parkOptions.includes(saved?.park)) {
+      profile.todaysPark=saved.park;homeManual=Boolean(saved.manual);homeDefaultResolved=true;
+    } else sessionStorage.removeItem('disneyos-home-session');
+  } catch {}
+  function saveHomeSession() {try {sessionStorage.setItem('disneyos-home-session',JSON.stringify({park:getActivePark(),manual:homeManual}));}catch{}}
+  async function resolveHomeDefault(data) {
+    if(homeManual || homeDefaultResolved)return;
+    const {defaultHomePark}=await import('./home-model.mjs');
+    if(homeManual || homeDefaultResolved)return;
+    homeDefaultResolved=true;profile.todaysPark=defaultHomePark(data);saveHomeSession();renderProfile();
+  }
+  let weatherPending=null, weatherChecked=0;
+  function refreshHomeWeather() {
+    if(weatherPending || Date.now()-weatherChecked<300000)return weatherPending;
+    const cached=readCachedData(storageKeys.weatherCache);
+    if(cached?.data)renderWeather(cached.data);
+    weatherPending=fetchWeather().then(data=>{writeCachedData(storageKeys.weatherCache,data);renderWeather(data);weatherChecked=Date.now();})
+      .catch(()=>{if(!cached?.data)renderWeatherError();else setText('weather-summary-detail',document.getElementById('weather-summary-detail').textContent+' · Saved forecast');})
+      .finally(()=>{weatherPending=null;});
+    return weatherPending;
+  }
 
   function getStoredValue(key, fallbackValue) {
     try {
@@ -251,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getActivePark() {
     return parkOptions.includes(profile.todaysPark)
       ? profile.todaysPark
-      : profile.preferredPark;
+      : "Magic Kingdom";
   }
 
   function getActiveParkSlug() {
@@ -410,6 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setLoadingState(parkName) {
+    lastHomeParkDay=null;
+    renderSpecialHours([]);
+    document.getElementById('transportation-list').textContent='Checking routes for this park';
     setText("park-hours", "Checking…");
     setText("current-crowd", "Checking…");
     setText("park-status", "Checking…");
@@ -451,21 +474,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const requestId = ++loadSequence;
     const cachedParkDay = readCachedData(getParkDayCacheKey(slug));
-    const cachedWeather = readCachedData(storageKeys.weatherCache);
+
 
     if (cachedParkDay?.data) {
       renderParkDay(cachedParkDay.data);
     }
 
-    if (cachedWeather?.data) {
-      renderWeather(cachedWeather.data);
-    }
 
     if (!cachedParkDay?.data) {
       setLoadingState(parkName);
-      if (cachedWeather?.data) renderWeather(cachedWeather.data);
     }
 
+    refreshHomeWeather();
+    setText('home-park-status',cachedParkDay?.data?'Showing saved park information · checking updates…':'');
+    if(slug==='disney-springs') {
+      renderParkDayError(parkName);
+      setText('home-park-status','Park hours, crowds and schedules are not yet supported for Disney Springs.');
+      return;
+    }
     // Refresh each home-data source independently. A slow or failed weather
     // request must never block park hours, entertainment, or transportation.
     const parkDayRefresh = fetchParkDay(slug)
@@ -473,31 +499,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (requestId !== loadSequence) return;
         writeCachedData(getParkDayCacheKey(slug), data);
         renderParkDay(data);
+        setText('home-park-status','');
       })
       .catch((error) => {
         console.warn("DisneyOS park-day refresh failed:", error);
+        if(requestId===loadSequence && cachedParkDay?.data)setText('home-park-status','Showing saved park information · live update unavailable');
         if (requestId === loadSequence && !cachedParkDay?.data) {
           renderParkDayError(parkName);
         }
       });
 
-    const weatherRefresh = fetchWeather()
-      .then((data) => {
-        if (requestId !== loadSequence) return;
-        writeCachedData(storageKeys.weatherCache, data);
-        renderWeather(data);
-      })
-      .catch((error) => {
-        console.warn("DisneyOS weather refresh failed:", error);
-        if (requestId === loadSequence && !cachedWeather?.data) {
-          renderWeatherError();
-        }
-      });
-
-    // Do not make rendering wait on either source. These promises are kept
-    // alive only so errors are handled above.
     void parkDayRefresh;
-    void weatherRefresh;
+
   }
 
   async function fetchParkDay(slug) {
@@ -592,6 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderParkDay(data) {
+    lastHomeParkDay=data;
     const hours = data.hours || {};
     const park = data.park || {};
 
@@ -607,12 +621,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setText(
       "park-status",
-      park.status || "Scheduled"
+      park.status || "Unavailable"
     );
 
     renderSpecialHours(hours.entries || []);
     renderEntertainment(
-      data.entertainment || []
+      Array.isArray(data.entertainment) ? data.entertainment : null
     );
     renderTransportation(
       park.name || getActivePark(),
@@ -675,7 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
           selectorPanel
         );
       } else {
-        hero.appendChild(strip);
+        hero.insertBefore(strip, hero.querySelector('.home-info-grid'));
       }
     }
 
@@ -713,44 +727,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const groups = groupEntertainment(items);
-    const groupEntries = Object.entries(groups)
-      .filter(([, groupItems]) =>
-        groupItems.some(
-          (item) =>
-            getRemainingShowtimes(item)
-              .length > 0
-        )
-      )
-      .sort(
-        ([categoryA], [categoryB]) =>
-          entertainmentMeta[categoryA].order -
-          entertainmentMeta[categoryB].order
-      );
-
-    if (!groupEntries.length) {
-      container.innerHTML = `
-        <article class="schedule-empty-card">
-          <span class="schedule-card-icon">✨</span>
-          <div>
-            <strong>No remaining entertainment today</strong>
-            <p>All scheduled performances for this park have ended.</p>
-          </div>
-        </article>
-      `;
-      return;
-    }
-
-    container.innerHTML = groupEntries
-      .map(([category, groupItems]) =>
-        createEntertainmentCard(
-          category,
-          groupItems
-        )
-      )
-      .join("");
+    const expanded=[...container.querySelectorAll('.schedule-card')].map((card,i)=>card.querySelector('button')?.getAttribute('aria-expanded')==='true'?i:null).filter(i=>i!==null);
+    const groups=groupEntertainment(items || []);
+    container.innerHTML=Object.keys(entertainmentMeta).map(category=>items===null
+      ? `<article class="schedule-empty-card"><span class="schedule-card-icon">${entertainmentMeta[category].icon}</span><div><strong>${escapeHtml(entertainmentMeta[category].label)}</strong><p>${escapeHtml(entertainmentMeta[category].label)} information unavailable.</p></div></article>`
+      : createEntertainmentCard(category,groups[category] || [])).join('');
 
     attachExpandableCardHandlers(container);
+    for(const i of expanded)container.querySelectorAll('.schedule-card')[i]?.querySelector('button')?.click();
   }
 
   function groupEntertainment(items) {
@@ -820,7 +804,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <strong>
               ${escapeHtml(
                 nextItem?.name ||
-                  "No remaining events"
+                  `No more ${meta.label.toLowerCase()} today.`
               )}
             </strong>
 
@@ -886,6 +870,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return (item.showtimes || []).filter(
       (showtime) => {
+        if(!Number.isFinite(Date.parse(showtime.startTime)))return false;
+        if (new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date(showtime.startTime)) !== new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date())) return false;
         const start = new Date(
           showtime.startTime
         ).getTime();
@@ -905,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return end >= now;
         }
 
-        return start >= now - 5 * 60 * 1000;
+        return start >= now;
       }
     );
   }
@@ -958,11 +944,8 @@ document.addEventListener("DOMContentLoaded", () => {
       `${parkName} transportation`
     );
 
-    const detail =
-      options.length === 1
-        ? options[0].name
-        : `${options.length} transportation options`;
-
+    const modeIcon=name=>/monorail/i.test(name)?'🚝':/skyliner/i.test(name)?'🚡':/ferry|boat/i.test(name)?'⛴️':/walk/i.test(name)?'🚶':/bus/i.test(name)?'🚌':'🚏';
+    const detail=options.map(option=>`${modeIcon(option.name)} ${option.name}`).join(' · ');
     setText(
       "transportation-detail",
       options.length
@@ -984,7 +967,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .map(
             (option) => `
               <div class="transportation-row">
-                <span class="transportation-dot" aria-hidden="true"></span>
+                <span aria-hidden="true">${modeIcon(option.name)}</span>
                 <div>
                   <strong>${escapeHtml(
                     option.name
@@ -999,12 +982,14 @@ document.addEventListener("DOMContentLoaded", () => {
           .join("")
       : `
           <p class="schedule-empty-state">
-            Transportation information is not available right now.
+            Transportation information unavailable
           </p>
         `;
+    list.insertAdjacentHTML("beforeend", '<p class="home-planner-soon">Transportation Planner · Coming Soon</p>');
   }
 
   function renderParkDayError(parkName) {
+    lastHomeParkDay=null;
     setText(
       "park-hours",
       "Unavailable"
@@ -1017,63 +1002,24 @@ document.addEventListener("DOMContentLoaded", () => {
       "park-status",
       "Unavailable"
     );
-    setText(
-      "transportation-title",
-      `${parkName} transportation`
-    );
-    setText(
-      "transportation-detail",
-      "Unable to load transportation options"
-    );
-
-    const container =
-      document.getElementById(
-        "schedule-card-list"
-      );
-
-    if (container) {
-      container.innerHTML = `
-        <article class="schedule-empty-card error-state">
-          <span class="schedule-card-icon">⚠️</span>
-          <div>
-            <strong>Schedule temporarily unavailable</strong>
-            <p>DisneyOS could not reach the park-day feed. Pull down or refresh to try again.</p>
-          </div>
-        </article>
-      `;
-    }
+    renderSpecialHours([]);
+    renderTransportation(parkName,[]);
+    renderEntertainment(null);
   }
 
   function renderWeather(weather) {
+    lastHomeWeather=weather;
     const current =
       weather.current || {};
     const daily =
       weather.daily || {};
 
-    const temperature =
-      Math.round(
-        current.temperature_2m
-      );
-    const feelsLike =
-      Math.round(
-        current.apparent_temperature
-      );
-    const high =
-      Math.round(
-        daily.temperature_2m_max?.[0]
-      );
-    const low =
-      Math.round(
-        daily.temperature_2m_min?.[0]
-      );
-    const rain =
-      daily
-        .precipitation_probability_max?.[0] ??
-      0;
-    const wind =
-      Math.round(
-        current.wind_speed_10m || 0
-      );
+    const degrees=value=>value==null || !Number.isFinite(Number(value))?'—':Math.round(value);
+    const temperature=degrees(current.temperature_2m);
+    const todayKey=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date());
+    const dayIndex=(daily.time || []).indexOf(todayKey);
+    const high=degrees(daily.temperature_2m_max?.[dayIndex]);
+    const rain=daily.precipitation_probability_max?.[dayIndex];
     const icon =
       getWeatherIcon(
         current.weather_code
@@ -1101,7 +1047,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     setText(
       "weather-summary-detail",
-      `High ${high}° · ${rain}% chance of rain`
+      `High ${high}° · ${rain==null?'Rain chance unavailable':rain+'% chance of rain'}`
     );
 
     const grid =
@@ -1110,28 +1056,17 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
     if (grid) {
-      grid.innerHTML = `
-        ${weatherMetric(
-          "Feels like",
-          `${feelsLike}°`
-        )}
-        ${weatherMetric(
-          "Today’s high",
-          `${high}°`
-        )}
-        ${weatherMetric(
-          "Tonight’s low",
-          `${low}°`
-        )}
-        ${weatherMetric(
-          "Rain chance",
-          `${rain}%`
-        )}
-        ${weatherMetric(
-          "Wind",
-          `${wind} mph`
-        )}
-      `;
+      const nowParts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+      const today=`${nowParts.year}-${nowParts.month}-${nowParts.day}`,time=`${nowParts.hour}:${nowParts.minute}`;
+      const hourly=weather.hourly || {};
+      const rows=(hourly.time || []).flatMap((stamp,i)=>{
+        if(!stamp.startsWith(today) || stamp.slice(11,16)<time)return [];
+        const temp=hourly.temperature_2m?.[i],rain=hourly.precipitation_probability?.[i],code=hourly.weather_code?.[i];
+        const hour=Number(stamp.slice(11,13));
+        return [`<div class="home-hour ${rain>=50 || code>=95?'rain-risk':''}"><strong>${hour%12 || 12} ${hour>=12?'PM':'AM'}</strong><span>${temp==null?'—':Math.round(temp)+'°'} ${code==null?'':getWeatherIcon(code)}</span><span>${rain==null?'Rain unavailable':rain+'% rain'}</span></div>`];
+      });
+      grid.innerHTML=rows.join('') || '<p class="schedule-empty-state">Hourly forecast unavailable for the rest of today.</p>';
+
     }
   }
 
@@ -1145,6 +1080,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderWeatherError() {
+    lastHomeWeather=null;
     setText("hero-temperature", "--°");
     setText("hero-weather-icon", "🌦️");
     setText(
@@ -1153,7 +1089,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     setText(
       "weather-summary-title",
-      "Forecast unavailable"
+      "Weather unavailable"
     );
     setText(
       "weather-summary-detail",
@@ -1404,7 +1340,7 @@ document.addEventListener("DOMContentLoaded", () => {
         combinedData = {
           parkDay: parkDay || {
             park: {
-              name: getSelectedParkName?.() || "Selected park",
+              name: getActivePark(),
               status: "Live status unavailable"
             },
             hours: {},
@@ -1992,8 +1928,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let myTripModulePromise;
   function myTripModule() {
-    return myTripModulePromise ||= import('./my-trip.mjs?v=1').then(({createMyTrip}) => createMyTrip({
-      request: plannerRequest, getToken: getDeviceToken, showPage, openParties: openPartyManager, icon: getTripPlanIcon
+    return myTripModulePromise ||= import('./my-trip.mjs?v=2').then(({createMyTrip}) => createMyTrip({
+      request: plannerRequest, getToken: getDeviceToken, showPage, openParties: openPartyManager, icon: getTripPlanIcon, onHomeData: resolveHomeDefault
     }));
   }
   async function loadTripData() { return (await myTripModule()).load(); }
@@ -3287,10 +3223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profile.todaysPark =
         button.dataset.homePark;
 
-      saveStoredValue(
-        storageKeys.todaysPark,
-        profile.todaysPark
-      );
+      homeManual=true;homeDefaultResolved=true;lastMagicData=null;saveHomeSession();
 
       parkSelectorPanel.setAttribute(
         "hidden",
@@ -3379,6 +3312,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   attachExpandableCardHandlers();
+
+  window.setInterval(()=>{
+    if(document.hidden || !document.getElementById('home-page')?.classList.contains('active'))return;
+    if(lastHomeParkDay)renderEntertainment(Array.isArray(lastHomeParkDay.entertainment)?lastHomeParkDay.entertainment:null);
+    if(lastHomeWeather)renderWeather(lastHomeWeather);
+    refreshHomeWeather();
+  },60000);
 
   renderProfile();
 

@@ -106,6 +106,7 @@
 <link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
 <link href="css/styles.css?v=3.5.1" rel="stylesheet"/>
 <link href="css/my-trip.css?v=1" rel="stylesheet"/>
+<link href="css/home.css?v=1" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -215,6 +216,7 @@
 <button data-home-park="EPCOT" type="button">EPCOT</button>
 <button data-home-park="Hollywood Studios" type="button">Hollywood Studios</button>
 <button data-home-park="Animal Kingdom" type="button">Animal Kingdom</button>
+<button data-home-park="Disney Springs" type="button">Disney Springs</button>
 </div></div>
 </div>
 <div aria-label="Current weather" class="weather-summary">
@@ -237,19 +239,7 @@
 </div>
 </div>
 
-</section>
-
-
-
-
-
-<section class="section-block">
-<div class="section-heading">
-<div>
-<p class="eyebrow">At a glance</p>
-<h2>Park information</h2>
-</div>
-</div>
+<p id="home-park-status" class="home-source-status" aria-live="polite"></p>
 <div class="home-info-grid">
 <article class="home-info-card expandable-info-card" id="weather-card">
 <button aria-expanded="false" class="info-card-toggle" type="button">
@@ -280,7 +270,13 @@
 </div>
 </article>
 </div>
-</section><section class="section-block">
+</section>
+
+
+
+
+
+<section class="section-block">
 <div class="section-heading">
 <div>
 <p class="eyebrow">One tap</p>
@@ -309,32 +305,11 @@
 <div class="section-heading">
 <div>
 <p class="eyebrow">Your day</p>
-<h2>Trip planning</h2>
+<h2>Today’s plans</h2>
 </div>
 </div>
+<p id="home-trip-status" class="home-source-status" aria-live="polite"></p>
 <div id="home-trip-plans"><p class="secondary-detail">Checking today’s Trip plans…</p></div>
-</section><section class="section-block">
-<div class="section-heading">
-<div>
-<p class="eyebrow">DisneyOS intelligence</p>
-<h2>What to do next</h2>
-</div>
-</div>
-<button class="recommendation-card magic-recommendation-card" data-action="open-magic" type="button">
-<div class="recommendation-main">
-<div class="recommendation-icon" aria-hidden="true">🪔</div>
-<div>
-<div class="card-heading-row">
-<div>
-<p class="card-label">DisneyOS Genie</p>
-<h3>Ask Genie what to do next</h3>
-</div>
-<span class="feature-state-badge live">Live</span>
-</div>
-<p class="secondary-detail">One tap combines current waits, today’s entertainment, weather, and park hours into a recommendation.</p>
-</div>
-</div>
-</button>
 </section><section class="section-block">
 <div class="section-heading">
 <div>
@@ -673,7 +648,7 @@
 </nav>
 </div>
 <dialog id="trip-editor" aria-label="Trip editor"></dialog>
-<script src="js/app.js?v=3.6.0"></script>
+<script src="js/app.js?v=3.7.0"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">

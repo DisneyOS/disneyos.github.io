@@ -1,0 +1,24 @@
+/* Home keeps the existing one-column shell and card vocabulary. */
+.home-hero-card .home-info-grid { margin-top: 18px; grid-template-columns: minmax(0,1fr); gap: 8px; }
+.home-hero-card .home-info-card { display:block; min-height:0; background: rgba(255,255,255,.025); }
+.home-hero-card .info-card-toggle { padding: 12px; }
+.home-hero-card .info-card-copy { min-width: 0; }
+.home-hero-card .info-card-copy strong { font-size: .85rem; }
+.home-hero-card .info-card-copy small { white-space:normal; font-size:.75rem; }
+#home-page .schedule-card-copy strong { white-space:normal; }
+.home-plan-toggle { display:grid; grid-template-columns: 20px minmax(0,1fr) auto minmax(40px,.5fr) 14px; gap:6px; align-items:center; width:100%; min-height:48px; padding:10px 8px; border:0; background:transparent; color:inherit; text-align:left; font:inherit; font-size:.75rem; cursor:pointer; }
+.home-plan-toggle strong, .home-plan-location { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.home-plan-time { white-space:nowrap; font-size:.7rem; }
+.home-plan { border-bottom:1px solid var(--border,rgba(255,255,255,.12)); }
+.home-plan.is-past > button { color:var(--text-secondary,#a3abb9); }
+.home-plan.is-current > button { color:var(--accent,#a6ccff); }
+.home-plan .trip-item-details { padding:12px; }
+.home-plan .trip-item-details:not([hidden]) { animation:home-expand .18s ease-out; }
+.home-plan-toggle:focus-visible { outline:2px solid var(--accent,#a6ccff); outline-offset:-2px; border-radius:8px; }
+.weather-detail-grid { grid-template-columns: minmax(0,1fr); }
+.home-hour { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:.78rem; }
+.home-hour.rain-risk { color:#b8d9ff; }
+.home-source-status { margin:8px 0; color:var(--text-secondary); font-size:.72rem; }
+.home-planner-soon { margin-top:12px; font-size:.78rem; color:var(--text-secondary); }
+@keyframes home-expand { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) { .home-plan .trip-item-details:not([hidden]) { animation:none; } }

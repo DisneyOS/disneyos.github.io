@@ -1,4 +1,4 @@
-const CACHE_NAME = "disneyos-v3.6.0";
+const CACHE_NAME = "disneyos-v3.7.0";
 
 const SHELL = [
   "./",
@@ -16,10 +16,12 @@ const SHELL = [
   "./js/people-approval.js?v=3.2.0",
   "./css/theme.css?v=2.0.9",
   "./css/styles.css?v=3.5.1",
-  "./js/app.js?v=3.6.0",
+  "./js/app.js?v=3.7.0",
   "./css/my-trip.css?v=1",
-  "./js/my-trip.mjs?v=1",
+  "./js/my-trip.mjs?v=2",
   "./js/trip-model.mjs",
+  "./js/home-model.mjs",
+  "./css/home.css?v=1",
   "./js/wait-times.js",
   "./assets/disneyos-logo-transparent.png",
   "./assets/disneyos-mark.png",
