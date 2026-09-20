@@ -202,6 +202,30 @@
       for (const [label,value] of [['Member ID',member.member_number || member.id],['First Name',member.first_name],['Last Name',member.last_name],['Email',member.email],['Disney Account Email',member.disney_account_email],['Account Status',member.status]]) {
         element('dt',label,info); element('dd',value || 'Not recorded',info);
       }
+      const approvals = await api(`${base}/people-approvals`);
+      if (generation !== detailGeneration || !dialog.open) return;
+      if (approvals.requests.length) {
+        element('h3','Pending People Approvals',detailContent);
+        element('p','Deliver only to the intended recipient through a trusted channel. Each copy prepares a fresh 30-minute link and replaces earlier links.',detailContent);
+        for (const approval of approvals.requests) {
+          const row = element('div','',detailContent,'card-row');
+          const recipient = element('div','',row,'row-copy');
+          element('strong',[approval.firstName,approval.lastName].filter(Boolean).join(' '),recipient);
+          element('small',approval.email || 'Disney Account Email unavailable',recipient);
+          let prepared = null;
+          actionButton(row,'Copy Approval Link',async () => {
+            if (!navigator.clipboard?.writeText) throw new Error('Clipboard access is unavailable. Use a supported secure browser.');
+            if (!prepared || Date.parse(prepared.expiresAt) <= Date.now()) {
+              prepared = await post(`${base}/people-approvals/${encodeURIComponent(approval.id)}/link`);
+            }
+            if (generation !== detailGeneration || !dialog.open) { prepared = null; return; }
+            try { await navigator.clipboard.writeText(prepared.approvalUrl); }
+            catch { throw new Error('Clipboard access was blocked. Allow clipboard access and select Copy Approval Link again; the prepared link will be reused.'); }
+            prepared = null;
+            detailMessage.textContent = 'Approval link copied. Deliver it only to the intended recipient within 30 minutes.';
+          });
+        }
+      }
       element('h3','Enrollment',detailContent);
       const secret = element('p','',detailContent,'secret-result');
       if (!member.passphraseRetrievable) secret.textContent = 'The existing passphrase cannot be viewed until replaced.';
