@@ -955,7 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     const modeIcon=name=>/monorail/i.test(name)?'🚝':/skyliner/i.test(name)?'🚡':/ferry|boat/i.test(name)?'⛴️':/walk/i.test(name)?'🚶':/bus/i.test(name)?'🚌':'🚏';
-    const detail=options.map(option=>`${modeIcon(option.name)} ${option.name}`).join(' · ');
+    const detail=options.map(option=>modeIcon(option.name)).join(' · ');
     setText(
       "transportation-detail",
       options.length
