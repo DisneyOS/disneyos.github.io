@@ -1,4 +1,4 @@
-const CACHE_NAME = "disneyos-v3.7.2";
+const CACHE_NAME = "disneyos-v3.7.3";
 
 const SHELL = [
   "./",
@@ -33,7 +33,9 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL))
+      .then((cache) => cache.addAll(SHELL.map(path =>
+        new Request(new URL(path, self.location.href), { cache: "reload" })
+      )))
       .then(() => self.skipWaiting())
   );
 });
@@ -69,7 +71,7 @@ self.addEventListener("fetch", (event) => {
   // with the cached shell available as an offline fallback.
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: "no-store" })
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
