@@ -134,7 +134,11 @@ document.addEventListener("DOMContentLoaded", () => {
     "Disney Springs": "disney-springs"
   };
 
-  const parkMaps = Object.fromEntries(Object.entries(parkSlugs).map(([name,slug])=>[name,`https://disneyworld.disney.go.com/${slug}/maps/`]));
+  // Disney's filtered map routes redirect to destination pages on direct loads.
+  // Universal map links reliably focus the selected destination across devices.
+  const parkMaps = Object.fromEntries(Object.keys(parkSlugs).map(name=>[name,
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, Walt Disney World, Florida`)}`
+  ]));
 
   const entertainmentMeta = {
     nighttime: {
