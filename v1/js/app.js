@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     navButtons.forEach((button) => {
       const isActive =
-        button.dataset.target === targetPage;
+        button.dataset.target === (targetPage === "alerts" ? "shortcuts" : targetPage);
 
       button.classList.toggle("active", isActive);
 
@@ -3341,7 +3341,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (entryPage === 'trip' && tripLinkParams.has('trip') && tripLinkParams.has('plan')) {
     myTripModule().then(module => module.open({tripId:tripLinkParams.get('trip'),date:tripLinkParams.get('date'),planId:tripLinkParams.get('plan')}));
   }
-  const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'settings'].includes(entryPage);
+  const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'alerts', 'settings'].includes(entryPage);
   // Parks owns destination/date/category history and deep links.
   if (validEntryPage && entryPage !== 'parks') window.history.replaceState(null, '', window.location.pathname + window.location.hash);
   const savedPage = validEntryPage ? entryPage : getStoredValue(
@@ -3356,6 +3356,5 @@ document.addEventListener("DOMContentLoaded", () => {
       ? savedPage
       : "home"
   );
-});
-
   window.setTimeout(() => { refreshNotificationSummary(); }, 1800);
+});

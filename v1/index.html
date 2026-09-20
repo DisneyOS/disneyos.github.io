@@ -176,6 +176,8 @@
   .magic-question-hint{display:none}
 }
 </style>
+<link rel="stylesheet" href="css/alerts.css?v=1">
+<script type="module" src="js/alerts.mjs?v=1"></script>
 </head>
 <body>
 <div aria-hidden="true" class="ambient one"></div>
@@ -194,6 +196,7 @@
           </h1>
 </div>
 </div>
+<details id="alerts-activity"><summary>Activity</summary><div id="alerts-activity-list"><p>Loading activity…</p></div></details>
 <button aria-label="Open settings" class="profile-button" id="profile-button" type="button">
 <span id="profile-initial">
             D
@@ -277,6 +280,7 @@
 
 
 
+<aside id="home-alerts" aria-label="Important alerts" hidden></aside>
 <section class="section-block">
 <div class="section-heading">
 <div>
@@ -360,6 +364,7 @@
           </p>
 </div>
 <div class="shortcut-grid">
+<a class="shortcut-card shortcut-card-live" href="?view=alerts"><span class="shortcut-icon">🔔</span><strong>Alerts <span id="alerts-badge" hidden>0</span></strong></a>
 <button aria-label="Open Wait Times" class="shortcut-card shortcut-card-live" id="wait-times-shortcut" type="button">
 <span class="shortcut-icon">
               ⏱️
@@ -398,6 +403,11 @@
 </button>
 </div>
 </section>
+<section class="page" data-page="alerts" id="alerts-page">
+<div class="page-title-block"><p class="eyebrow">Shortcuts</p><h2>Alerts</h2><p>A little less waiting. A little more magic.</p></div>
+<div class="alert-actions"><button type="button" class="primary-button" data-alert-action="new">Create an Alert</button><button type="button" class="secondary-button" data-alert-action="ai">✨ Ask the AI assistant</button><button type="button" class="secondary-button" data-alert-action="refresh">Refresh</button></div>
+<p id="alerts-status" role="status"></p><div id="alerts-content"></div></section>
+<dialog id="alert-editor" aria-label="Alert configuration"></dialog>
 <!-- SETTINGS -->
 <section class="page" data-page="settings" id="settings-page">
 <div class="page-title-block">
@@ -547,7 +557,7 @@
 </nav>
 </div>
 <dialog id="trip-editor" aria-label="Trip editor"></dialog>
-<script src="js/app.js?v=3.8.1"></script>
+<script src="js/app.js?v=3.9.0"></script>
 <script type="module" src="js/parks.mjs?v=2"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>

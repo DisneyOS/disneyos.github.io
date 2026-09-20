@@ -1,8 +1,10 @@
-const CACHE_NAME = "disneyos-v3.8.1";
+const CACHE_NAME = "disneyos-v3.9.0";
 
 const SHELL = [
   "./",
   "./index.html",
+  "./js/alerts.mjs?v=1",
+  "./css/alerts.css?v=1",
   "./lightning-lanes.html",
   "./css/lightning-lanes.css?v=7d.2",
   "./js/lightning-lanes.mjs?v=7d.2",
@@ -16,7 +18,7 @@ const SHELL = [
   "./js/people-approval.js?v=3.2.0",
   "./css/theme.css?v=2.0.9",
   "./css/styles.css?v=3.5.1",
-  "./js/app.js?v=3.8.0",
+  "./js/app.js?v=3.9.0",
   "./css/my-trip.css?v=1",
   "./js/my-trip.mjs?v=2",
   "./js/trip-model.mjs",
