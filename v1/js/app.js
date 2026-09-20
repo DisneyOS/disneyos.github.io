@@ -3342,7 +3342,8 @@ document.addEventListener("DOMContentLoaded", () => {
     myTripModule().then(module => module.open({tripId:tripLinkParams.get('trip'),date:tripLinkParams.get('date'),planId:tripLinkParams.get('plan')}));
   }
   const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'settings'].includes(entryPage);
-  if (validEntryPage) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  // Parks owns destination/date/category history and deep links.
+  if (validEntryPage && entryPage !== 'parks') window.history.replaceState(null, '', window.location.pathname + window.location.hash);
   const savedPage = validEntryPage ? entryPage : getStoredValue(
     storageKeys.activePage,
     "home"

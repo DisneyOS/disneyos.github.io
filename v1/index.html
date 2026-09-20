@@ -107,6 +107,7 @@
 <link href="css/styles.css?v=3.5.1" rel="stylesheet"/>
 <link href="css/my-trip.css?v=1" rel="stylesheet"/>
 <link href="css/home.css?v=1" rel="stylesheet"/>
+<link href="css/parks.css?v=1" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -328,109 +329,7 @@
 </div>
 </section></section>
 <!-- PARKS -->
-<section class="page" data-page="parks" id="parks-page">
-<div class="page-title-block">
-<p class="eyebrow">
-            Explore
-          </p>
-<h2>
-            Parks
-          </h2>
-<p>
-            Live attraction wait times are available for all four Walt Disney World parks.
-          </p>
-</div>
-<div class="park-list">
-<article class="park-card">
-<div class="park-card-overlay">
-<div>
-<div class="park-card-heading">
-<div>
-<p class="card-label">
-                      Walt Disney World
-                    </p>
-<h3>
-                      Magic Kingdom
-                    </h3>
-</div>
-</div>
-<p class="secondary-detail">
-                  Current attraction wait times
-                </p>
-</div>
-<button class="park-live-button" data-wait-park="magic-kingdom" type="button">
-                View wait times
-              </button>
-</div>
-</article>
-<article class="park-card">
-<div class="park-card-overlay">
-<div>
-<div class="park-card-heading">
-<div>
-<p class="card-label">
-                      Walt Disney World
-                    </p>
-<h3>
-                      EPCOT
-                    </h3>
-</div>
-</div>
-<p class="secondary-detail">
-                  Current attraction wait times
-                </p>
-</div>
-<button class="park-live-button" data-wait-park="epcot" type="button">
-                View wait times
-              </button>
-</div>
-</article>
-<article class="park-card">
-<div class="park-card-overlay">
-<div>
-<div class="park-card-heading">
-<div>
-<p class="card-label">
-                      Walt Disney World
-                    </p>
-<h3>
-                      Hollywood Studios
-                    </h3>
-</div>
-</div>
-<p class="secondary-detail">
-                  Current attraction wait times
-                </p>
-</div>
-<button class="park-live-button" data-wait-park="hollywood-studios" type="button">
-                View wait times
-              </button>
-</div>
-</article>
-<article class="park-card">
-<div class="park-card-overlay">
-<div>
-<div class="park-card-heading">
-<div>
-<p class="card-label">
-                      Walt Disney World
-                    </p>
-<h3>
-                      Animal Kingdom
-                    </h3>
-</div>
-</div>
-<p class="secondary-detail">
-                  Current attraction wait times
-                </p>
-</div>
-<button class="park-live-button" data-wait-park="animal-kingdom" type="button">
-                View wait times
-              </button>
-</div>
-</article>
-</div>
-</section>
+<section class="page" data-page="parks" id="parks-page"><p>Loading Park Explorer…</p></section>
 <!-- MY TRIP -->
 <section class="page" data-page="trip" id="trip-page">
 <div class="page-title-block trip-title-block">
@@ -648,7 +547,8 @@
 </nav>
 </div>
 <dialog id="trip-editor" aria-label="Trip editor"></dialog>
-<script src="js/app.js?v=3.7.6"></script>
+<script src="js/app.js?v=3.8.0"></script>
+<script type="module" src="js/parks.mjs?v=2"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">

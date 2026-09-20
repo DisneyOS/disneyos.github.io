@@ -1,3 +1,4 @@
+import {freshness, today} from './parks-model.mjs';
 (() => {
   "use strict";
 
@@ -10,6 +11,8 @@
     "disney-springs": "Disney Springs"
   };
 
+  let sourceUpdated = null;
+  let refreshFailed = false;
   const params = new URLSearchParams(window.location.search);
   const requestedPark = params.get("park");
   const park = PARK_NAMES[requestedPark] ? requestedPark : "magic-kingdom";
@@ -42,16 +45,17 @@
       const name = item.name || item.attractionName || item.rideName || item.title || "Attraction";
       const rawWait = item.waitTime ?? item.wait_time ?? item.wait ?? item.minutes ?? item.waitMinutes;
       const wait = Number(rawWait);
-      const status = String(item.status || item.state || (item.isOpen === false ? "CLOSED" : "OPERATING")).toUpperCase();
+      const status = String(item.status || item.state || (item.isOpen === false ? "UNAVAILABLE" : "OPERATING")).toUpperCase();
       return {
+        id: item.id ?? name,
         name: String(name).trim(),
         land: String(item.land || item.area || item.landName || "").trim(),
-        wait: Number.isFinite(wait) ? wait : null,
+        wait: rawWait !== null && rawWait !== undefined && rawWait !== "" && Number.isFinite(wait) ? wait : null,
         status
       };
     }).filter(item => item.name).sort((a,b) => {
-      const aClosed = a.status.includes("CLOSED") || a.status.includes("DOWN") || a.wait === null;
-      const bClosed = b.status.includes("CLOSED") || b.status.includes("DOWN") || b.wait === null;
+      const aClosed = a.status.includes("CLOSED") || a.status.includes("DOWN") || a.status.includes("UNAVAILABLE") || a.wait === null;
+      const bClosed = b.status.includes("CLOSED") || b.status.includes("DOWN") || b.status.includes("UNAVAILABLE") || b.wait === null;
       if (aClosed !== bClosed) return aClosed ? 1 : -1;
       return a.name.localeCompare(b.name);
     });
@@ -63,11 +67,11 @@
       return;
     }
     list.innerHTML = rows.map(ride => {
-      const unavailable = ride.status.includes("CLOSED") || ride.status.includes("DOWN") || ride.status.includes("REFURB") || ride.wait === null;
+      const unavailable = ride.status.includes("CLOSED") || ride.status.includes("DOWN") || ride.status.includes("UNAVAILABLE") || ride.status.includes("REFURB") || ride.wait === null;
       const waitMarkup = unavailable
-        ? '<span class="closed-label">Unavailable</span>'
+        ? `<span class="closed-label">${ride.status.includes('CLOSED') || ride.status.includes('REFURB') ? 'Closed' : 'Unavailable'}</span>`
         : `<span class="wait-number">${ride.wait}</span><span class="wait-unit">minutes</span>`;
-      return `<article class="ride-card"><div><h2 class="ride-name">${escapeHtml(ride.name)}</h2>${ride.land ? `<p class="ride-land">${escapeHtml(ride.land)}</p>` : ""}</div><div class="wait-display">${waitMarkup}</div></article>`;
+      return `<article class="ride-card"><div><h2 class="ride-name"><a style="color:inherit" href="index.html?view=parks&amp;destination=${encodeURIComponent(park)}&amp;parksDate=${today()}&amp;area=rides&amp;item=${encodeURIComponent(ride.id)}">${escapeHtml(ride.name)}</a></h2>${ride.land ? `<p class="ride-land">${escapeHtml(ride.land)}</p>` : ""}</div><div class="wait-display">${waitMarkup}</div></article>`;
     }).join("");
   }
 
@@ -88,11 +92,14 @@
       const payload = await response.json();
       if (!payload?.success || !payload?.data) throw new Error("The live feed returned no data.");
       render(normalize(payload.data));
-      updated.textContent = `Updated ${new Intl.DateTimeFormat(undefined,{hour:"numeric",minute:"2-digit"}).format(new Date())}`;
+      sourceUpdated = payload.data.updated;
+      refreshFailed = false;
+      updated.textContent = freshness(sourceUpdated);
     } catch (error) {
       errorMessage.textContent = error?.message || "Check your connection and try again.";
       errorPanel.classList.remove("hidden");
-      updated.textContent = "Update failed";
+      refreshFailed = true;
+      updated.textContent = sourceUpdated ? freshness(sourceUpdated,true) : "Update failed";
     } finally {
       refresh.disabled = false;
     }
@@ -100,4 +107,5 @@
 
   refresh.addEventListener("click", load);
   load();
+  setInterval(() => { if(sourceUpdated)updated.textContent=freshness(sourceUpdated,refreshFailed); },60000);
 })();
