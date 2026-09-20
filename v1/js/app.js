@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Disney Springs": "disney-springs"
   };
 
-  const parkMaps = Object.fromEntries(Object.entries(parkSlugs).map(([name,slug])=>[name,`https://disneyworld.disney.go.com/maps/${slug}/`]));
+  const parkMaps = Object.fromEntries(Object.entries(parkSlugs).map(([name,slug])=>[name,`https://disneyworld.disney.go.com/${slug}/maps/`]));
 
   const entertainmentMeta = {
     nighttime: {
@@ -811,9 +811,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <small>
               ${
                 nextTime
-                  ? `Next at ${escapeHtml(
+                  ? (String(nextItem.remaining[0].type || '').toLowerCase()==='operating' && new Date(nextTime).getTime()<Date.now()
+                    ? `Available now${nextItem.remaining[0].endTime?' until '+escapeHtml(formatTime(nextItem.remaining[0].endTime)):''}`
+                    : `Next at ${escapeHtml(
                       formatTime(nextTime)
-                    )}`
+                    )}`)
                   : "No remaining times"
               }
             </small>
