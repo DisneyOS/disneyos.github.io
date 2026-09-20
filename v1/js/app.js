@@ -3251,9 +3251,13 @@ document.addEventListener("DOMContentLoaded", () => {
   parkMapButton?.addEventListener(
     "click",
     () => {
-      const mapUrl =
-        parkMaps[getActivePark()] ||
-        parkMaps["Magic Kingdom"];
+      const park = getActivePark();
+      // These location paths are emitted by Disney's mobile Attractions UI
+      // and retain their filter on direct loads without query/hash state.
+      const mobile = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)").matches;
+      const mapUrl = mobile
+        ? `https://disneyworld.disney.go.com/attractions/${parkSlugs[park] ? `${parkSlugs[park]}/` : ""}`
+        : (parkMaps[park] || parkMaps["Magic Kingdom"]);
 
       window.location.href = mapUrl;
     }
