@@ -279,6 +279,14 @@
         element('strong',device.device_name || 'Unknown Device',copy);
         const dates = element('small',`${device.device_type || 'Unknown Device'} · Authorized ${friendlyDate(device.created_at)} · Last used ${friendlyDate(device.last_seen_at)}`,copy);
         dates.title = `Authorized: ${device.created_at} UTC; Last used: ${device.last_seen_at} UTC`;
+        const pushPath='/admin/devices/'+encodeURIComponent(device.id)+'/push';
+        const pushState=element('small','Notification diagnostics not loaded',copy);
+        actionButton(row,'Notifications',async()=>{
+          const response=await fetch(API_BASE+pushPath,{headers:headers()});const result=await response.json();if(!response.ok||!result.success)throw Error(result.error?.message||'Diagnostics unavailable');
+          const p=result.data;pushState.textContent=`Notifications: ${p.state} · Permission: ${p.permission} · Last provider acceptance: ${friendlyDate(p.last_success)}${p.last_error?' · '+p.last_error:''}`;
+        });
+        actionButton(row,'Send Test',async()=>{const result=await post(pushPath+'/test');detailMessage.textContent=result.deliveries?.map(d=>d.state+(d.error?' ('+d.error+')':'')).join(', ')||'No eligible delivery. Check device and account preferences.';});
+        actionButton(row,'Reset Push',async()=>{await post(pushPath+'/reset');pushState.textContent='Push reset. This device can re-enable notifications in Settings.';});
         actionButton(row,'Revoke',async () => {
           if (!confirm('Revoke this device? It must enroll again to regain access.')) return;
           await post(`/admin/devices/${encodeURIComponent(device.id)}/revoke`); await refresh();

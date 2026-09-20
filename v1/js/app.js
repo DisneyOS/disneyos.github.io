@@ -1938,7 +1938,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let myTripModulePromise;
   function myTripModule() {
-    return myTripModulePromise ||= import('./my-trip.mjs?v=2').then(({createMyTrip}) => createMyTrip({
+    return myTripModulePromise ||= import('./my-trip.mjs?v=3').then(({createMyTrip}) => createMyTrip({
       request: plannerRequest, getToken: getDeviceToken, showPage, openParties: openPartyManager, icon: getTripPlanIcon, onHomeData: resolveHomeDefault
     }));
   }
@@ -3343,7 +3343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'alerts', 'settings'].includes(entryPage);
   // Parks owns destination/date/category history and deep links.
-  if (validEntryPage && entryPage !== 'parks') window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  if (validEntryPage && entryPage !== 'parks' && !['watch','plan','notifications'].some(key=>tripLinkParams.has(key))) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
   const savedPage = validEntryPage ? entryPage : getStoredValue(
     storageKeys.activePage,
     "home"

@@ -8,7 +8,7 @@ const button=(action,label,extra='')=>`<button type="button" class="party-second
 export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeData=()=>{}}) {
   const root=document.getElementById('my-trip-content'), status=document.getElementById('trip-status-text');
   const dialog=document.getElementById('trip-editor');
-  let homeExpanded=null;
+  let homeExpanded=null,lastLoadSucceeded=false;
   let data=null, selected=null, expanded=null, pending=null, credential=null, target=null;
   const days=new Map();
   function message(text){status.textContent=text;const homeStatus=document.getElementById('home-trip-status');if(homeStatus)homeStatus.textContent=text;}
@@ -78,6 +78,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
     if(focus) [...root.querySelectorAll('[data-trip-action]')].find(b=>b.dataset.tripAction===focus.action && b.dataset.id===focus.id && b.dataset.date===focus.date)?.focus({preventScroll:true});
   }
   async function load() {
+    lastLoadSucceeded=false;
     const token=getToken();
     if(pending)return credential===token?pending:pending.then(()=>load());
     if(credential!==token){data=null;expanded=null;credential=token;homeExpanded=null;root.replaceChildren();document.getElementById('home-trip-plans')?.replaceChildren();}
@@ -89,7 +90,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
         message(data?'Showing saved plans · checking for updates…':'Loading Trips…');
         const result=await request('/trips');
         if(token!==getToken())return;
-        data=result;try{localStorage.setItem(key,JSON.stringify(data));}catch{}
+        data=result;lastLoadSucceeded=true;try{localStorage.setItem(key,JSON.stringify(data));}catch{}
         render();message(result.cache.status==='fresh'?`Plans checked ${new Date(result.cache.updatedAt).toLocaleString()} · last-known plans retained`:`${result.cache.status==='unavailable'?'Source unavailable':'Checking source updates'} · showing last-known plans${result.cache.updatedAt?' from '+new Date(result.cache.updatedAt).toLocaleString():''}`);
       }catch(error){
         if(token!==getToken())return;
@@ -132,7 +133,15 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
     }catch(error){message(error.message);}
   });
   document.addEventListener('click',event=>{const link=event.target.closest('[data-trip-link]');if(link)open({tripId:link.dataset.tripLink,date:link.dataset.date,planId:link.dataset.plan});});
-  async function open(link){selected=link.tripId;target=link;showPage('trip');await load();if(data)render();root.querySelector(`[data-trip-action="plan"][data-id="${CSS.escape(link.planId)}"]`)?.scrollIntoView({block:'center'});}
+  async function open(link){
+    selected=link.tripId;target=link;showPage('trip');await load();if(data)render();
+    const plan=data?.itineraries[link.tripId]?.find(p=>p.id===link.planId);
+    if(lastLoadSucceeded&&!plan)message('This plan is no longer in this Trip. Your current plans are shown below.');
+    if(plan&&new URL(location.href).searchParams.get('workflow')==='lightning-lane'){
+      const a=document.createElement('a');a.href='./lightning-lanes.html?from='+encodeURIComponent(location.pathname+location.search);a.textContent='Open Lightning Lane';a.className='party-secondary-button';root.prepend(a);
+    }
+    if(link.planId)root.querySelector(`[data-trip-action="plan"][data-id="${CSS.escape(link.planId)}"]`)?.scrollIntoView({block:'center'});
+  }
   document.addEventListener('disneyos:page',event=>{if(event.detail!=='trip'){expanded=null;if(data)render();}});
   window.setInterval(()=>{
     if(!data || dialog.open)return;

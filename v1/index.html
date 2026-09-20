@@ -177,7 +177,9 @@
 }
 </style>
 <link rel="stylesheet" href="css/alerts.css?v=1">
-<script type="module" src="js/alerts.mjs?v=1"></script>
+<script type="module" src="js/alerts.mjs?v=2"></script>
+<link rel="stylesheet" href="css/notifications.css?v=1">
+<script type="module" src="js/notifications.mjs?v=1"></script>
 </head>
 <body>
 <div aria-hidden="true" class="ambient one"></div>
@@ -516,13 +518,7 @@
 </span>
 <span class="feature-state-badge coming-soon">Coming Soon</span>
 </button>
-<button class="settings-row settings-row-coming-soon" disabled="" type="button">
-<span>
-<strong>Notifications</strong>
-<small>Alert preferences</small>
-</span>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</button>
+<button class="settings-row" id="notification-settings-button" type="button"><span><strong>Notifications</strong><small id="notification-setting-state">Device and account preferences</small></span><span aria-hidden="true">›</span></button>
 <div class="settings-row static-row">
 <span>
 <strong>DisneyOS version</strong>
@@ -557,7 +553,7 @@
 </nav>
 </div>
 <dialog id="trip-editor" aria-label="Trip editor"></dialog>
-<script src="js/app.js?v=3.9.0"></script>
+<script src="js/app.js?v=3.10.0"></script>
 <script type="module" src="js/parks.mjs?v=2"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
@@ -731,5 +727,6 @@
       window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }));
     }
   </script>
+<dialog id="notifications-dialog" aria-label="Notification preferences"></dialog>
 </body>
 </html>

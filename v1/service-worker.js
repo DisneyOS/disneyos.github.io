@@ -1,9 +1,11 @@
-const CACHE_NAME = "disneyos-v3.9.0";
+const CACHE_NAME = "disneyos-v3.10.0";
 
 const SHELL = [
+  "./js/notifications.mjs?v=1",
+  "./css/notifications.css?v=1",
   "./",
   "./index.html",
-  "./js/alerts.mjs?v=1",
+  "./js/alerts.mjs?v=2",
   "./css/alerts.css?v=1",
   "./lightning-lanes.html",
   "./css/lightning-lanes.css?v=7d.2",
@@ -18,9 +20,9 @@ const SHELL = [
   "./js/people-approval.js?v=3.2.0",
   "./css/theme.css?v=2.0.9",
   "./css/styles.css?v=3.5.1",
-  "./js/app.js?v=3.9.0",
+  "./js/app.js?v=3.10.0",
   "./css/my-trip.css?v=1",
-  "./js/my-trip.mjs?v=2",
+  "./js/my-trip.mjs?v=3",
   "./js/trip-model.mjs",
   "./js/home-model.mjs",
   "./css/home.css?v=1",
@@ -43,6 +45,38 @@ self.addEventListener("install", (event) => {
       )))
       .then(() => self.skipWaiting())
   );
+});
+
+function notificationURL(value) {
+  try {
+    const url=new URL(value,self.location.origin);
+    if(url.origin===self.location.origin && url.pathname==='/v1/' && ['alerts','trip','settings'].includes(url.searchParams.get('view')))return url.href;
+  }catch{}
+  return new URL('/v1/',self.location.origin).href;
+}
+self.addEventListener('push',event=>{
+  event.waitUntil((async()=>{
+    let payload={};try{payload=event.data?.json()||{};}catch{}
+    if(!payload||typeof payload!=='object')payload={};
+    await self.registration.showNotification(typeof payload.title==='string'?payload.title.slice(0,140):'DisneyOS',{
+      body:typeof payload.body==='string'?payload.body.slice(0,220):'Open DisneyOS to see the latest update.',
+      icon:'/v1/assets/manifest-icon-192.png',tag:typeof payload.tag==='string'?payload.tag:undefined,
+      data:{url:notificationURL(payload.url)},actions:[{action:'view',title:payload.actionRequired?'Review in DisneyOS':'View in DisneyOS'}]
+    });
+    if(Number.isInteger(payload.badge)&&payload.badge>=0&&'setAppBadge' in self.navigator){
+      try{if(payload.badge)await self.navigator.setAppBadge(payload.badge);else await self.navigator.clearAppBadge();}catch{}
+    }
+  })());
+});
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  event.waitUntil((async()=>{
+    const url=notificationURL(event.notification.data?.url);
+    const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    const client=clients.find(c=>{const u=new URL(c.url);return u.origin===self.location.origin&&u.pathname.startsWith('/v1/');});
+    if(client){try{const navigated=await client.navigate(url);if(navigated){await navigated.focus();return;}}catch{}}
+    await self.clients.openWindow(url);
+  })());
 });
 
 self.addEventListener("activate", (event) => {
