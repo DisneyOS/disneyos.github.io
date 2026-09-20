@@ -134,11 +134,15 @@ document.addEventListener("DOMContentLoaded", () => {
     "Disney Springs": "disney-springs"
   };
 
-  // Disney's filtered map routes redirect to destination pages on direct loads.
-  // Universal map links reliably focus the selected destination across devices.
-  const parkMaps = Object.fromEntries(Object.keys(parkSlugs).map(name=>[name,
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, Walt Disney World, Florida`)}`
-  ]));
+  // Theme-park pages host Disney's interactive finder map; their Map control
+  // scrolls to it. Disney does not expose a reliable cold-load map fragment.
+  const parkMaps = {
+    "Magic Kingdom": "https://disneyworld.disney.go.com/destinations/magic-kingdom/",
+    EPCOT: "https://disneyworld.disney.go.com/destinations/epcot/",
+    "Hollywood Studios": "https://disneyworld.disney.go.com/destinations/hollywood-studios/",
+    "Animal Kingdom": "https://disneyworld.disney.go.com/destinations/animal-kingdom/",
+    "Disney Springs": "https://www.disneysprings.com/disney-springs-map/"
+  };
 
   const entertainmentMeta = {
     nighttime: {
@@ -3249,7 +3253,7 @@ document.addEventListener("DOMContentLoaded", () => {
     () => {
       const mapUrl =
         parkMaps[getActivePark()] ||
-        "https://disneyworld.disney.go.com/destinations/map/";
+        parkMaps["Magic Kingdom"];
 
       window.location.href = mapUrl;
     }
