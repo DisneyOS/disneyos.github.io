@@ -116,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
     membershipProfile: "disneyos-member-profile",
     deviceToken: "disneyos-member-device-token",
     weatherCache: "disneyos-cache-weather-v1",
-    tripCache: "disneyos-cache-trip-v1",
     parkDayCachePrefix: "disneyos-cache-park-day-v1:"
   };
 
@@ -169,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   let loadSequence = 0;
-  let tripLoadPromise = null;
   let magicExcludedNames = new Set();
   let lastMagicData = null;
 
@@ -310,9 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
       targetPage
     );
 
-    if (targetPage === "trip") {
-      loadTripData();
-    }
+    document.dispatchEvent(new CustomEvent("disneyos:page", {detail: targetPage}));
+    if (targetPage === "trip" || targetPage === "home") loadTripData().catch(() => {});
   }
 
   function getTimeBasedGreeting() {
@@ -1975,43 +1972,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function formatTripDate(value, options = {}) {
-    if (!value) {
-      return "Date unavailable";
-    }
-
-    const date = new Date(`${value}T12:00:00`);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: options.weekday ?? "short",
-      month: "short",
-      day: "numeric",
-      year: options.year ? "numeric" : undefined
-    }).format(date);
-  }
-
-  function formatTripTime(value) {
-    if (!value) {
-      return null;
-    }
-
-    const [hourValue, minuteValue = "00"] = value.split(":");
-    const hour = Number.parseInt(hourValue, 10);
-
-    if (!Number.isFinite(hour)) {
-      return value;
-    }
-
-    const suffix = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 || 12;
-
-    return `${displayHour}:${minuteValue} ${suffix}`;
-  }
-
   function getTripPlanIcon(type) {
     const icons = {
       dining: "🍽️",
@@ -2020,315 +1980,23 @@ document.addEventListener("DOMContentLoaded", () => {
       lightning_lane: "⚡",
       resort: "🏨",
       park_reservation: "🏰",
-      activity: "✨"
+      activity: "✨",
+      entertainment: "🎭",
+      experience: "✨",
+      park_entry: "🏰",
+      transportation: "🚌"
     };
 
     return icons[type] || "📅";
   }
 
-  function setTripStatus(message, state = "online") {
-    const strip = document.getElementById("trip-status-strip");
-    const text = document.getElementById("trip-status-text");
-
-    if (text) {
-      text.textContent = message;
-    }
-
-    if (strip) {
-      strip.dataset.state = state;
-    }
+  let myTripModulePromise;
+  function myTripModule() {
+    return myTripModulePromise ||= import('./my-trip.mjs?v=1').then(({createMyTrip}) => createMyTrip({
+      request: plannerRequest, getToken: getDeviceToken, showPage, openParties: openPartyManager, icon: getTripPlanIcon
+    }));
   }
-
-  async function fetchTripPlans() {
-    const token = getDeviceToken();
-    if (!token) {
-      throw new Error("DisneyOS membership credential is unavailable.");
-    }
-
-    const response = await fetch(
-      `${PLANNER_API_BASE}/planner/plans`,
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-
-    const payload = await response.json();
-
-    if (!response.ok || payload.status !== "online" || !payload.data) {
-      throw new Error(
-        payload?.error?.message ||
-        "Disney Planner did not return live plans."
-      );
-    }
-
-    return payload.data;
-  }
-
-  function renderTripSummary(data) {
-    const summaryCard = document.getElementById("trip-summary-card");
-    const subtitle = document.getElementById("trip-page-subtitle");
-    const me = data.guests?.find((guest) => guest.me);
-    const firstDay = data.days?.[0] ?? null;
-    const firstDining = data.days
-      ?.flatMap((day) => day.plans || [])
-      .find((plan) => plan.type === "dining");
-
-    const accountName =
-      me?.name || data.account?.displayName || "Disney Guest";
-
-    if (subtitle) {
-      subtitle.textContent = firstDay
-        ? `Connected plans for ${accountName}.`
-        : `Disney Planner is connected for ${accountName}.`;
-    }
-
-    if (!summaryCard) {
-      return;
-    }
-
-    summaryCard.innerHTML = `
-      <div class="trip-summary-top">
-        <div>
-          <p class="card-label">Next Disney day</p>
-          <h3>${escapeHtml(
-            firstDay ? formatTripDate(firstDay.date, { weekday: "long", year: true }) : "No upcoming date"
-          )}</h3>
-          <p class="secondary-detail">${escapeHtml(
-            firstDining?.location ||
-            (data.summary?.planCount
-              ? `${data.summary.planCount} upcoming plan${data.summary.planCount === 1 ? "" : "s"}`
-              : "Your connected itinerary is ready")
-          )}</p>
-        </div>
-        <span class="feature-state-badge live">Live</span>
-      </div>
-      <div class="trip-summary-metrics">
-        <div>
-          <span>Plans</span>
-          <strong>${Number(data.summary?.planCount || 0)}</strong>
-        </div>
-        <div>
-          <span>Dining</span>
-          <strong>${Number(
-            data.days?.flatMap((day) => day.plans || [])
-              .filter((plan) => plan.type === "dining").length || 0
-          )}</strong>
-        </div>
-        <div>
-          <span>Tickets</span>
-          <strong>${Number(data.summary?.ticketCount || 0)}</strong>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderUpcomingPlans(data) {
-    const section = document.getElementById("upcoming-plans-section");
-    const list = document.getElementById("trip-plan-list");
-    const days = Array.isArray(data.days) ? data.days : [];
-
-    if (!section || !list) {
-      return;
-    }
-
-    const planCards = days.flatMap((day) =>
-      (day.plans || []).map((plan) => ({
-        ...plan,
-        date: plan.date || day.date
-      }))
-    );
-
-    if (planCards.length === 0) {
-      section.hidden = true;
-      return;
-    }
-
-    section.hidden = false;
-    list.innerHTML = planCards.map((plan) => {
-      const time = formatTripTime(
-        plan.time || plan.startTime || plan.opens
-      );
-      const detail = [
-        time,
-        plan.location,
-        plan.area
-      ].filter(Boolean).join(" · ");
-
-      return `
-        <article class="trip-plan-card">
-          <div class="trip-plan-date">
-            <span>${escapeHtml(formatTripDate(plan.date, { weekday: "short" }).split(",")[0])}</span>
-            <strong>${escapeHtml(new Date(`${plan.date}T12:00:00`).getDate())}</strong>
-          </div>
-          <div class="trip-plan-icon" aria-hidden="true">${getTripPlanIcon(plan.type)}</div>
-          <div class="trip-plan-copy">
-            <p class="card-label">${escapeHtml(plan.type.replaceAll("_", " "))}</p>
-            <h3>${escapeHtml(plan.title || "Disney plan")}</h3>
-            <p>${escapeHtml(detail || formatTripDate(plan.date, { weekday: "long" }))}</p>
-          </div>
-        </article>
-      `;
-    }).join("");
-  }
-
-  function renderDiningReservations(data) {
-    const section = document.getElementById("dining-reservations-section");
-    const list = document.getElementById("dining-card-list");
-
-    if (!section || !list) {
-      return;
-    }
-
-    const dining = (data.days || []).flatMap((day) =>
-      (day.plans || [])
-        .filter((plan) => plan.type === "dining")
-        .map((plan) => ({ ...plan, date: plan.date || day.date }))
-    );
-
-    if (dining.length === 0) {
-      section.hidden = true;
-      return;
-    }
-
-    section.hidden = false;
-    list.innerHTML = dining.map((plan) => `
-      <article class="dining-reservation-card">
-        ${plan.image ? `<img src="${escapeHtml(plan.image)}" alt="" loading="lazy"/>` : ""}
-        <div class="dining-reservation-body">
-          <div class="card-heading-row">
-            <div>
-              <p class="card-label">${escapeHtml(formatTripDate(plan.date, { weekday: "long" }))}</p>
-              <h3>${escapeHtml(plan.title || plan.facility || "Dining reservation")}</h3>
-            </div>
-            <span class="feature-state-badge live">Live</span>
-          </div>
-          <p class="dining-reservation-meta">${escapeHtml([
-            formatTripTime(plan.time),
-            plan.partySize ? `Party of ${plan.partySize}` : null,
-            plan.location
-          ].filter(Boolean).join(" · "))}</p>
-          <p class="secondary-detail">${escapeHtml([
-            plan.facility,
-            plan.area
-          ].filter(Boolean).join(" · "))}</p>
-          <div class="dining-reservation-actions">
-            ${plan.detailsUrl ? `<a href="${escapeHtml(plan.detailsUrl.replace(/^http:/, "https:"))}" target="_blank" rel="noopener">View details</a>` : ""}
-            ${plan.phone ? `<a href="tel:${escapeHtml(plan.phone.replace(/[^0-9+]/g, ""))}">${escapeHtml(plan.phone)}</a>` : ""}
-          </div>
-        </div>
-      </article>
-    `).join("");
-  }
-
-  function renderTripError(error) {
-    const summaryCard = document.getElementById("trip-summary-card");
-    const upcoming = document.getElementById("upcoming-plans-section");
-    const dining = document.getElementById("dining-reservations-section");
-
-    setTripStatus("Disney Planner is temporarily unavailable", "error");
-
-    if (upcoming) upcoming.hidden = true;
-    if (dining) dining.hidden = true;
-
-    if (summaryCard) {
-      summaryCard.innerHTML = `
-        <div class="trip-error-state">
-          <span aria-hidden="true">⚠️</span>
-          <div>
-            <strong>Unable to load My Trip</strong>
-            <p>${escapeHtml(error?.message || "Please try again in a moment.")}</p>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  async function loadTripData(force = false) {
-    if (tripLoadPromise && !force) {
-      return tripLoadPromise;
-    }
-
-    const summaryCard = document.getElementById("trip-summary-card");
-    const emptySection = document.getElementById("trip-empty-section");
-    const cachedTrip = readCachedData(storageKeys.tripCache);
-
-    if (cachedTrip?.data && !force) {
-      renderTripSummary(cachedTrip.data);
-      renderUpcomingPlans(cachedTrip.data);
-      renderDiningReservations(cachedTrip.data);
-
-      if (emptySection) {
-        emptySection.hidden =
-          Number(cachedTrip.data.summary?.planCount || 0) > 0;
-      }
-
-      const age = formatCacheAge(cachedTrip.savedAt);
-      setTripStatus(
-        age
-          ? `Showing saved plans from ${age} · checking for updates…`
-          : "Showing saved plans · checking for updates…",
-        "online"
-      );
-    } else {
-      if (summaryCard) {
-        summaryCard.innerHTML = `
-          <div class="trip-loading-state">
-            <div class="loading-spinner" aria-hidden="true"></div>
-            <div>
-              <strong>Loading your trip</strong>
-              <p>Checking upcoming plans, dining reservations, and tickets.</p>
-            </div>
-          </div>
-        `;
-      }
-      if (emptySection) emptySection.hidden = true;
-      setTripStatus("Connecting to Disney Planner…", "loading");
-    }
-
-    tripLoadPromise = fetchTripPlans()
-      .then((data) => {
-        writeCachedData(storageKeys.tripCache, data);
-        renderTripSummary(data);
-        renderUpcomingPlans(data);
-        renderDiningReservations(data);
-
-        if (emptySection) {
-          emptySection.hidden = Number(data.summary?.planCount || 0) > 0;
-        }
-
-        setTripStatus(
-          `Plans updated ${new Intl.DateTimeFormat("en-US", {
-            hour: "numeric",
-            minute: "2-digit"
-          }).format(new Date())}`,
-          "online"
-        );
-        return data;
-      })
-      .catch((error) => {
-        console.warn("DisneyOS could not refresh My Trip.", error);
-        if (cachedTrip?.data) {
-          const age = formatCacheAge(cachedTrip.savedAt);
-          setTripStatus(
-            age
-              ? `Refresh failed · showing saved plans from ${age}`
-              : "Refresh failed · showing saved plans",
-            "error"
-          );
-          return cachedTrip.data;
-        }
-        renderTripError(error);
-        throw error;
-      })
-      .finally(() => {
-        tripLoadPromise = null;
-      });
-
-    return tripLoadPromise;
-  }
+  async function loadTripData() { return (await myTripModule()).load(); }
 
   function getDeviceToken() {
     try {
@@ -2361,9 +2029,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!response.ok || !payload?.success) {
-      throw new Error(
+      const error = new Error(
         payload?.error?.message || `DisneyOS returned ${response.status}.`
       );
+      error.status = response.status;
+      error.code = payload?.error?.code;
+      throw error;
     }
 
     return payload.data;
@@ -3220,7 +2891,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function renderSavedParties(parties = [], defaultPartyId = null) {
+  function renderSavedParties(parties = [], defaultPartyId = null, membership = {}) {
     if (!partySavedList) return;
     if (!parties.length) {
       partySavedList.innerHTML = `
@@ -3244,10 +2915,22 @@ document.addEventListener("DOMContentLoaded", () => {
             <small>${escapeHtml(names.length ? names.join(", ") : "Saved party")}</small>
           </div>
           ${isDefault ? "" : `<button class="party-secondary-button" type="button" data-party-default="${escapeHtml(party.id)}">Use Party</button>`}
+          <button class="party-secondary-button" type="button" data-party-edit="${escapeHtml(party.id)}">Edit</button>
+          ${party.createdByMemberId === membership.memberId ? `<button class="party-secondary-button" type="button" data-party-delete="${escapeHtml(party.id)}">Delete</button>` : ""}
         </article>
       `;
     }).join("");
 
+    partySavedList.querySelectorAll('[data-party-edit]').forEach(button => button.addEventListener('click', async () => {
+      (await myTripModule()).editParty(parties.find(p => p.id === button.dataset.partyEdit), membership, loadPartyManager);
+    }));
+    partySavedList.querySelectorAll('[data-party-delete]').forEach(button => button.addEventListener('click', async () => {
+      const party = parties.find(p => p.id === button.dataset.partyDelete);
+      if (party.tripReferences?.length) { setPartyMessage('Change or delete linked Trips before deleting this Saved Party.', 'error'); return; }
+      if (!confirm('Delete this Saved Party?')) return;
+      try { await plannerRequest('/parties/' + encodeURIComponent(party.id), {method:'DELETE'}); await loadPartyManager(); await loadTripData(); }
+      catch (error) {setPartyMessage(error.message, 'error');}
+    }));
     partySavedList.querySelectorAll("[data-party-default]").forEach((button) => {
       button.addEventListener("click", async () => {
         button.disabled = true;
@@ -3289,7 +2972,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderPartyIdentity(membership);
       await loadPeopleV3();
       renderAccessibleProfiles(membership);
-      renderSavedParties(partyData?.parties || [], membership.defaultPartyId);
+      renderSavedParties(partyData?.parties || [], membership.defaultPartyId, membership);
       await loadCurrentLinkSession();
     } catch (error) {
       setPartyMessage(error.message, "error");
@@ -3699,7 +3382,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderProfile();
 
-  const entryPage = new URLSearchParams(window.location.search).get('view');
+  const tripLinkParams = new URLSearchParams(window.location.search);
+  const entryPage = tripLinkParams.get('view');
+  if (entryPage === 'trip' && tripLinkParams.has('trip') && tripLinkParams.has('plan')) {
+    myTripModule().then(module => module.open({tripId:tripLinkParams.get('trip'),date:tripLinkParams.get('date'),planId:tripLinkParams.get('plan')}));
+  }
   const validEntryPage = ['home', 'parks', 'trip', 'shortcuts', 'settings'].includes(entryPage);
   if (validEntryPage) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
   const savedPage = validEntryPage ? entryPage : getStoredValue(

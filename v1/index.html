@@ -105,6 +105,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="css/theme.css?v=2.0.9" rel="stylesheet"/>
 <link href="css/styles.css?v=3.5.1" rel="stylesheet"/>
+<link href="css/my-trip.css?v=1" rel="stylesheet"/>
 <link href="assets/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="assets/favicon-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -311,19 +312,7 @@
 <h2>Trip planning</h2>
 </div>
 </div>
-<article class="info-card coming-soon-surface">
-<div class="card-icon">📅</div>
-<div class="card-content">
-<div class="card-heading-row">
-<div>
-<p class="card-label">Your Disney Day</p>
-<h3>Plans, reservations, and reminders</h3>
-</div>
-<span class="feature-state-badge coming-soon">Coming Soon</span>
-</div>
-<p class="secondary-detail">A complete daily timeline built around your park plans, dining, and Lightning Lane reservations.</p>
-</div>
-</article>
+<div id="home-trip-plans"><p class="secondary-detail">Checking today’s Trip plans…</p></div>
 </section><section class="section-block">
 <div class="section-heading">
 <div>
@@ -473,7 +462,7 @@
 <div>
 <p class="eyebrow">Your vacation</p>
 <h2>My Trip</h2>
-<p id="trip-page-subtitle">Loading your connected Disney plans.</p>
+<p id="trip-page-subtitle">Your Saved Party, every date, every plan.</p>
 </div>
 <button class="trip-refresh-button" id="trip-refresh-button" type="button" aria-label="Refresh My Trip">↻</button>
 </div>
@@ -481,41 +470,7 @@
 <span class="trip-status-dot"></span>
 <span id="trip-status-text">Connecting to Disney Planner…</span>
 </div>
-<section class="trip-summary-card" id="trip-summary-card">
-<div class="trip-loading-state">
-<div class="loading-spinner" aria-hidden="true"></div>
-<div>
-<strong>Loading your trip</strong>
-<p>Checking upcoming plans, dining reservations, and tickets.</p>
-</div>
-</div>
-</section>
-<section class="section-block trip-section" id="upcoming-plans-section" hidden>
-<div class="section-heading">
-<div>
-<p class="eyebrow">Your itinerary</p>
-<h2>Upcoming plans</h2>
-</div>
-</div>
-<div class="trip-plan-list" id="trip-plan-list"></div>
-</section>
-<section class="section-block trip-section" id="dining-reservations-section" hidden>
-<div class="section-heading">
-<div>
-<p class="eyebrow">Reservations</p>
-<h2>Dining</h2>
-</div>
-</div>
-<div class="dining-card-list" id="dining-card-list"></div>
-</section>
-<section class="section-block trip-section" id="trip-empty-section" hidden>
-<article class="schedule-empty-card">
-<div>
-<strong>No upcoming plans found</strong>
-<p>New Disney reservations will appear here after they are linked to the connected account.</p>
-</div>
-</article>
-</section>
+<div id="my-trip-content" aria-live="polite"></div>
 </section>
 <!-- SHORTCUTS -->
 <section class="page" data-page="shortcuts" id="shortcuts-page">
@@ -717,7 +672,8 @@
 </button>
 </nav>
 </div>
-<script src="js/app.js?v=3.5.0"></script>
+<dialog id="trip-editor" aria-label="Trip editor"></dialog>
+<script src="js/app.js?v=3.6.0"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
