@@ -2549,7 +2549,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (person.pendingStatus === "waiting_in_app") return `Waiting for ${person.firstName || "approval"}`;
     if (person.pendingStatus === "waiting_disney") return "Waiting for Disney connection";
     if (person.pendingStatus === "waiting_email_otp") {
-      return person.emailApprovalSent ? "Approval email sent" : "Email approval required";
+      return person.emailOtpSent ? "Approval email sent" : "Email approval required";
     }
     if (person.pendingStatus === "disney_step_required") return "Disney step required";
     return "Pending approval";
@@ -2659,7 +2659,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="people-pending-actions">
             ${person.approvalMethod === "email_otp"
-              ? `<button class="party-secondary-button" data-people-send-email="${escapeHtml(person.requestId || "")}" type="button">${person.emailApprovalSent ? "Resend Approval Email" : "Send Approval Email"}</button>`
+              ? `<button class="party-secondary-button" data-people-send-email="${escapeHtml(person.requestId || "")}" type="button">${person.emailOtpSent ? "Resend Approval Email" : "Send Approval Email"}</button>`
               : ""}
             <button class="party-text-button" data-people-cancel="${escapeHtml(person.requestId || "")}" type="button">Cancel Request</button>
           </div>
