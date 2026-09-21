@@ -19,6 +19,7 @@ const serviceReferences=[['Restrooms','restrooms'],['First Aid','first-aid'],['B
   ['Charging / Portable Phone Chargers','portable-phone-chargers']];
 const services=serviceReferences.map(([name,slug])=>({id:slug,name,description:'Walt Disney World reference. Check Disney’s directory for locations and availability.',url:`https://disneyworld.disney.go.com/guest-services/${slug}/`}));
 const anchor=(url,text)=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(text)} ↗</a>`;
+const mapAnchor=url=>`<a class="map-tile" href="${esc(url)}" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">🗺️</span><span>Map ↗</span></a>`;
 const key=(p=park,d=date)=>`${p}:${d}`;
 function current(p=park){return records.get(key(p)) || storage.get('disneyos-parks-data:'+key(p));}
 function route(read=false,replace=false) {
@@ -125,7 +126,7 @@ function renderContent(){
   }
   if(!area){
     const types=park==='disney-springs'?['dining','transportation','services']:['rides','entertainment','dining','transportation','services'];
-    content.innerHTML=`<div class="parks-grid">${anchor(mapUrl(park,matchMedia('(max-width:767px), (hover:none) and (pointer:coarse)').matches),'🗺️ Map')}${types.map(type=>`<button data-area="${type}"><span aria-hidden="true">${icons[type]}</span>${labels[type]}</button>`).join('')}</div>`;return;
+    content.innerHTML=`<div class="parks-grid">${mapAnchor(mapUrl(park,matchMedia('(max-width:767px), (hover:none) and (pointer:coarse)').matches))}${types.map(type=>`<button data-area="${type}"><span aria-hidden="true">${icons[type]}</span>${labels[type]}</button>`).join('')}</div>`;return;
   }
   let list=items(park,area);if(area==='rides')list=date===today()?sortRides(list):[...list].sort((a,b)=>a.name.localeCompare(b.name));
   else list=[...list].sort((a,b)=>a.name.localeCompare(b.name));
