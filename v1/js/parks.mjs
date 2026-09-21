@@ -24,7 +24,8 @@ function current(p=park){return records.get(key(p)) || storage.get('disneyos-par
 function route(read=false,replace=false) {
   const url=new URL(location.href);
   if(read){
-    if(url.searchParams.has('destination')) park=DESTINATIONS[url.searchParams.get('destination')]?url.searchParams.get('destination'):'';
+    const requestedPark=url.searchParams.get('destination');
+    if(DESTINATIONS[requestedPark])park=requestedPark;
     date=validDate(url.searchParams.get('parksDate'))?url.searchParams.get('parksDate'):date;
     area=labels[url.searchParams.get('area')]?url.searchParams.get('area'):'';
     itemKey=url.searchParams.get('item') || '';
@@ -32,8 +33,6 @@ function route(read=false,replace=false) {
   } else {
     url.searchParams.set('view','parks');
     for(const [name,value] of Object.entries({destination:park,parksDate:date,area,item:itemKey}))value?url.searchParams.set(name,value):url.searchParams.delete(name);
-    // An empty destination explicitly represents the selector when using browser Back.
-    if(!park)url.searchParams.set('destination','');
     history[replace?'replaceState':'pushState']({},'',url);
   }
   storage.set('disneyos-parks-context',{park,date});
