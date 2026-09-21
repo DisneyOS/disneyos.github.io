@@ -7,7 +7,9 @@ const icons={rides:'⏱️',entertainment:'🎭',dining:'🍽️',transportation
 const notes={unsupported:'Not available yet',unavailable:'Information unavailable', 'not-published':'Not published yet'};
 const storage={get(key){try{return JSON.parse(sessionStorage.getItem(key));}catch{return null;}},set(key,value){try{sessionStorage.setItem(key,JSON.stringify(value));}catch{}}};
 let context=storage.get('disneyos-parks-context') || {}, area='', itemKey='', query='', scope='park', diningFilter='', detailReturn=null;
-let park=DESTINATIONS[context.park]?context.park:'', date=validDate(context.date)?context.date:today();
+// Parks is an explorer, not a chooser: first entry starts at Magic Kingdom and
+// later entries retain the destination already explored in this browser session.
+let park=DESTINATIONS[context.park]?context.park:'magic-kingdom', date=validDate(context.date)?context.date:today();
 const records=new Map(), pending=new Map(), detailRecords=new Map(), detailPending=new Set();
 document.addEventListener('disneyos:genie-context',e=>{if(e.detail.screen==='parks')Object.assign(e.detail,{park,date,itemId:itemKey});});
 // Official directory reference links. These are resort-wide references, not an invented facility inventory.
@@ -72,17 +74,23 @@ function navigate(next={}){
   ({park,date,area,itemKey}={park,date,area,itemKey,...next});query='';diningFilter='';route();render();void load();
 }
 function render(){
-  if(!park){
-    root.innerHTML=`<div class="page-title-block"><p class="eyebrow">Explore</p><h2>Parks</h2><p>Choose a destination. Explore today or plan ahead.</p></div><div class="park-list">${Object.entries(DESTINATIONS).map(([id,name])=>`<article class="park-card"><div class="park-card-overlay"><h3>${esc(name)}</h3><button class="park-live-button" data-destination="${id}">Explore ${esc(name)}</button></div></article>`).join('')}</div>`;
-    return;
-  }
-  root.innerHTML=`<div class="parks-explorer"><div class="parks-context"><button data-back aria-label="${itemKey?'Back to '+(labels[area] || 'Search'):area?'Back to Explorer':'Back to destinations'}">‹ Back</button><label class="parks-destination"><span class="parks-sr">Destination</span><select id="parks-destination">${Object.entries(DESTINATIONS).map(([id,name])=>`<option value="${id}" ${id===park?'selected':''}>${esc(name)}</option>`).join('')}</select></label><label class="parks-date"><span>▦ ${date===today()?'Today · ':''}${new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'))}</span><input id="parks-date" type="date" aria-label="Explore date" min="${today()}" value="${date}"></label></div><div id="parks-hours" class="parks-hours" aria-live="polite"></div><div id="parks-snapshot"></div><div class="parks-search"><input id="parks-query" type="search" placeholder="Search this destination" aria-label="Search Parks" value="${esc(query)}"><select id="parks-scope" aria-label="Search scope"><option value="park">This destination</option><option value="all" ${scope==='all'?'selected':''}>All Walt Disney World</option></select></div><div id="parks-content" aria-live="polite"></div><p class="parks-source">Waits: Queue-Times · Schedules: ThemeParks.wiki · Dining: Disney<br>Times shown in Walt Disney World local time.</p></div>`;
+  root.innerHTML=`<div class="parks-explorer"><div class="parks-context">${area||itemKey?`<button data-back aria-label="${itemKey?'Back to '+(labels[area] || 'Search'):'Back to Explorer'}">‹ Back</button>`:''}<label class="parks-destination"><span class="parks-sr">Destination</span><select id="parks-destination">${Object.entries(DESTINATIONS).map(([id,name])=>`<option value="${id}" ${id===park?'selected':''}>${esc(name)}</option>`).join('')}</select></label><label class="parks-date"><span>▦ ${date===today()?'Today · ':''}${new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'))}</span><input id="parks-date" type="date" aria-label="Explore date" min="${today()}" value="${date}"></label></div><div id="parks-hours" class="parks-hours" aria-live="polite"></div><div id="parks-snapshot"></div><div class="parks-search"><input id="parks-query" type="search" placeholder="Search this destination" aria-label="Search Parks" value="${esc(query)}"><select id="parks-scope" aria-label="Search scope"><option value="park">This destination</option><option value="all" ${scope==='all'?'selected':''}>All Walt Disney World</option></select></div><div id="parks-content" aria-live="polite"></div><p class="parks-source">Wait times: Queue-Times · Schedules: ThemeParks.wiki · Dining: Disney<br>Times shown in Walt Disney World local time.</p></div>`;
   renderContent();
 }
 function dataNote(part,empty='No entries available.'){return part?.failed?'Saved information · refresh unavailable':notes[part?.state] || (!part?.items?.length?empty:'');}
 function rideLabel(ride,part){return `${rideStatus(ride,date!==today())}${date===today()?' · '+freshness(ride.lastUpdated || part?.updated,part?.failed):''}`;}
+function lightningLabel(ride){return ride.lightningLane==='MULTI_PASS'?'Lightning Lane Multi Pass':ride.lightningLane==='SINGLE_PASS'?'Lightning Lane Single Pass':'';}
+function waitDisplay(ride,part){
+  const status=rideStatus(ride,date!==today());
+  const minutes=/^(\d+) min$/.exec(status);
+  return minutes?`<span class="parks-wait-number">${minutes[1]}</span><span class="parks-wait-unit">minutes</span>`:`<span class="parks-wait-status ${status==='Closed'?'is-closed':''}">${esc(status)}</span>`;
+}
 function row(item,type,p=park){
-  const detail=[DESTINATIONS[p],item.land,type==='rides'?rideLabel(item,current(p)?.rides):type==='entertainment'?scheduleText(item,date):type==='transportation'?'Static reference':type==='dining'?[diningHours(item,date),diningIndicators(item)].filter(Boolean).join(' · '):item.description].filter(Boolean).join(' · ');
+  if(type==='rides'){
+    const part=current(p)?.rides, lane=lightningLabel(item), freshnessText=date===today()?freshness(item.lastUpdated || part?.updated,part?.failed):'Reference information';
+    return `<button class="parks-row parks-wait-row" data-item="${esc(item.id || item.name)}" data-type="${type}" data-park="${p}"><span class="parks-wait-copy"><strong>${esc(item.name)}</strong><small>${lane?`<span class="parks-lane">${esc(lane)}</span> · `:''}${esc(freshnessText)}</small></span><span class="parks-wait-display">${waitDisplay(item,part)}</span></button>`;
+  }
+  const detail=[DESTINATIONS[p],item.land,type==='rides'?rideLabel(item,current(p)?.rides):type==='entertainment'?scheduleText(item,date):type==='transportation'?'Reference information':type==='dining'?[diningHours(item,date),diningIndicators(item)].filter(Boolean).join(' · '):item.description].filter(Boolean).join(' · ');
   return `<button class="parks-row" data-item="${esc(item.id || item.name)}" data-type="${type}" data-park="${p}"><span><strong>${esc(item.name)}</strong><small>${esc(detail)}</small></span><span aria-hidden="true">›</span></button>`;
 }
 function items(p,type){return type==='services'?services:current(p)?.[type]?.items || [];}
@@ -124,7 +132,7 @@ function renderContent(){
   else list=[...list].sort((a,b)=>a.name.localeCompare(b.name));
   content.innerHTML=`<div class="parks-section-title"><h3>${labels[area]}</h3><button data-refresh ${pending.has(key())?'disabled':''}>Refresh</button></div>`;
   if(!data && area!=='services'){content.innerHTML+='<p>Loading…</p>';return;}
-  if(area==='rides' && date!==today())content.innerHTML+='<p class="parks-note">Predictive wait data not yet available. These are static ride references.</p>';
+  if(area==='rides' && date!==today())content.innerHTML+='<p class="parks-note">Predictive wait data is not available yet. Browse reference information for each attraction.</p>';
   const note=dataNote(data?.[area]);if(note && area!=='services')content.innerHTML+=`<p class="parks-note">${esc(note)}</p>`;
   if(area==='dining'){
     content.innerHTML+=`<div class="parks-shortcuts">${['','Quick Service','Table Service','Snacks / Other','Mobile Order'].map(x=>`<button data-dining="${x}" aria-pressed="${diningFilter===x}">${x || 'All'}</button>`).join('')}</div><p>${data?.dining?.enrichmentState==='available'?'Alphabetical restaurants · Disney reference information.':list.length?'Alphabetical restaurant references. Some dining metadata is unavailable.':'Dining directory not available yet.'} Browse Disney’s official directory for details.</p>${anchor('https://disneyworld.disney.go.com/dining/','Official dining directory')}`;
@@ -159,7 +167,7 @@ async function loadDiningDetail(item){
 function renderDetail(content){
   const item=items(park,area).find(x=>String(x.id || x.name)===itemKey);
   if(!item){content.innerHTML=`<p>${pending.has(key())?'Loading detail…':'Item information unavailable.'}</p>`;return;}
-  let html=`<article class="parks-detail"><p class="eyebrow">${labels[area]}</p><h3>${esc(item.name)}</h3>${item.land?`<p>${esc(item.land)}</p>`:''}`;
+  let html=`<article class="parks-detail"><p class="eyebrow">${labels[area]}</p><h3>${esc(item.name)}</h3>${item.land?`<p>Location: ${esc(item.land)}</p>`:''}`;
   const part=current()?.[area];
   if(area==='rides')html+=`<p>${esc(rideLabel(item,part))}</p>${date!==today()?'<p>Predictive wait data not yet available.</p>':''}`;
   if(area==='entertainment'){
@@ -192,7 +200,7 @@ root.addEventListener('click',event=>{
   const b=event.target.closest('button');if(!b)return;
   if(b.hasAttribute('data-destination'))navigate({park:b.dataset.destination,area:'',itemKey:''});
   else if(b.hasAttribute('data-area'))navigate({area:b.dataset.area,itemKey:''});
-  else if(b.hasAttribute('data-back')){if(itemKey && detailReturn){({park,area,query,scope}=detailReturn);itemKey='';detailReturn=null;route();render();}else if(itemKey)navigate({itemKey:''});else if(area)navigate({area:''});else navigate({park:'',area:''});}
+  else if(b.hasAttribute('data-back')){if(itemKey && detailReturn){({park,area,query,scope}=detailReturn);itemKey='';detailReturn=null;route();render();}else if(itemKey)navigate({itemKey:''});else if(area)navigate({area:''});}
   else if(b.hasAttribute('data-item')){detailReturn={park,area,query,scope};navigate({park:b.dataset.park,area:b.dataset.type,itemKey:b.dataset.item});}
   else if(b.hasAttribute('data-refresh')){void load(park,true);renderContent();}
   else if(b.hasAttribute('data-dining')){diningFilter=b.dataset.dining;renderContent();}

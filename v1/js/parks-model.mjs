@@ -8,7 +8,7 @@ export function validDate(value) {
 }
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function rideStatus(ride, future=false) {
-  if (future) return 'Static reference';
+  if (future) return 'Reference information';
   const status = String(ride.status || '').toUpperCase();
   if (/CLOSED|REFURB/.test(status)) return 'Closed';
   // Queue-Times is_open=false alone does not distinguish closure from downtime.
