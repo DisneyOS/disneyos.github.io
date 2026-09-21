@@ -295,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showPage(targetPage) {
+    if(targetPage==='genie'){document.dispatchEvent(new CustomEvent('disneyos:open-genie'));return;}
     const requestedPage = document.querySelector(
       `[data-page="${targetPage}"]`
     );
@@ -1937,8 +1938,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let myTripModulePromise;
+  let genieTripContext=null;
+  document.addEventListener('disneyos:genie-context',event=>{
+    const c=event.detail;
+    if(c.screen==='home'){
+      c.park=getActiveParkSlug();
+      if(genieTripContext){const t=genieTripContext.context();Object.assign(c,{tripId:t.tripId,tripName:t.tripName,partySize:t.partySize});}
+    }
+    if(c.screen==='trip'&&genieTripContext)Object.assign(c,genieTripContext.context());
+  });
+  document.addEventListener('disneyos:genie-navigate',event=>{
+    const d=event.detail;showPage(d.view);
+    if(d.view==='trip'&&(d.tripId||d.date))myTripModule().then(m=>{const tripId=d.tripId||m.context().tripId;if(tripId)m.open({tripId,date:d.date,planId:d.planId});});
+  });
+  document.addEventListener('disneyos:genie-saved',()=>loadTripData().catch(()=>{}));
   function myTripModule() {
-    return myTripModulePromise ||= import('./my-trip.mjs?v=3').then(({createMyTrip}) => createMyTrip({
+    return myTripModulePromise ||= import('./my-trip.mjs?v=4').then(({createMyTrip}) => genieTripContext=createMyTrip({
       request: plannerRequest, getToken: getDeviceToken, showPage, openParties: openPartyManager, icon: getTripPlanIcon, onHomeData: resolveHomeDefault
     }));
   }
@@ -3265,7 +3280,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   magicButtons.forEach((button) => {
-    button.addEventListener("click", openMagic);
+    button.addEventListener("click", () => document.dispatchEvent(new CustomEvent('disneyos:open-genie')));
   });
 
   magicCloseButtons.forEach((button) => {

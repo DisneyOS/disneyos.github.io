@@ -162,5 +162,5 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
       await onSaved();
     });
   }
-  return {load,open,editParty};
+  return {load,open,editParty,context:()=>{const t=current(),p=data?.itineraries[t?.id]?.find(p=>p.id===expanded),party=data?.parties.find(p=>p.id===t?.partyId);return {tripId:t?.id,tripName:t?.name,date:p?.date||[...(days.get(t?.id)||[])].at(-1),planId:expanded,partySize:party?.members.length};}};
 }

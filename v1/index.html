@@ -177,7 +177,7 @@
 }
 </style>
 <link rel="stylesheet" href="css/alerts.css?v=1">
-<script type="module" src="js/alerts.mjs?v=2"></script>
+<script type="module" src="js/alerts.mjs?v=3"></script>
 <link rel="stylesheet" href="css/notifications.css?v=1">
 <script type="module" src="js/notifications.mjs?v=1"></script>
 </head>
@@ -198,7 +198,7 @@
           </h1>
 </div>
 </div>
-<details id="alerts-activity"><summary>Activity</summary><div id="alerts-activity-list"><p>Loading activity…</p></div></details>
+<details id="alerts-activity"><summary aria-label="Notifications" title="Notifications"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg></summary><div id="alerts-activity-list"><p>Loading notifications…</p></div></details>
 <button aria-label="Open settings" class="profile-button" id="profile-button" type="button">
 <span id="profile-initial">
             D
@@ -348,7 +348,7 @@
 </div>
 <div class="trip-status-strip" id="trip-status-strip">
 <span class="trip-status-dot"></span>
-<span id="trip-status-text">Connecting to Disney Planner…</span>
+<button type="button" data-ask-genie data-screen="trip">Plan with Genie</button><span id="trip-status-text">Connecting to Disney Planner…</span>
 </div>
 <div id="my-trip-content" aria-live="polite"></div>
 </section>
@@ -408,7 +408,7 @@
 <section class="page" data-page="alerts" id="alerts-page">
 <div class="page-title-block"><p class="eyebrow">Shortcuts</p><h2>Alerts</h2><p>A little less waiting. A little more magic.</p></div>
 <div class="alert-actions"><button type="button" class="primary-button" data-alert-action="new">Create an Alert</button><button type="button" class="secondary-button" data-alert-action="ai">✨ Ask the AI assistant</button><button type="button" class="secondary-button" data-alert-action="refresh">Refresh</button></div>
-<p id="alerts-status" role="status"></p><div id="alerts-content"></div></section>
+<p id="alerts-status" role="status"></p><button type="button" data-ask-genie data-screen="alerts">Ask Genie</button><div id="alerts-content"></div></section>
 <dialog id="alert-editor" aria-label="Alert configuration"></dialog>
 <!-- SETTINGS -->
 <section class="page" data-page="settings" id="settings-page">
@@ -534,27 +534,25 @@
 <span class="nav-icon">⌂</span>
 <span class="nav-label">Home</span>
 </button>
-<button aria-label="Parks" class="nav-button" data-target="parks" type="button">
-<span class="nav-icon">♜</span>
-<span class="nav-label">Parks</span>
-</button>
 <button aria-label="My Trip" class="nav-button" data-target="trip" type="button">
 <span class="nav-icon">◉</span>
 <span class="nav-label">My Trip</span>
+</button>
+<button aria-label="Genie" class="nav-button" data-target="genie" type="button">
+<span class="nav-icon"></span><span class="nav-label">Genie</span>
+</button>
+<button aria-label="Parks" class="nav-button" data-target="parks" type="button">
+<span class="nav-icon">♜</span><span class="nav-label">Parks</span>
 </button>
 <button aria-label="Shortcuts" class="nav-button" data-target="shortcuts" type="button">
 <span class="nav-icon">⚡</span>
 <span class="nav-label">Shortcuts</span>
 </button>
-<button aria-label="Settings" class="nav-button" data-target="settings" type="button">
-<span class="nav-icon">⚙</span>
-<span class="nav-label">Settings</span>
-</button>
 </nav>
 </div>
 <dialog id="trip-editor" aria-label="Trip editor"></dialog>
-<script src="js/app.js?v=3.10.0"></script>
-<script type="module" src="js/parks.mjs?v=2"></script>
+<script src="js/app.js?v=3.11.0"></script>
+<script type="module" src="js/parks.mjs?v=3"></script>
 <div class="party-modal" hidden id="party-modal">
 <div class="party-modal-backdrop" data-action="close-party-manager"></div>
 <section class="party-sheet" role="dialog" aria-modal="true" aria-labelledby="party-manager-title">
@@ -728,5 +726,7 @@
     }
   </script>
 <dialog id="notifications-dialog" aria-label="Notification preferences"></dialog>
+<link rel="stylesheet" href="css/genie.css?v=1">
+<script type="module" src="js/genie.mjs?v=1"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ const storage={get(key){try{return JSON.parse(sessionStorage.getItem(key));}catc
 let context=storage.get('disneyos-parks-context') || {}, area='', itemKey='', query='', scope='park', diningFilter='', detailReturn=null;
 let park=DESTINATIONS[context.park]?context.park:'', date=validDate(context.date)?context.date:today();
 const records=new Map(), pending=new Map(), detailRecords=new Map(), detailPending=new Set();
+document.addEventListener('disneyos:genie-context',e=>{if(e.detail.screen==='parks')Object.assign(e.detail,{park,date,itemId:itemKey});});
 // Official directory reference links. These are resort-wide references, not an invented facility inventory.
 const serviceReferences=[['Restrooms','restrooms'],['First Aid','first-aid'],['Baby Care Centers','baby-care-centers'],
   ['Guest Relations','guest-relations'],['Lockers','locker-rentals'],['Accessibility','guests-with-disabilities'],

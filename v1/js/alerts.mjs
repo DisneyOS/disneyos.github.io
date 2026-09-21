@@ -9,6 +9,8 @@ const finite=w=>['dining','extras'].includes(w.category);
 const day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const root=document.getElementById('alerts-content'),dialog=document.getElementById('alert-editor'),status=document.getElementById('alerts-status');
 let data=null,editing=null,draft=null,selected=new Set(),month=day().slice(0,7),targets=[],generation=0,busy=false,loaded=0,proposals=[],proposalIndex=null;
+document.addEventListener('disneyos:genie-context',e=>{if(e.detail.screen==='alerts'){const id=document.querySelector('#alerts-content details[open]')?.id?.replace(/^watch-/,'')||new URL(location.href).searchParams.get('watch');const w=data?.watches.find(w=>w.id===id);Object.assign(e.detail,{watchId:w?.id,park:w?.park,date:w?.dates?.[0]||day()});}});
+document.addEventListener('disneyos:genie-saved',()=>refresh());
 const btn=(action,text,id='')=>`<button type="button" data-alert-action="${action}" data-id="${esc(id)}">${text}</button>`;
 async function request(path,options={}){
  const token=localStorage.getItem('disneyos-member-device-token');if(!token)throw Error('Active membership is required.');

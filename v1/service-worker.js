@@ -1,11 +1,13 @@
-const CACHE_NAME = "disneyos-v3.10.0";
+const CACHE_NAME = "disneyos-v3.11.0";
 
 const SHELL = [
+  "./js/genie.mjs?v=1",
+  "./css/genie.css?v=1",
   "./js/notifications.mjs?v=1",
   "./css/notifications.css?v=1",
   "./",
   "./index.html",
-  "./js/alerts.mjs?v=2",
+  "./js/alerts.mjs?v=3",
   "./css/alerts.css?v=1",
   "./lightning-lanes.html",
   "./css/lightning-lanes.css?v=7d.2",
@@ -20,14 +22,14 @@ const SHELL = [
   "./js/people-approval.js?v=3.2.0",
   "./css/theme.css?v=2.0.9",
   "./css/styles.css?v=3.5.1",
-  "./js/app.js?v=3.10.0",
+  "./js/app.js?v=3.11.0",
   "./css/my-trip.css?v=1",
-  "./js/my-trip.mjs?v=3",
+  "./js/my-trip.mjs?v=4",
   "./js/trip-model.mjs",
   "./js/home-model.mjs",
   "./css/home.css?v=1",
   "./css/parks.css?v=1",
-  "./js/parks.mjs?v=2",
+  "./js/parks.mjs?v=3",
   "./js/parks-model.mjs",
   "./js/wait-times.js?v=3.8.0",
   "./assets/disneyos-logo-transparent.png",
