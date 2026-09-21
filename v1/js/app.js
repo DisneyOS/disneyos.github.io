@@ -616,7 +616,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderParkDay(data) {
     lastHomeParkDay=data;
     const hours = data.hours || {};
-    const park = data.park || {};
 
     setText(
       "park-hours",
@@ -630,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setText(
       "park-status",
-      park.status || "Unavailable"
+      parkStatusFromPublishedHours(hours)
     );
 
     renderSpecialHours(hours.entries || []);
@@ -638,9 +637,31 @@ document.addEventListener("DOMContentLoaded", () => {
       Array.isArray(data.entertainment) ? data.entertainment : null
     );
     renderTransportation(
-      park.name || getActivePark(),
+      data.park?.name || getActivePark(),
       data.transportation || []
     );
+  }
+
+  function parkStatusFromPublishedHours(hours) {
+    const zonedIso = /(?:Z|[+-]\d{2}:\d{2})$/;
+    const parse = (value) =>
+      typeof value === "string" && zonedIso.test(value)
+        ? Date.parse(value)
+        : Number.NaN;
+    const opensAt = parse(hours?.open);
+    const closesAt = parse(hours?.close);
+
+    if (
+      !Number.isFinite(opensAt) ||
+      !Number.isFinite(closesAt) ||
+      closesAt <= opensAt
+    ) {
+      return "Unavailable";
+    }
+
+    return Date.now() >= opensAt && Date.now() < closesAt
+      ? "Open"
+      : "Closed";
   }
 
   function renderSpecialHours(entries) {
