@@ -8,6 +8,11 @@ const statusTime=value=>{if(!value)return '';const formatted=new Intl.DateTimeFo
 const statusMessage=cache=>{const time=statusTime(cache?.updatedAt);if(cache?.status==='fresh')return `Using recent plan data${time?' · '+time:''}`;if(cache?.status==='unavailable')return `Using saved plan data${time?' · '+time:''}`;return `Updating plan data${time?' · '+time:''}`;};
 const safeUrl=v=>{try {const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}};
 const button=(action,label,extra='')=>`<button type="button" class="party-secondary-button" data-trip-action="${action}" ${extra}>${label}</button>`;
+const locationText=value=>typeof value==='string'?value:typeof value?.name==='string'?value.name:typeof value?.title==='string'?value.title:'';
+export function directionsLocationForPlan(plan) {
+  const facility=locationText(plan?.facility), location=locationText(plan?.location);
+  return {...plan,canonicalName:plan?.canonicalName || facility || undefined,location,resort:locationText(plan?.resort) || locationText(plan?.resortName) || location};
+}
 export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeData=()=>{}}) {
   const root=document.getElementById('my-trip-content'), status=document.getElementById('trip-status-text');
   const dialog=document.getElementById('trip-editor');
@@ -41,7 +46,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
   }
   function planCard(p) {
     const {state,practical,published,details,conflicts,link}=planDetails(p);
-    const directions=directionsUrl(p)?button('directions','Directions',`data-id="${esc(p.id)}"`):'';
+    const directions=directionsUrl(directionsLocationForPlan(p))?button('directions','Directions',`data-id="${esc(p.id)}"`):'';
     return `<article class="trip-item ${['Past','Completed'].includes(state)?'is-past':''}"><button type="button" class="trip-item-toggle" data-trip-action="plan" data-id="${esc(p.id)}" aria-expanded="${expanded===p.id}"><span class="trip-plan-icon" aria-hidden="true">${icon(p.type)}</span><span class="trip-item-copy"><span class="trip-time">${esc(published || 'Date only')}${practical?` <span class="trip-practical">(${esc(timeLabel(practical.startTime))}–${esc(timeLabel(practical.endTime))})</span>`:''}</span><strong>${esc(p.title || 'Disney plan')}</strong><span>${esc(p.location || p.area || '')}</span>${p.manual?'<small>Manually Entered</small>':''}${state?`<small class="trip-state">${esc(state)}</small>`:''}${p.conflicts?.length?'<small>Source information differs</small>':''}</span><span aria-hidden="true">${expanded===p.id?'−':'+'}</span></button><div class="trip-item-details" ${expanded===p.id?'':'hidden'}><dl>${details}</dl>${conflicts}<div class="trip-actions">${link(p.detailsUrl,'View Details')}${directions}${p.phone?`<a href="tel:${esc(String(p.phone).replace(/[^+0-9]/g,''))}">Call</a>`:''}${p.manual?button('edit-plan','Edit',`data-id="${esc(p.id)}"`)+button('delete-plan','Delete',`data-id="${esc(p.id)}"`):''}</div></div></article>`;
   }
   function renderHome() {
@@ -127,7 +132,7 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
       if(action==='select'){selected=b.dataset.id;expanded=null;render();}
       if(action==='day'){const set=days.get(t.id);set.has(b.dataset.date)?set.delete(b.dataset.date):set.add(b.dataset.date);render();}
       if(action==='plan'){expanded=expanded===b.dataset.id?null:b.dataset.id;render();}
-      if(action==='directions'){const plan=data.itineraries[t.id].find(p=>p.id===b.dataset.id);if(plan)openDirections(plan);}
+      if(action==='directions'){const plan=data.itineraries[t.id].find(p=>p.id===b.dataset.id);if(plan)openDirections(directionsLocationForPlan(plan));}
       if(action==='new-trip')editTrip();if(action==='edit-trip')editTrip(t);
       if(action==='suggestion')editTrip(suggestions(data.discovery,data.parties,data.trips)[Number(b.dataset.index)]);
       if(action==='add-plan')editPlan();
