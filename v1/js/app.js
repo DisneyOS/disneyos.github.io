@@ -89,6 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-home-park]");
   const parkMapButton =
     document.getElementById("park-map-button");
+  const homeWaitTimesAction = document.getElementById("home-wait-times-action");
+  const homeLightningLaneAction = document.getElementById("home-lightning-lane-action");
   const magicButtons =
     document.querySelectorAll('[data-action="open-magic"]');
   const magicCloseButtons =
@@ -433,6 +435,10 @@ document.addEventListener("DOMContentLoaded", () => {
       currentParkElement.textContent =
         activePark;
     }
+
+    const springs = activePark === "Disney Springs";
+    if (homeWaitTimesAction) homeWaitTimesAction.hidden = springs;
+    if (homeLightningLaneAction) homeLightningLaneAction.hidden = springs;
 
     renderMembershipSettings();
     loadDynamicHome(activePark);
@@ -3392,5 +3398,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ? savedPage
       : "home"
   );
+  if (tripLinkParams.get('openGenie') === '1') document.dispatchEvent(new CustomEvent('disneyos:open-genie'));
   window.setTimeout(() => { refreshNotificationSummary(); }, 1800);
 });

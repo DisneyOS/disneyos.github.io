@@ -2552,6 +2552,8 @@ body {
   cursor: pointer;
 }
 
+.standalone-nav-button .genie-lamp { width: 100%; height: 100%; }
+
 
 /* DisneyOS 2.0.2 — opaque park selector */
 .park-selector-panel {

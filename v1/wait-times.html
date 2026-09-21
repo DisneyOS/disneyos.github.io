@@ -337,57 +337,22 @@
 
   </main>
 
-  <nav
-    class="bottom-navigation"
-    aria-label="Primary navigation"
-  >
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="home"
-    >
-      <span class="nav-icon">⌂</span>
-      <span class="nav-label">Home</span>
+  <nav class="bottom-navigation" aria-label="Primary navigation">
+    <a class="nav-button standalone-nav-button" href="index.html?view=home" data-page-target="home">
+      <span class="nav-icon">⌂</span><span class="nav-label">Home</span>
     </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="parks"
-    >
-      <span class="nav-icon">🏰</span>
-      <span class="nav-label">Parks</span>
+    <a class="nav-button standalone-nav-button" href="index.html?view=trip" data-page-target="trip">
+      <span class="nav-icon">◉</span><span class="nav-label">My Trip</span>
     </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="trip"
-    >
-      <span class="nav-icon">🧳</span>
-      <span class="nav-label">My Trip</span>
+    <a class="nav-button standalone-nav-button" href="index.html?view=home&openGenie=1" data-page-target="genie">
+      <span class="nav-icon"><img class="genie-lamp" src="assets/genie-lamp.svg" alt=""></span><span class="nav-label">Genie</span>
     </a>
-
-    <a
-      class="nav-button standalone-nav-button active"
-      href="index.html"
-      data-page-target="shortcuts"
-      aria-current="page"
-    >
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Shortcuts</span>
+    <a class="nav-button standalone-nav-button" href="index.html?view=parks" data-page-target="parks">
+      <span class="nav-icon">♜</span><span class="nav-label">Parks</span>
     </a>
-
-    <a
-      class="nav-button standalone-nav-button"
-      href="index.html"
-      data-page-target="settings"
-    >
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Settings</span>
+    <a class="nav-button standalone-nav-button active" href="index.html?view=shortcuts" data-page-target="shortcuts" aria-current="page">
+      <span class="nav-icon">⚡</span><span class="nav-label">Shortcuts</span>
     </a>
-
   </nav>
 
   <script type="module" src="js/wait-times.js?v=3.8.0"></script>

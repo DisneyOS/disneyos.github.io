@@ -3,7 +3,7 @@ import {DESTINATIONS, today, validDate, escapeHtml as esc, rideStatus, sortRides
 const root=document.getElementById('parks-page');
 const API='https://disneyos-api.disneyosplanner.workers.dev/v1';
 const labels={rides:'Wait Times',entertainment:'Entertainment',dining:'Dining',transportation:'Transportation',services:'Guest Services'};
-const icons={rides:'◷',entertainment:'♫',dining:'♨',transportation:'⇄',services:'✚'};
+const icons={rides:'⏱️',entertainment:'🎭',dining:'🍽️',transportation:'🚝',services:'✚'};
 const notes={unsupported:'Not available yet',unavailable:'Information unavailable', 'not-published':'Not published yet'};
 const storage={get(key){try{return JSON.parse(sessionStorage.getItem(key));}catch{return null;}},set(key,value){try{sessionStorage.setItem(key,JSON.stringify(value));}catch{}}};
 let context=storage.get('disneyos-parks-context') || {}, area='', itemKey='', query='', scope='park', diningFilter='', detailReturn=null;

@@ -291,7 +291,7 @@
 </div>
 </div>
 <div class="quick-action-grid">
-<button class="quick-action-card" data-action="open-wait-times" type="button">
+<button class="quick-action-card" data-action="open-wait-times" id="home-wait-times-action" type="button">
 <span>⏱️</span>
 <strong>Wait Times</strong>
 </button>
@@ -300,10 +300,10 @@
 <strong>Park Map</strong>
 </button>
 <button class="quick-action-card magic-action-card" data-action="open-magic" type="button">
-<span aria-hidden="true">🪔</span>
+<span aria-hidden="true"><img class="genie-lamp" src="assets/genie-lamp.svg" alt=""></span>
 <strong>Genie</strong>
 </button>
-<a class="quick-action-card" href="lightning-lanes.html?from=home" aria-label="Lightning Lane">
+<a class="quick-action-card" href="lightning-lanes.html?from=home" id="home-lightning-lane-action" aria-label="Lightning Lane">
 <span aria-hidden="true">⚡</span>
 <strong>Lightning Lane</strong>
 </a>
@@ -348,7 +348,7 @@
 </div>
 <div class="trip-status-strip" id="trip-status-strip">
 <span class="trip-status-dot"></span>
-<button type="button" data-ask-genie data-screen="trip">Plan with Genie</button><span id="trip-status-text">Connecting to Disney Planner…</span>
+<button type="button" data-ask-genie data-screen="trip"><span>Plan with</span> <img class="genie-lamp" src="assets/genie-lamp.svg" alt="Genie"></button><span id="trip-status-text">Connecting to Disney Planner…</span>
 </div>
 <div id="my-trip-content" aria-live="polite"></div>
 </section>
@@ -380,35 +380,15 @@
 <strong>Lightning Lane</strong>
 </a>
 <button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
-<span class="shortcut-icon">🍔</span>
-<strong>Mobile Order</strong>
-</button>
-<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
-<span class="shortcut-icon">🚻</span>
-<strong>Find Restroom</strong>
-</button>
-<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
-<span class="shortcut-icon">🚌</span>
-<strong>Bus Times</strong>
-</button>
-<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
 <span class="shortcut-icon">📍</span>
 <strong>Navigate</strong>
-</button>
-<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
-<span class="shortcut-icon">👑</span>
-<strong>Characters</strong>
-</button>
-<button class="shortcut-card shortcut-card-coming-soon" disabled="" type="button">
-<span class="shortcut-icon">📋</span>
-<strong>Tip Board</strong>
 </button>
 </div>
 </section>
 <section class="page" data-page="alerts" id="alerts-page">
 <div class="page-title-block"><p class="eyebrow">Shortcuts</p><h2>Alerts</h2><p>A little less waiting. A little more magic.</p></div>
-<div class="alert-actions"><button type="button" class="primary-button" data-alert-action="new">Create an Alert</button><button type="button" class="secondary-button" data-alert-action="ai">✨ Ask the AI assistant</button><button type="button" class="secondary-button" data-alert-action="refresh">Refresh</button></div>
-<p id="alerts-status" role="status"></p><button type="button" data-ask-genie data-screen="alerts">Ask Genie</button><div id="alerts-content"></div></section>
+<div class="alert-actions"><button type="button" class="primary-button" data-alert-action="new">Create an Alert</button><button type="button" class="secondary-button genie-action-button" data-alert-action="ai"><img class="genie-lamp" src="assets/genie-lamp.svg" alt=""> Ask Genie to draft</button><button type="button" class="secondary-button" data-alert-action="refresh">Refresh</button></div>
+<p id="alerts-status" role="status"></p><button type="button" class="genie-action-button" data-ask-genie data-screen="alerts"><img class="genie-lamp" src="assets/genie-lamp.svg" alt=""> Ask Genie</button><div id="alerts-content"></div></section>
 <dialog id="alert-editor" aria-label="Alert configuration"></dialog>
 <!-- SETTINGS -->
 <section class="page" data-page="settings" id="settings-page">

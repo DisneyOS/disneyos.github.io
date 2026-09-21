@@ -1,4 +1,4 @@
-const CACHE_NAME = "disneyos-v3.11.1";
+const CACHE_NAME = "disneyos-v3.11.2";
 
 const SHELL = [
   "./js/genie.mjs?v=1",
@@ -33,6 +33,7 @@ const SHELL = [
   "./js/parks-model.mjs",
   "./js/wait-times.js?v=3.8.0",
   "./assets/disneyos-logo-transparent.png",
+  "./assets/genie-lamp.svg",
   "./assets/disneyos-mark.png",
   "./assets/manifest-icon-192.png",
   "./assets/manifest-icon-512.png"
