@@ -202,7 +202,13 @@
       for (const [label,value] of [['Member ID',member.member_number || member.id],['First Name',member.first_name],['Last Name',member.last_name],['Email',member.email],['Disney Account Email',member.disney_account_email],['Account Status',member.status]]) {
         element('dt',label,info); element('dd',value || 'Not recorded',info);
       }
-      const approvals = await api(`${base}/people-approvals`);
+      const [peopleApprovals,managedApprovals] = await Promise.all([
+        api(`${base}/people-approvals`), api(`${base}/managed-approvals`)
+      ]);
+      const approvals = {requests:[
+        ...peopleApprovals.requests.map(r=>({...r,endpoint:'people-approvals'})),
+        ...managedApprovals.requests.map(r=>({...r,endpoint:'managed-approvals'}))
+      ]};
       if (generation !== detailGeneration || !dialog.open) return;
       if (approvals.requests.length) {
         element('h3','Pending People Approvals',detailContent);
@@ -212,11 +218,12 @@
           const recipient = element('div','',row,'row-copy');
           element('strong',[approval.firstName,approval.lastName].filter(Boolean).join(' '),recipient);
           element('small',approval.email || 'Disney Account Email unavailable',recipient);
+          if (approval.guestNames) element('small',`Managed guests: ${approval.guestNames.join(', ')}`,recipient);
           let prepared = null;
           actionButton(row,'Copy Approval Link',async () => {
             if (!navigator.clipboard?.writeText) throw new Error('Clipboard access is unavailable. Use a supported secure browser.');
             if (!prepared || Date.parse(prepared.expiresAt) <= Date.now()) {
-              prepared = await post(`${base}/people-approvals/${encodeURIComponent(approval.id)}/link`);
+              prepared = await post(`${base}/${approval.endpoint}/${encodeURIComponent(approval.id)}/link`);
             }
             if (generation !== detailGeneration || !dialog.open) { prepared = null; return; }
             try { await navigator.clipboard.writeText(prepared.approvalUrl); }
