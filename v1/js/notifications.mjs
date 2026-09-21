@@ -1,6 +1,7 @@
 const API='https://disneyos-api-dev.disneyosplanner.workers.dev/v1';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dialog=document.getElementById('notifications-dialog');
+const activityControl=document.getElementById('alerts-activity');
 let state=null,registration=null,subscription=null,busy=false;
 const capable=()=>isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
 const permission=()=>capable()?Notification.permission:'unsupported';
@@ -85,3 +86,6 @@ async function activity(){
  try{const data=await request('activity');const list=document.getElementById('alerts-activity-list');list.querySelectorAll('[data-push-activity]').forEach(n=>n.remove());for(const e of data.events){const a=document.createElement('a');a.dataset.pushActivity=e.id;const q=new URLSearchParams({view:e.destination.type==='settings'?'settings':'trip'});if(e.destination.entityId)q.set('plan',e.destination.entityId);if(e.destination.tripId)q.set('trip',e.destination.tripId);if(e.destination.date)q.set('date',e.destination.date);a.href='/v1/?'+q;a.textContent=e.title+' · '+e.body;list.append(a);}await badge(data.actionCount);}catch{}
 }
 document.addEventListener('disneyos:activity-rendered',activity);
+function positionActivityPanel(){if(!activityControl?.open)return;const rect=activityControl.getBoundingClientRect();activityControl.style.setProperty('--activity-top',`${rect.bottom}px`);}
+activityControl?.addEventListener('toggle',positionActivityPanel);
+window.addEventListener('resize',positionActivityPanel,{passive:true});

@@ -1,4 +1,4 @@
-const CACHE_NAME = "disneyos-v3.11.2";
+const CACHE_NAME = "disneyos-v3.12.0";
 
 const SHELL = [
   "./js/genie.mjs?v=1",

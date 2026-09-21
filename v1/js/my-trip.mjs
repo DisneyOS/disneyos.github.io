@@ -3,6 +3,8 @@ import {parkNow,tripState,orderedTrips,selectedTrip,tripDates,multiDay,sortPlans
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=d=>new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'));
 const timeLabel=t=>{if(!t)return '';const [h,m]=t.split(':');return `${+h%12||12}:${m} ${+h>=12?'PM':'AM'}`;};
+const statusTime=value=>{if(!value)return '';const formatted=new Intl.DateTimeFormat('en-US',{month:'2-digit',day:'2-digit',hour:'numeric',minute:'2-digit'}).format(new Date(value));return formatted.replace(',',' ·');};
+const statusMessage=cache=>{const time=statusTime(cache?.updatedAt);if(cache?.status==='fresh')return `Using recent plan data${time?' · '+time:''}`;if(cache?.status==='unavailable')return `Using saved plan data${time?' · '+time:''}`;return `Updating plan data${time?' · '+time:''}`;};
 const safeUrl=v=>{try {const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}};
 const button=(action,label,extra='')=>`<button type="button" class="party-secondary-button" data-trip-action="${action}" ${extra}>${label}</button>`;
 export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeData=()=>{}}) {
@@ -87,11 +89,11 @@ export function createMyTrip({request,getToken,showPage,openParties,icon,onHomeD
       const key='disneyos-trip-cache-v2:'+hash;
       try {
         if(!data) {try {const saved=JSON.parse(localStorage.getItem(key));if(saved?.trips && saved?.itineraries && saved?.parties){data=saved;render();}}catch{}}
-        message(data?'Showing saved plans · checking for updates…':'Loading Trips…');
+        message(data?'Using saved plan data · updating…':'Loading Trips…');
         const result=await request('/trips');
         if(token!==getToken())return;
         data=result;lastLoadSucceeded=true;try{localStorage.setItem(key,JSON.stringify(data));}catch{}
-        render();message(result.cache.status==='fresh'?`Plans checked ${new Date(result.cache.updatedAt).toLocaleString()} · last-known plans retained`:`${result.cache.status==='unavailable'?'Source unavailable':'Checking source updates'} · showing last-known plans${result.cache.updatedAt?' from '+new Date(result.cache.updatedAt).toLocaleString():''}`);
+        render();message(statusMessage(result.cache));
       }catch(error){
         if(token!==getToken())return;
         if([401,403].includes(error.status)){data=null;try{localStorage.removeItem(key);}catch{}document.getElementById('home-trip-plans')?.replaceChildren();}

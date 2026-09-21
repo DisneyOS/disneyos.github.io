@@ -118,7 +118,7 @@ function renderContent(){
   }
   if(!area){
     const types=park==='disney-springs'?['dining','transportation','services']:['rides','entertainment','dining','transportation','services'];
-    content.innerHTML=`<div class="parks-grid">${anchor(mapUrl(park,matchMedia('(max-width:767px), (hover:none) and (pointer:coarse)').matches),'⌖ Map')}${types.map(type=>`<button data-area="${type}"><span aria-hidden="true">${icons[type]}</span>${labels[type]}</button>`).join('')}</div>`;return;
+    content.innerHTML=`<div class="parks-grid">${anchor(mapUrl(park,matchMedia('(max-width:767px), (hover:none) and (pointer:coarse)').matches),'🗺️ Map')}${types.map(type=>`<button data-area="${type}"><span aria-hidden="true">${icons[type]}</span>${labels[type]}</button>`).join('')}</div>`;return;
   }
   let list=items(park,area);if(area==='rides')list=date===today()?sortRides(list):[...list].sort((a,b)=>a.name.localeCompare(b.name));
   else list=[...list].sort((a,b)=>a.name.localeCompare(b.name));
