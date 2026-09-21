@@ -1,4 +1,5 @@
 import {DESTINATIONS, today, validDate, escapeHtml as esc, rideStatus, sortRides, freshness, scheduleText, time, matches, mapUrl, diningHours, diningCategory, diningIndicators} from './parks-model.mjs';
+import {directionsUrl, openDirections} from './directions.mjs';
 
 const root=document.getElementById('parks-page');
 const API='https://disneyos-api.disneyosplanner.workers.dev/v1';
@@ -179,9 +180,11 @@ function renderDetail(content){
   for(const field of ['description','cuisine','serviceType','heightRequirement','accessibility','duration','priceRange','phone'])if(item[field] && !(area==='dining' && field==='priceRange'))html+=`<p>${esc(({description:'Description',cuisine:'Cuisine',serviceType:'Service type',heightRequirement:'Height requirement',accessibility:'Accessibility',duration:'Duration',priceRange:'Price range',phone:'Phone'})[field])}: ${esc(item[field])}</p>`;
   if(item.lightningLane==='MULTI_PASS' || item.lightningLane==='SINGLE_PASS')html+=`<p>${item.lightningLane==='MULTI_PASS'?'ϟϟ Multi Pass':'ϟ Single Pass'}</p>`;
   if(area==='services')html+=anchor(item.url,'Official service information');
+  let directionsLocation={...item,park:DESTINATIONS[park]};
   if(area==='dining'){
     if(item.disneyId && item.officialSlug)void loadDiningDetail(item);
     const extra=detailRecords.get(item.disneyId) || storage.get('disneyos-dining-detail:'+item.disneyId);
+    directionsLocation={...directionsLocation,...extra};
     html+=`<p>${esc(diningHours(item,date))}</p><p>${esc(diningIndicators(item))}</p>`;
     if(item.characterDining)html+='<p>Character Dining</p>';
     if(item.reservationsRecommended)html+='<p>Reservations strongly recommended</p>';
@@ -192,6 +195,7 @@ function renderDetail(content){
     if(detailPending.has(item.disneyId))html+='<p class="parks-note">Loading restaurant details…</p>';
     html+=`<p>${anchor(item.detailUrl || 'https://disneyworld.disney.go.com/dining/',item.detailUrl?'Official Disney restaurant page':'Official dining directory')}</p>`;
   }
+  if((area==='rides' || area==='dining') && directionsUrl(directionsLocation))html+='<p><button type="button" data-directions>Directions</button></p>';
   const url=mapUrl(park,matchMedia('(max-width:767px), (hover:none) and (pointer:coarse)').matches);
   html+=`<p>${anchor(area==='services' && item.id==='restrooms'?'https://disneyworld.disney.go.com/guest-services/restrooms/':url,'View on Disney Map')}</p><p class="parks-note">${area==='services' && item.id==='restrooms'?'Use Disney’s restroom finder and map controls.':'Opens the destination map/reference page. A direct link to this specific location is not available.'}</p>`;
   content.innerHTML=html+'</article>';
@@ -204,6 +208,7 @@ root.addEventListener('click',event=>{
   else if(b.hasAttribute('data-item')){detailReturn={park,area,query,scope};navigate({park:b.dataset.park,area:b.dataset.type,itemKey:b.dataset.item});}
   else if(b.hasAttribute('data-refresh')){void load(park,true);renderContent();}
   else if(b.hasAttribute('data-dining')){diningFilter=b.dataset.dining;renderContent();}
+  else if(b.hasAttribute('data-directions')){const item=items(park,area).find(x=>String(x.id || x.name)===itemKey);if(item)openDirections({...item,...(area==='dining'?(detailRecords.get(item.disneyId) || storage.get('disneyos-dining-detail:'+item.disneyId)):{}),park:DESTINATIONS[park]});}
 });
 root.addEventListener('change',event=>{
   if(event.target.id==='parks-destination')navigate({park:event.target.value,itemKey:'',area:event.target.value==='disney-springs' && area==='rides'?'':area});
