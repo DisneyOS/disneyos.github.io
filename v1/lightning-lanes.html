@@ -52,10 +52,11 @@
       <div class="form-body">
         <p class="muted" id="form-description">Choose your plan and tell us what time works for you.</p>
         <div id="identity-fields">
-          <label>Search goal<select name="searchType"><option value="MODIFY_BOOKING">Improve a held booking</option><option value="SWAP_BOOKING">Change to another experience</option><option value="MODIFY_UNTIL_STOPPED">Keep looking for a better time</option><option value="NEW_BOOKING" disabled>New available Lightning Lane — coming soon</option><option value="PURCHASE_MULTI" disabled>Buy Multi Pass — coming soon</option><option value="PURCHASE_SINGLE" disabled>Buy Single Pass — coming soon</option></select></label>
+          <label>Search goal<select name="searchType"><option value="MODIFY_BOOKING">Improve existing booking</option><option value="SWAP_BOOKING">Swap existing booking</option><option value="NEW_BOOKING">Watch for a new selection</option><option value="MODIFY_UNTIL_STOPPED">Keep improving an existing booking</option><option value="PURCHASE_MULTI" disabled>Buy Multi Pass — coming soon</option><option value="PURCHASE_SINGLE" disabled>Buy Single Pass — coming soon</option></select></label>
           <label>Current booking<select name="currentBookingId"></select></label>
           <div class="form-grid"><label>Profile<select name="profileId"></select></label><label>Party<select name="partyContextId"></select></label></div>
-          <div class="form-grid"><label>Park Day<input name="serviceDate" type="text" readonly required></label><label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label></div>
+          <div class="form-grid"><label>Park Day<select name="serviceDate" required></select></label><label>Park<select name="parkId" required></select></label></div>
+          <label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label>
         </div>
         <label>Experience<select name="experienceId" required></select></label>
         <label>Desired time<select name="criterionType"><option value="EARLIEST_AVAILABLE">Earliest available</option><option value="AFTER_TIME">At or after a time</option><option value="BEFORE_TIME">At or before a time</option><option value="BETWEEN_TIMES">Between two times</option></select></label>

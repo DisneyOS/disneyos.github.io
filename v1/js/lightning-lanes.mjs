@@ -10,8 +10,9 @@ export function criterionText(c) { return ({ EARLIEST_AVAILABLE: 'Earliest avail
 export const visibleSearches = rows => rows.filter(s => !['CANCELLED', 'SUCCESS'].includes(s.status));
 export const uniquePlans = rows => [...new Map(rows.map(b => [b.id, b])).values()];
 export const searchablePlans = rows => rows.filter(b => !b.displayOnly);
+export const eligibleExperiences = (rows, parkId, productType) => rows.filter(x => x.parkId === parkId && x.productTypes?.includes(productType));
 export function searchTypeLabel(s, current) {
-  if (s.searchType === 'NEW_BOOKING') return 'New available Lightning Lane · coming soon';
+  if (s.searchType === 'NEW_BOOKING') return 'Watch for a new selection';
   if (s.searchType === 'MODIFY_UNTIL_STOPPED') return 'Keep looking for a better time';
   return current && s.experienceId !== current.experienceId ? 'Change to another experience' : 'Improve a held booking';
 }
@@ -33,7 +34,7 @@ if (typeof document !== 'undefined') {
   const workflowId = new URLSearchParams(location.search).get('workflow');
   $('lane-back').href = destination.href;
   $('lane-back-label').textContent = destination.label;
-  let data = { plans: [], profiles: [], parties: [], experiences: [] }, searches = [], editing = null, busy = false;
+  let data = { plans: [], profiles: [], parties: [], parks: [], parkDays: [], experiences: [] }, searches = [], editing = null, busy = false;
   const field = name => form.elements.namedItem(name);
   if (local) { $('demo-notice').hidden = false; $('demo-notice').textContent = 'Local synthetic demo · No real booking will change.'; }
   $('ai-launcher').onclick = () => feedback('AI Booking Assistant is coming soon. For now, use Create Search to set up a search.');
@@ -64,7 +65,8 @@ if (typeof document !== 'undefined') {
       const latest = s.workflows.at(-1), party = data.parties.find(p => p.id === s.partyContextId)?.name || 'Your party';
       const current = data.plans.find(b => b.id === s.currentBookingId);
       const terminal = ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
-      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status])}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${s.status === 'ACTIVE' && s.reason === 'AVAILABILITY_REFRESH_REQUIRED' ? '<p class="muted">Searching — waiting for fresh availability. No current option can be confirmed.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
+      const waiting = ['AVAILABILITY_REFRESH_REQUIRED', 'WAITING_FOR_AVAILABILITY', 'NO_QUALIFYING_BROAD_OPTION'].includes(s.reason);
+      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status])}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
     };
     $('searches').innerHTML = activeSearches.length ? activeSearches.map(renderSearch).join('') : '<div class="empty">No active searches.<br>Improve a current plan or create a search.</div>';
     const completed = searches.filter(s => s.status === 'SUCCESS');
@@ -83,36 +85,54 @@ if (typeof document !== 'undefined') {
     }
   }
   const options = rows => rows.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+  function syncExperienceOptions(preferred) {
+    const rows = eligibleExperiences(data.experiences, field('parkId').value, field('productType').value);
+    const selected = preferred || field('experienceId').value;
+    field('experienceId').innerHTML = options(rows);
+    if (rows.some(x => x.id === selected)) field('experienceId').value = selected;
+    return rows;
+  }
   function syncForm() {
     const type = field('criterionType').value;
     $('start-field').hidden = !['AFTER_TIME', 'BETWEEN_TIMES'].includes(type); $('end-field').hidden = !['BEFORE_TIME', 'BETWEEN_TIMES'].includes(type);
     field('startTime').required = !$('start-field').hidden; field('endTime').required = !$('end-field').hidden;
     const isNew = field('searchType').value === 'NEW_BOOKING'; field('currentBookingId').disabled = isNew;
     const swap = field('searchType').value === 'SWAP_BOOKING';
-    $('search-note').textContent = isNew ? 'New-booking searches are coming soon. This saved record does not book or purchase anything.' : swap ? 'Choose another experience to replace this held booking. Booking changes are not enabled; each option needs your review.' : 'Look for a better time for this experience. Booking changes are not enabled; each option needs your review.';
+    $('search-note').textContent = isNew ? 'This Watch remains active even when no time is currently available. It does not book or purchase anything.' : swap ? 'Choose another experience to replace this held booking. Booking changes are not enabled; each option needs your review.' : 'Look for a better time for this experience. Booking changes are not enabled; each option needs your review.';
     const held = data.plans.find(x => x.id === field('currentBookingId').value);
     field('experienceId').disabled = !editing && !swap && !isNew;
-    if (held && !editing && !swap && !isNew) field('experienceId').value = held.experienceId;
+    if (held && !editing && !isNew) {
+      const heldExperience = data.experiences.find(x => x.id === held.experienceId);
+      if (heldExperience && !swap) field('parkId').value = heldExperience.parkId;
+      field('productType').value = held.productType; field('serviceDate').value = held.serviceDate;
+    }
+    const catalogRows = syncExperienceOptions(held && !swap && !isNew ? held.experienceId : editing?.experienceId);
     if (editing && !isNew) $('search-note').textContent = 'Update the time preference or choose another experience for this held booking. Booking changes remain disabled.';
     if (!editing && !isNew) {
       const b = data.plans.find(x => x.id === field('currentBookingId').value);
       if (b) for (const k of ['profileId', 'partyContextId', 'serviceDate', 'productType']) field(k).value = b[k];
     }
     for (const k of ['profileId', 'partyContextId', 'serviceDate', 'productType']) field(k).disabled = !isNew;
-    $('save-search').disabled = !editing && (!data.experiences.length || !data.parties.length || !isNew && !searchablePlans(data.plans).some(b => b.id === field('currentBookingId').value && !freshness(b).startsWith('Last')));
+    field('parkId').disabled = !isNew && !swap;
+    $('save-search').disabled = !editing && (!catalogRows.length || !data.parties.length || isNew && !data.parkDays.length || !isNew && !searchablePlans(data.plans).some(b => b.id === field('currentBookingId').value && !freshness(b).startsWith('Last')));
   }
   function openForm(bookingId = null, edit = null, change = false) {
     editing = edit; form.reset(); $('form-error').textContent = '';
     field('currentBookingId').innerHTML = options(uniquePlans(searchablePlans(data.plans)).map(b => ({ id: b.id, name: `${b.experienceName} · ${time(b.startMinute)}` })));
-    field('profileId').innerHTML = options(data.profiles); field('partyContextId').innerHTML = options(data.parties); field('experienceId').innerHTML = options(data.experiences);
+    field('profileId').innerHTML = options(data.profiles); field('partyContextId').innerHTML = options(data.parties);
+    field('serviceDate').innerHTML = options(data.parkDays.map(x => ({ id: x.date, name: new Date(`${x.date}T12:00:00`).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' }) })));
+    field('parkId').innerHTML = options(data.parks);
     $('identity-fields').hidden = Boolean(edit); $('form-title').textContent = edit ? 'Edit Search' : 'Create Search'; $('save-search').textContent = edit ? 'Save Search' : 'Start Search';
     if (bookingId || edit?.currentBookingId) field('currentBookingId').value = bookingId || edit.currentBookingId;
     const b = data.plans.find(x => x.id === field('currentBookingId').value);
-    if (b) field('experienceId').value = b.experienceId;
+    if (b) { const exp = data.experiences.find(x => x.id === b.experienceId); if (exp) field('parkId').value = exp.parkId; field('productType').value = b.productType; field('serviceDate').value = b.serviceDate; }
     field('searchType').value = change ? 'SWAP_BOOKING' : edit?.searchType || 'MODIFY_BOOKING';
     if (edit && edit.searchType === 'MODIFY_BOOKING' && b && edit.experienceId !== b.experienceId) field('searchType').value = 'SWAP_BOOKING';
     if (edit) {
-      field('experienceId').value = edit.experienceId; field('criterionType').value = edit.criterion.type;
+      const exp = data.experiences.find(x => x.id === edit.experienceId);
+      if (exp) field('parkId').value = exp.parkId;
+      field('productType').value = edit.productType; field('serviceDate').value = edit.serviceDate;
+      field('criterionType').value = edit.criterion.type;
       for (const [key, f] of [['startMinute', 'startTime'], ['endMinute', 'endTime']]) if (edit.criterion[key] != null) field(f).value = `${String(Math.floor(edit.criterion[key] / 60)).padStart(2, '0')}:${String(edit.criterion[key] % 60).padStart(2, '0')}`;
     }
     syncForm(); $('search-dialog').showModal(); if (change) field('experienceId').focus();
@@ -125,7 +145,7 @@ if (typeof document !== 'undefined') {
       if (!$('start-field').hidden) criterion.startMinute = minute(field('startTime').value);
       if (!$('end-field').hidden) criterion.endMinute = minute(field('endTime').value);
       if (criterion.startMinute > criterion.endMinute) throw new Error('The end time must be at or after the start time.');
-      if (field('searchType').value.startsWith('PURCHASE_') || !editing && field('searchType').value === 'NEW_BOOKING') throw new Error('This search goal is coming soon.');
+      if (field('searchType').value.startsWith('PURCHASE_')) throw new Error('This search goal is coming soon.');
       if (!editing && field('searchType').value === 'SWAP_BOOKING' && field('experienceId').value === data.plans.find(b => b.id === field('currentBookingId').value)?.experienceId) throw new Error('Choose a different experience, or select Improve a held booking.');
       if (editing) await api(`/lightning-lane/searches/${editing.id}`, 'PATCH', { action: 'EDIT', criterion, experienceId: field('experienceId').value });
       else { const input = Object.fromEntries(['searchType', 'currentBookingId', 'profileId', 'partyContextId', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value])); input.criterion = criterion; if (input.searchType === 'SWAP_BOOKING') input.searchType = 'MODIFY_BOOKING'; await api('/lightning-lane/searches', 'POST', input); }
