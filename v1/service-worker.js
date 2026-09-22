@@ -1,4 +1,4 @@
-const CACHE_NAME = "disneyos-v3.12.1";
+const CACHE_NAME = "disneyos-v3.12.2";
 
 const SHELL = [
   "./js/genie.mjs?v=1",
@@ -10,8 +10,8 @@ const SHELL = [
   "./js/alerts.mjs?v=3",
   "./css/alerts.css?v=1",
   "./lightning-lanes.html",
-  "./css/lightning-lanes.css?v=7d.2",
-  "./js/lightning-lanes.mjs?v=7d.2",
+  "./css/lightning-lanes.css?v=7d.3",
+  "./js/lightning-lanes.mjs?v=7d.3",
   "./wait-times-menu.html",
   "./wait-times.html",
   "./people-approval.html",
@@ -54,6 +54,8 @@ function notificationURL(value) {
   try {
     const url=new URL(value,self.location.origin);
     if(url.origin===self.location.origin && url.pathname==='/v1/' && ['alerts','trip','settings'].includes(url.searchParams.get('view')))return url.href;
+    const workflow=url.searchParams.get('workflow');
+    if(url.origin===self.location.origin && url.pathname==='/v1/lightning-lanes.html' && url.searchParams.size===1 && /^workflow_[A-Za-z0-9-]{8,160}$/.test(workflow||''))return new URL('/v1/lightning-lanes.html?workflow='+encodeURIComponent(workflow),self.location.origin).href;
   }catch{}
   return new URL('/v1/',self.location.origin).href;
 }

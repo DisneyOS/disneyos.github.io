@@ -18,6 +18,7 @@ export function searchTypeLabel(s, current) {
 const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing dry run', VERIFYING: 'Verifying dry run', SUCCESS: 'Dry run successful', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Failed', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
 export function candidateCard(w, now = Date.now()) {
   if (w.result) return `<div class="result"><strong>${w.status === 'CONFIRMED_AWAITING_EXECUTION' ? 'Confirmed — awaiting execution' : 'Dry run successful'}</strong><p>${esc(w.result.message)}</p></div>`;
+  if (w.status === 'EXPIRED') return `<section class="candidate"><p class="eyebrow">LIGHTNING LANE UPDATE</p><h3>${esc(w.proposed?.experienceName || 'Previous candidate')}</h3><p class="muted">This option expired and needs refreshing. It cannot be confirmed.</p></section>`;
   if (w.status !== 'READY_FOR_CONFIRMATION') return `<p class="muted">${esc(w.status === 'CANCELLED' ? 'Previous proposal closed.' : statuses[w.status] || 'Status unavailable')}</p>`;
   const expired = Date.parse(w.expiresAt) <= now;
   const delta = w.current.startMinute - w.proposed.startMinute;
@@ -29,6 +30,7 @@ if (typeof document !== 'undefined') {
   const apiBase = local ? '/v1' : 'https://disneyos-api-dev.disneyosplanner.workers.dev/v1';
   const $ = id => document.getElementById(id), form = $('search-form');
   const destination = returnDestination(location.search);
+  const workflowId = new URLSearchParams(location.search).get('workflow');
   $('lane-back').href = destination.href;
   $('lane-back-label').textContent = destination.label;
   let data = { plans: [], profiles: [], parties: [], experiences: [] }, searches = [], editing = null, busy = false;
@@ -45,6 +47,16 @@ if (typeof document !== 'undefined') {
     return result.data;
   }
   function feedback(message, error = false) { $('feedback').textContent = message; $('feedback').className = error ? 'error' : ''; }
+  async function refreshWorkflowReview() {
+    if (!workflowId) return;
+    let content;
+    if (!/^workflow_[A-Za-z0-9-]{8,160}$/.test(workflowId)) content = '<p class="muted">This Lightning Lane option is unavailable and cannot be confirmed.</p>';
+    else try { content = candidateCard(await api(`/lightning-lane/workflows/${encodeURIComponent(workflowId)}`)); }
+    catch { content = '<p class="muted">This Lightning Lane option is unavailable and cannot be confirmed.</p>'; }
+    $('workflow-review-content').innerHTML = content;
+    $('workflow-review').hidden = false;
+    $('workflow-review').scrollIntoView({ block: 'start' });
+  }
   function render() {
     $('plans').innerHTML = data.plans.length ? uniquePlans(data.plans).map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p>${b.displayOnly ? '<p class="form-note muted">Booked plan from your planner. Search setup for this experience is not available yet.</p>' : `<div class="actions"><button class="primary" data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div>`}</article>`).join('') : '<div class="empty">No current plans to show.<br>Your Lightning Lane plans will appear here when available.</div>';
     const activeSearches = visibleSearches(searches);
@@ -133,9 +145,9 @@ if (typeof document !== 'undefined') {
       if (a.cancel) await api(`/lightning-lane/searches/${a.cancel}`, 'DELETE');
       if (a.evaluate) await api(`/lightning-lane/searches/${a.evaluate}/evaluate`, 'POST', {});
       if (button.id === 'refresh' && local) await api('/demo/refresh', 'POST', {});
-      await load(button.id === 'refresh');
+      await load(button.id === 'refresh'); await refreshWorkflowReview();
     } catch (e) { feedback(e.message, true); } finally { busy = false; button.disabled = false; }
   });
-  load(true).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
-  setInterval(() => { if (!busy && !$('search-dialog').open && !document.hidden) load(true).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); }); }, 15000);
+  load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
+  setInterval(() => { if (!busy && !$('search-dialog').open && !document.hidden) load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); }); }, 15000);
 }

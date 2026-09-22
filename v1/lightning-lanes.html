@@ -10,8 +10,8 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="stylesheet" href="css/theme.css?v=2.0.9">
   <link rel="stylesheet" href="css/styles.css?v=3.5.1">
-  <link rel="stylesheet" href="css/lightning-lanes.css?v=7d.2">
-  <script type="module" src="js/lightning-lanes.mjs?v=7d.2"></script>
+  <link rel="stylesheet" href="css/lightning-lanes.css?v=7d.3">
+  <script type="module" src="js/lightning-lanes.mjs?v=7d.3"></script>
 </head>
 <body class="lane-shell">
   <div class="ambient one" aria-hidden="true"></div>
@@ -31,6 +31,10 @@
     <button type="button" class="ai-launcher" id="ai-launcher" aria-describedby="ai-description"><span class="ai-symbol" aria-hidden="true">✦</span><span class="ai-copy"><strong>AI Booking Assistant</strong><span id="ai-description">A future conversation to help set up your plans and searches.</span><span class="coming-soon">Coming soon</span></span><span aria-hidden="true">›</span></button>
     <p id="demo-notice" class="footnote" hidden></p>
     <p id="feedback" role="status" aria-live="polite"></p>
+    <section class="lane-section workflow-review" id="workflow-review" aria-labelledby="workflow-review-title" hidden>
+      <div class="section-heading"><div><p class="eyebrow">NOTIFICATION REVIEW</p><h2 id="workflow-review-title">Lightning Lane candidate</h2></div></div>
+      <div id="workflow-review-content" class="card"></div>
+    </section>
     <section class="lane-section" aria-labelledby="plans-title">
       <div class="section-heading"><div><p class="eyebrow">YOUR DAY</p><h2 id="plans-title">Current plans</h2></div><button id="refresh" type="button" class="quiet-button">Refresh</button></div>
       <div id="plans"><div class="empty">Loading your plans…</div></div>
