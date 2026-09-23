@@ -11,6 +11,10 @@ export const visibleSearches = rows => rows.filter(s => !['CANCELLED', 'SUCCESS'
 export const uniquePlans = rows => [...new Map(rows.map(b => [b.id, b])).values()];
 export const searchablePlans = rows => rows.filter(b => !b.displayOnly);
 export const eligibleExperiences = (rows, parkId, productType) => rows.filter(x => x.parkId === parkId && x.productTypes?.includes(productType));
+export async function refreshPlannerState({ local, request, reload }) {
+  await request(local ? '/demo/refresh' : '/planner/refresh', 'POST', {});
+  await reload();
+}
 export function searchTypeLabel(s, current) {
   if (s.searchType === 'NEW_BOOKING') return 'Watch for a new selection';
   if (s.searchType === 'MODIFY_UNTIL_STOPPED') return 'Keep looking for a better time';
@@ -44,7 +48,7 @@ if (typeof document !== 'undefined') {
     if (body != null) headers['Content-Type'] = 'application/json';
     const response = await fetch(apiBase + path, { method, cache: 'no-store', headers, ...(body != null ? { body: JSON.stringify(body) } : {}) });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(({ UNAUTHORIZED: 'Please sign in again.', FORBIDDEN: 'You no longer have access to this profile or party.', CONCURRENT_CHANGE: 'This search changed. Refresh and review the latest option.', WORKFLOW_NOT_ACTIVE: 'This proposal is no longer active.', SERVICE_UNAVAILABLE: 'Lightning Lanes is temporarily unavailable.', NOT_FOUND: 'Lightning Lanes is not enabled in this environment.' })[result.error?.code] || 'The request could not be completed. Refresh and try again.');
+    if (!response.ok || !result.success) throw new Error(({ UNAUTHORIZED: 'Please sign in again.', FORBIDDEN: 'You no longer have access to this profile or party.', ADMIN_REQUIRED: 'Only a DisneyOS administrator can refresh planner data.', CONCURRENT_CHANGE: 'This search changed. Refresh and review the latest option.', WORKFLOW_NOT_ACTIVE: 'This proposal is no longer active.', SERVICE_UNAVAILABLE: 'Lightning Lanes is temporarily unavailable.', NOT_FOUND: 'Lightning Lanes is not enabled in this environment.' })[result.error?.code] || 'The request could not be completed. Refresh and try again.');
     return result.data;
   }
   function feedback(message, error = false) { $('feedback').textContent = message; $('feedback').className = error ? 'error' : ''; }
@@ -159,14 +163,22 @@ if (typeof document !== 'undefined') {
     if (a.edit) { openForm(null, searches.find(s => s.id === a.edit)); return; }
     if (!Object.keys(a).length && button.id !== 'refresh') return;
     busy = true; button.disabled = true;
+    const originalLabel = button.textContent;
+    if (button.id === 'refresh') { button.textContent = 'Refreshing…'; button.setAttribute('aria-busy', 'true'); feedback('Refreshing your planner…'); }
     try {
       if (a.confirm || a.ignore) { const id = a.confirm || a.ignore; const result = await api(`/lightning-lane/workflows/${id}/${a.confirm ? 'confirm' : 'cancel'}`, 'POST', { action: a.confirm ? 'CONFIRM' : 'CANCEL' }); feedback(a.ignore ? 'Proposal ignored. Search continues.' : result.result?.message || statuses[result.status]); }
       if (a.pause) await api(`/lightning-lane/searches/${a.pause}`, 'PATCH', { action: searches.find(s => s.id === a.pause).status === 'PAUSED' ? 'RESUME' : 'PAUSE' });
       if (a.cancel) await api(`/lightning-lane/searches/${a.cancel}`, 'DELETE');
       if (a.evaluate) await api(`/lightning-lane/searches/${a.evaluate}/evaluate`, 'POST', {});
-      if (button.id === 'refresh' && local) await api('/demo/refresh', 'POST', {});
-      await load(button.id === 'refresh'); await refreshWorkflowReview();
-    } catch (e) { feedback(e.message, true); } finally { busy = false; button.disabled = false; }
+      if (button.id === 'refresh') {
+        await refreshPlannerState({ local, request: api, reload: () => load(false) });
+        feedback('Planner refreshed.');
+      } else await load(false);
+      await refreshWorkflowReview();
+    } catch (e) { feedback(e.message, true); } finally {
+      if (button.id === 'refresh') { button.textContent = originalLabel; button.removeAttribute('aria-busy'); }
+      busy = false; button.disabled = false;
+    }
   });
   load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
   setInterval(() => { if (!busy && !$('search-dialog').open && !document.hidden) load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); }); }, 15000);
