@@ -20,9 +20,26 @@ export function searchTypeLabel(s, current) {
   if (s.searchType === 'MODIFY_UNTIL_STOPPED') return 'Keep looking for a better time';
   return current && s.experienceId !== current.experienceId ? 'Change to another experience' : 'Improve a held booking';
 }
-const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing dry run', VERIFYING: 'Verifying dry run', SUCCESS: 'Dry run successful', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Failed', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
+const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing change', VERIFYING: 'Verifying booking', SUCCESS: 'Change verified', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Change not completed', AMBIGUOUS_OUTCOME: 'Outcome needs review', NO_LONGER_AVAILABLE: 'No longer available', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
+export function executionResultPresentation(w) {
+  const status = w.result?.status || w.status;
+  const known = {
+    CONFIRMED_AWAITING_EXECUTION: ['Confirmed — awaiting execution', 'DisneyOS is preparing the approved change. Your booking has not changed yet.'],
+    EXECUTING: ['Change in progress', 'DisneyOS is checking the exact approved option. Do not submit the change again.'],
+    NO_LONGER_AVAILABLE: ['No longer available', 'That Lightning Lane was no longer available when DisneyOS attempted the change. Your booking was not changed and your Watch is still searching.'],
+    TARGET_NO_LONGER_AVAILABLE: ['No longer available', 'That Lightning Lane was no longer available when DisneyOS attempted the change. Your booking was not changed and your Watch is still searching.'],
+    REVIEW_MISMATCH: ['Change not submitted', 'The Disney review screen did not match the exact approved change. Your booking was not changed and your Watch is still searching.'],
+    EXECUTION_FAILED: ['Change not completed', 'DisneyOS could not complete the approved change. Your booking was not changed and your Watch is still searching.'],
+    VERIFIED_SUCCESS: ['Change verified', 'DisneyOS independently verified the updated Lightning Lane booking.'],
+    VERIFIED_NOT_CHANGED: ['Booking unchanged', 'DisneyOS independently verified that the original booking remains in place.'],
+    AMBIGUOUS_OUTCOME: ['Outcome needs review', 'DisneyOS could not safely verify the final booking state. Review your current plans before taking another action.'],
+    SUCCESS: ['Dry run successful', 'The dry run completed without changing your booking.']
+  };
+  const [title, fallback] = known[status] || ['Execution update', 'Review the current booking and workflow status before taking another action.'];
+  return { title, message: w.result?.message || fallback };
+}
 export function candidateCard(w, now = Date.now()) {
-  if (w.result) return `<div class="result"><strong>${w.status === 'CONFIRMED_AWAITING_EXECUTION' ? 'Confirmed — awaiting execution' : 'Dry run successful'}</strong><p>${esc(w.result.message)}</p></div>`;
+  if (w.result) { const result = executionResultPresentation(w); return `<div class="result"><strong>${esc(result.title)}</strong><p>${esc(result.message)}</p></div>`; }
   if (w.status === 'EXPIRED') return `<section class="candidate"><p class="eyebrow">LIGHTNING LANE UPDATE</p><h3>${esc(w.proposed?.experienceName || 'Previous candidate')}</h3><p class="muted">This option expired and needs refreshing. It cannot be confirmed.</p></section>`;
   if (w.status !== 'READY_FOR_CONFIRMATION') return `<p class="muted">${esc(w.status === 'CANCELLED' ? 'Previous proposal closed.' : statuses[w.status] || 'Status unavailable')}</p>`;
   const expired = Date.parse(w.expiresAt) <= now;
