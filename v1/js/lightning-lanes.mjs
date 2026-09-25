@@ -15,6 +15,18 @@ export async function refreshPlannerState({ local, request, reload }) {
   await request(local ? '/demo/refresh' : '/planner/refresh', 'POST', {});
   await reload();
 }
+export const fetchCurrentState = request => Promise.all([request('/lightning-lane/current-plans'), request('/lightning-lane/searches')]);
+export const evaluateSelectedSearch = (request, id) => request(`/lightning-lane/searches/${id}/evaluate`, 'POST', {});
+export function installResumeRefresh(doc, win, refresh) {
+  let pending = false;
+  const onResume = () => {
+    if (doc.hidden || pending) return;
+    pending = true;
+    Promise.resolve().then(refresh).finally(() => { pending = false; });
+  };
+  doc.addEventListener('visibilitychange', onResume);
+  win.addEventListener('focus', onResume);
+}
 export function searchTypeLabel(s, current) {
   if (s.searchType === 'NEW_BOOKING') return 'Watch for a new selection';
   if (s.searchType === 'MODIFY_UNTIL_STOPPED') return 'Keep looking for a better time';
@@ -94,10 +106,9 @@ if (typeof document !== 'undefined') {
     $('search-history').hidden = !completed.length;
     $('history-items').innerHTML = completed.map(renderSearch).join('');
   }
-  async function load(evaluate = false) {
+  async function load() {
     try {
-    [data, searches] = await Promise.all([api('/lightning-lane/current-plans'), api('/lightning-lane/searches')]);
-    if (evaluate) { for (const s of searches.filter(s => !['PAUSED', 'CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status))) await api(`/lightning-lane/searches/${encodeURIComponent(s.id)}/evaluate`, 'POST', {}); searches = await api('/lightning-lane/searches'); }
+    [data, searches] = await fetchCurrentState(api);
     render(); $('create').disabled = false;
     } catch (e) {
       data.plans = data.plans.map(b => ({ ...b, refreshRequired: true })); render();
@@ -186,17 +197,19 @@ if (typeof document !== 'undefined') {
       if (a.confirm || a.ignore) { const id = a.confirm || a.ignore; const result = await api(`/lightning-lane/workflows/${id}/${a.confirm ? 'confirm' : 'cancel'}`, 'POST', { action: a.confirm ? 'CONFIRM' : 'CANCEL' }); feedback(a.ignore ? 'Proposal ignored. Search continues.' : result.result?.message || statuses[result.status]); }
       if (a.pause) await api(`/lightning-lane/searches/${a.pause}`, 'PATCH', { action: searches.find(s => s.id === a.pause).status === 'PAUSED' ? 'RESUME' : 'PAUSE' });
       if (a.cancel) await api(`/lightning-lane/searches/${a.cancel}`, 'DELETE');
-      if (a.evaluate) await api(`/lightning-lane/searches/${a.evaluate}/evaluate`, 'POST', {});
+      if (a.evaluate) await evaluateSelectedSearch(api, a.evaluate);
       if (button.id === 'refresh') {
-        await refreshPlannerState({ local, request: api, reload: () => load(false) });
+        await refreshPlannerState({ local, request: api, reload: () => load() });
         feedback('Planner refreshed.');
-      } else await load(false);
+      } else await load();
       await refreshWorkflowReview();
     } catch (e) { feedback(e.message, true); } finally {
       if (button.id === 'refresh') { button.textContent = originalLabel; button.removeAttribute('aria-busy'); }
       busy = false; button.disabled = false;
     }
   });
-  load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
-  setInterval(() => { if (!busy && !$('search-dialog').open && !document.hidden) load(true).then(refreshWorkflowReview).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); }); }, 15000);
+  load().then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
+  installResumeRefresh(document, window, () => {
+    if (!busy && !$('search-dialog').open) return load().then(refreshWorkflowReview).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); });
+  });
 }
