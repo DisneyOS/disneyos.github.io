@@ -70,3 +70,10 @@ test('unknown bounded result fails neutral instead of claiming success', () => {
   assert.equal(result.title, 'Execution update');
   assert.doesNotMatch(result.message, /success/i);
 });
+
+test('globally disabled AUTO match is truthful and offers no confirmation control', () => {
+  const card = candidateCard({ status: 'AUTO_READY_BUT_DISABLED' });
+  assert.match(card, /automatic modification is not currently enabled/i);
+  assert.match(card, /No booking change was attempted/i);
+  assert.doesNotMatch(card, /data-confirm|Confirm change|Dry run successful/i);
+});

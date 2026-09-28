@@ -32,7 +32,7 @@ export function searchTypeLabel(s, current) {
   if (s.searchType === 'MODIFY_UNTIL_STOPPED') return 'Keep looking for a better time';
   return current && s.experienceId !== current.experienceId ? 'Change to another experience' : 'Improve a held booking';
 }
-const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing change', VERIFYING: 'Verifying booking', SUCCESS: 'Change verified', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Change not completed', AMBIGUOUS_OUTCOME: 'Outcome needs review', NO_LONGER_AVAILABLE: 'No longer available', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
+const statuses = { CONFIRMED_AWAITING_EXECUTION: 'Confirmed — awaiting execution', ACTIVE: 'Searching', PAUSED: 'Paused', READY_FOR_CONFIRMATION: 'Confirmation required', AUTO_READY_BUT_DISABLED: 'Automatic change unavailable', AUTO_AUTHORIZATION_REQUIRED: 'Automatic authorization required', CANDIDATE_FOUND: 'Candidate found', EXECUTING: 'Preparing change', VERIFYING: 'Verifying booking', SUCCESS: 'Change verified', STALE: 'Refresh required', EXPIRED: 'Expired', FAILED: 'Change not completed', AMBIGUOUS_OUTCOME: 'Outcome needs review', NO_LONGER_AVAILABLE: 'No longer available', REPLAN_REQUIRED: 'Plan changed — search again', CANCELLED: 'Cancelled', NO_MATCH: 'No matching option observed' };
 export function executionResultPresentation(w) {
   const status = w.result?.status || w.status;
   const known = {
@@ -52,6 +52,7 @@ export function executionResultPresentation(w) {
 }
 export function candidateCard(w, now = Date.now()) {
   if (w.result) { const result = executionResultPresentation(w); return `<div class="result"><strong>${esc(result.title)}</strong><p>${esc(result.message)}</p></div>`; }
+  if (w.status === 'AUTO_READY_BUT_DISABLED') return '<p class="muted">A matching option was observed, but automatic modification is not currently enabled. No booking change was attempted.</p>';
   if (w.status === 'EXPIRED') return `<section class="candidate"><p class="eyebrow">LIGHTNING LANE UPDATE</p><h3>${esc(w.proposed?.experienceName || 'Previous candidate')}</h3><p class="muted">This option expired and needs refreshing. It cannot be confirmed.</p></section>`;
   if (w.status !== 'READY_FOR_CONFIRMATION') return `<p class="muted">${esc(w.status === 'CANCELLED' ? 'Previous proposal closed.' : statuses[w.status] || 'Status unavailable')}</p>`;
   const expired = Date.parse(w.expiresAt) <= now;
@@ -99,7 +100,7 @@ if (typeof document !== 'undefined') {
       const current = data.plans.find(b => b.id === s.currentBookingId);
       const terminal = ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
       const waiting = ['AVAILABILITY_REFRESH_REQUIRED', 'WAITING_FOR_AVAILABILITY', 'NO_QUALIFYING_BROAD_OPTION'].includes(s.reason);
-      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status])}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
+      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status] || s.status)}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)} · ${s.actionMode === 'AUTO_MODIFY' ? 'Automatically modify' : 'Ask before changing'}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
     };
     $('searches').innerHTML = activeSearches.length ? activeSearches.map(renderSearch).join('') : '<div class="empty">No active searches.<br>Improve a current plan or create a search.</div>';
     const completed = searches.filter(s => s.status === 'SUCCESS');
@@ -129,8 +130,16 @@ if (typeof document !== 'undefined') {
     $('start-field').hidden = !['AFTER_TIME', 'BETWEEN_TIMES'].includes(type); $('end-field').hidden = !['BEFORE_TIME', 'BETWEEN_TIMES'].includes(type);
     field('startTime').required = !$('start-field').hidden; field('endTime').required = !$('end-field').hidden;
     const isNew = field('searchType').value === 'NEW_BOOKING'; field('currentBookingId').disabled = isNew;
+    const autoSupported = ['MODIFY_BOOKING', 'SWAP_BOOKING'].includes(field('searchType').value) && field('productType').value === 'MULTI_PASS';
+    field('actionMode').querySelector('[value="AUTO_MODIFY"]').disabled = !autoSupported;
+    if (!autoSupported) field('actionMode').value = 'ASK_BEFORE_CHANGING';
+    $('auto-consent-field').hidden = field('actionMode').value !== 'AUTO_MODIFY';
+    $('auto-mode-note').hidden = $('auto-consent-field').hidden;
     const swap = field('searchType').value === 'SWAP_BOOKING';
-    $('search-note').textContent = isNew ? 'This Watch remains active even when no time is currently available. It does not book or purchase anything.' : swap ? 'Choose another experience to replace this held booking. Booking changes are not enabled; each option needs your review.' : 'Look for a better time for this experience. Booking changes are not enabled; each option needs your review.';
+    $('search-note').textContent = isNew ? 'This Watch remains active even when no time is currently available. It does not book or purchase anything.'
+      : field('actionMode').value === 'AUTO_MODIFY' ? 'This Watch can be authorized for automatic changes, but automatic execution is currently disabled.'
+      : swap ? 'Choose another experience to replace this held booking. Each option needs your review.'
+      : 'Look for a better time for this experience. Each option needs your review.';
     const held = data.plans.find(x => x.id === field('currentBookingId').value);
     field('experienceId').disabled = !editing && !swap && !isNew;
     if (held && !editing && !isNew) {
@@ -159,6 +168,8 @@ if (typeof document !== 'undefined') {
     const b = data.plans.find(x => x.id === field('currentBookingId').value);
     if (b) { const exp = data.experiences.find(x => x.id === b.experienceId); if (exp) field('parkId').value = exp.parkId; field('productType').value = b.productType; field('serviceDate').value = b.serviceDate; }
     field('searchType').value = change ? 'SWAP_BOOKING' : edit?.searchType || 'MODIFY_BOOKING';
+    field('actionMode').value = edit?.actionMode || 'ASK_BEFORE_CHANGING';
+    field('autoModifyConsent').checked = false;
     if (edit && edit.searchType === 'MODIFY_BOOKING' && b && edit.experienceId !== b.experienceId) field('searchType').value = 'SWAP_BOOKING';
     if (edit) {
       const exp = data.experiences.find(x => x.id === edit.experienceId);
@@ -179,8 +190,9 @@ if (typeof document !== 'undefined') {
       if (criterion.startMinute > criterion.endMinute) throw new Error('The end time must be at or after the start time.');
       if (field('searchType').value.startsWith('PURCHASE_')) throw new Error('This search goal is coming soon.');
       if (!editing && field('searchType').value === 'SWAP_BOOKING' && field('experienceId').value === data.plans.find(b => b.id === field('currentBookingId').value)?.experienceId) throw new Error('Choose a different experience, or select Improve a held booking.');
-      if (editing) await api(`/lightning-lane/searches/${editing.id}`, 'PATCH', { action: 'EDIT', criterion, experienceId: field('experienceId').value });
-      else { const input = Object.fromEntries(['searchType', 'currentBookingId', 'profileId', 'partyContextId', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value])); input.criterion = criterion; if (input.searchType === 'SWAP_BOOKING') input.searchType = 'MODIFY_BOOKING'; await api('/lightning-lane/searches', 'POST', input); }
+      if (field('actionMode').value === 'AUTO_MODIFY' && !field('autoModifyConsent').checked) throw new Error('Confirm automatic modification authorization for this Watch.');
+      if (editing) await api(`/lightning-lane/searches/${editing.id}`, 'PATCH', { action: 'EDIT', criterion, experienceId: field('experienceId').value, actionMode: field('actionMode').value, ...(field('actionMode').value === 'AUTO_MODIFY' ? { autoModifyConsent: true } : {}) });
+      else { const input = Object.fromEntries(['searchType', 'currentBookingId', 'profileId', 'partyContextId', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value])); input.criterion = criterion; if (input.actionMode === 'AUTO_MODIFY') input.autoModifyConsent = true; if (input.searchType === 'SWAP_BOOKING') input.searchType = 'MODIFY_BOOKING'; await api('/lightning-lane/searches', 'POST', input); }
       $('search-dialog').close(); await load(); feedback('Search saved.');
     } catch (e) { $('form-error').textContent = e.message; } finally { busy = false; syncForm(); }
   });

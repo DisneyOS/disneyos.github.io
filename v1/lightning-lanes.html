@@ -61,7 +61,9 @@
         <label>Experience<select name="experienceId" required></select></label>
         <label>Desired time<select name="criterionType"><option value="EARLIEST_AVAILABLE">Earliest available</option><option value="AFTER_TIME">At or after a time</option><option value="BEFORE_TIME">At or before a time</option><option value="BETWEEN_TIMES">Between two times</option></select></label>
         <div class="form-grid"><label id="start-field" hidden>From<input name="startTime" type="time"></label><label id="end-field" hidden>Until<input name="endTime" type="time"></label></div>
-        <label>Action mode<select name="actionMode"><option value="ASK_BEFORE_CHANGING">Ask before changing</option><option value="AUTO_MODIFY" disabled>Auto-modify — unavailable</option></select></label>
+        <label>Action mode<select name="actionMode"><option value="ASK_BEFORE_CHANGING">Ask before changing</option><option value="AUTO_MODIFY">Automatically modify</option></select></label>
+        <label id="auto-consent-field" hidden><input name="autoModifyConsent" type="checkbox"> I authorize DisneyOS to attempt an exact qualifying change for this Watch without asking again.</label>
+        <p class="form-note" id="auto-mode-note" hidden>Availability can disappear before a change completes. Automatic execution is not currently enabled.</p>
         <p class="form-note" id="search-note">Every proposed change needs your confirmation.</p>
         <p id="form-error" role="alert"></p>
       </div>
