@@ -35,7 +35,7 @@ test('client submits new-selection Watch without a current-availability gate', (
 test('initial load reads plans and searches without evaluating', async () => {
   const source = readFileSync(new URL('../v1/js/lightning-lanes.mjs', import.meta.url), 'utf8');
   const html = readFileSync(new URL('../v1/lightning-lanes.html', import.meta.url), 'utf8');
-  assert.match(html, /js\/lightning-lanes\.mjs\?r25k-visibility=2/);
+  assert.match(html, /js\/lightning-lanes\.mjs\?r27g-v2=1/);
   const load = source.slice(source.indexOf('async function load()'), source.indexOf('const options ='));
   assert.match(source, /load\(\)\.then\(refreshWorkflowReview\)/);
   assert.match(load, /fetchCurrentState\(api\)/);

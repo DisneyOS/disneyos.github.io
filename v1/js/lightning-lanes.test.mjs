@@ -77,3 +77,18 @@ test('globally disabled AUTO match is truthful and offers no confirmation contro
   assert.match(card, /No booking change was attempted/i);
   assert.doesNotMatch(card, /data-confirm|Confirm change|Dry run successful/i);
 });
+
+test('V2 candidate authorizes Watch criterion, not exact advertised minute', () => {
+  const candidate = { id: 'workflow_test', status: 'READY_FOR_CONFIRMATION', expiresAt: '2099-01-01T00:00:00Z',
+    current: { experienceName: 'Expedition Everest', startMinute: 975, endMinute: 1035 },
+    proposed: { experienceName: "Na'vi River Journey", startMinute: 750, endMinute: null },
+    evidenceLabel: 'Broad availability is not reserved.', consent: { version: 2, intentFingerprint: 'sha256:' + 'a'.repeat(64) } };
+  const card = candidateCard(candidate, Date.parse('2026-09-28T00:00:00Z'));
+  assert.match(card, /Currently advertised around/);
+  assert.match(card, /Disney may stage a different time/);
+  assert.match(card, /Authorize change if it meets my Watch/);
+  assert.doesNotMatch(card, /Confirm 12:30 PM/);
+  assert.doesNotMatch(card, /data-confirm="workflow_test" disabled/);
+  const old = candidateCard({ ...candidate, consent: null }, Date.parse('2026-09-28T00:00:00Z'));
+  assert.match(old, /data-confirm="workflow_test" disabled/);
+});
