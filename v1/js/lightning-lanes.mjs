@@ -17,6 +17,30 @@ export async function refreshPlannerState({ local, request, reload }) {
 }
 export const fetchCurrentState = request => Promise.all([request('/lightning-lane/current-plans'), request('/lightning-lane/searches')]);
 export const evaluateSelectedSearch = (request, id) => request(`/lightning-lane/searches/${id}/evaluate`, 'POST', {});
+export function confirmCriterionBoundAttempt(dialog, workflow) {
+  const source = workflow?.current?.experienceName, target = workflow?.proposed?.experienceName;
+  if (!dialog?.showModal || !source || !target) return Promise.resolve(false);
+  const description = dialog.querySelector('#execution-consent-description');
+  const accept = dialog.querySelector('#accept-execution-consent');
+  const cancel = dialog.querySelector('#cancel-execution-consent');
+  if (!description || !accept || !cancel) return Promise.resolve(false);
+  description.textContent = `Authorize one attempt to change ${source} to ${target}? Disney may stage a different time. DisneyOS will submit at most once, and only if the actual staged offer meets your Watch criterion.`;
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = approved => {
+      if (settled) return;
+      settled = true;
+      accept.onclick = cancel.onclick = dialog.oncancel = dialog.onclose = null;
+      if (dialog.open) dialog.close();
+      resolve(approved);
+    };
+    accept.onclick = () => finish(true);
+    cancel.onclick = () => finish(false);
+    dialog.oncancel = event => { event.preventDefault(); finish(false); };
+    dialog.onclose = () => finish(false);
+    dialog.showModal();
+  });
+}
 export function installResumeRefresh(doc, win, refresh) {
   let pending = false;
   const onResume = () => {
@@ -214,7 +238,7 @@ if (typeof document !== 'undefined') {
         const id = a.confirm || a.ignore;
         const current = a.confirm ? await api(`/lightning-lane/workflows/${id}`) : null;
         if (a.confirm && (current.status !== 'READY_FOR_CONFIRMATION' || current.consent?.version !== 2)) throw new Error('This option needs a fresh authorization. Refresh and review it again.');
-        if (a.confirm && !window.confirm(`Authorize one attempt to change ${current.current.experienceName} to ${current.proposed.experienceName}? Disney may stage a different time. DisneyOS will submit once only if the actual staged offer meets your Watch criterion.`)) return;
+        if (a.confirm && !await confirmCriterionBoundAttempt($('execution-consent-dialog'), current)) return;
         const result = await api(`/lightning-lane/workflows/${id}/${a.confirm ? 'confirm' : 'cancel'}`, 'POST',
           a.confirm ? { action: 'CONFIRM', authorizationVersion: 2, intentFingerprint: current.consent.intentFingerprint } : { action: 'CANCEL' });
         feedback(a.ignore ? 'Proposal ignored. Search continues.' : result.result?.message || statuses[result.status]);

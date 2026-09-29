@@ -1,6 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { candidateCard, executionResultPresentation, refreshPlannerState } from './lightning-lanes.mjs';
+import { candidateCard, confirmCriterionBoundAttempt, executionResultPresentation, refreshPlannerState } from './lightning-lanes.mjs';
+
+function consentDialog() {
+  const elements = {
+    '#execution-consent-description': { textContent: '' },
+    '#accept-execution-consent': { onclick: null },
+    '#cancel-execution-consent': { onclick: null }
+  };
+  return {
+    elements,
+    open: false,
+    querySelector: selector => elements[selector],
+    showModal() { this.open = true; },
+    close() { this.open = false; this.onclose?.(); }
+  };
+}
+
+test('criterion-bound in-page consent requires a second explicit action before accepting', async () => {
+  const dialog = consentDialog();
+  const consent = confirmCriterionBoundAttempt(dialog, { current: { experienceName: 'Expedition Everest' }, proposed: { experienceName: "Na'vi River Journey" } });
+  assert.equal(dialog.open, true);
+  assert.match(dialog.elements['#execution-consent-description'].textContent, /Expedition Everest to Na'vi River Journey/);
+  assert.match(dialog.elements['#execution-consent-description'].textContent, /actual staged offer meets your Watch criterion/);
+  dialog.elements['#accept-execution-consent'].onclick();
+  assert.equal(await consent, true);
+  assert.equal(dialog.open, false);
+});
+
+test('decline, dismissal, or incomplete workflow never authorizes a controlled attempt', async () => {
+  const decline = consentDialog();
+  const declined = confirmCriterionBoundAttempt(decline, { current: { experienceName: 'Everest' }, proposed: { experienceName: "Na'vi" } });
+  decline.elements['#cancel-execution-consent'].onclick();
+  assert.equal(await declined, false);
+  const dismissal = consentDialog();
+  const dismissed = confirmCriterionBoundAttempt(dismissal, { current: { experienceName: 'Everest' }, proposed: { experienceName: "Na'vi" } });
+  dismissal.oncancel({ preventDefault() {} });
+  assert.equal(await dismissed, false);
+  assert.equal(await confirmCriterionBoundAttempt(consentDialog(), { current: {}, proposed: {} }), false);
+});
 
 test('production refresh uses the existing planner refresh route before reloading cards', async () => {
   const calls = [];

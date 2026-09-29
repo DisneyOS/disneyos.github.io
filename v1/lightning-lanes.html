@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/theme.css?v=2.0.9">
   <link rel="stylesheet" href="css/styles.css?v=3.5.1">
   <link rel="stylesheet" href="css/lightning-lanes.css?v=7d.3">
-  <script type="module" src="js/lightning-lanes.mjs?r27g-v2=1"></script>
+  <script type="module" src="js/lightning-lanes.mjs?r27g-v2-consent=1"></script>
 </head>
 <body class="lane-shell">
   <div class="ambient one" aria-hidden="true"></div>
@@ -69,6 +69,11 @@
       </div>
       <footer class="form-footer"><button class="primary full" id="save-search" type="submit">Start Search</button></footer>
     </form>
+  </dialog>
+  <dialog id="execution-consent-dialog" class="lane-dialog" aria-labelledby="execution-consent-title" aria-describedby="execution-consent-description">
+    <div class="form-header"><div><p class="eyebrow">LIGHTNING LANE</p><h2 id="execution-consent-title">One controlled attempt</h2></div></div>
+    <div class="form-body"><p id="execution-consent-description"></p><p class="form-note">The advertised time is not reserved. Your booking changes only after a qualifying staged offer is verified and submitted.</p></div>
+    <div class="form-footer"><button id="cancel-execution-consent" type="button">Not now</button><button id="accept-execution-consent" type="button" class="primary">Authorize one attempt</button></div>
   </dialog>
 </body>
 </html>
