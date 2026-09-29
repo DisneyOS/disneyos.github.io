@@ -92,3 +92,21 @@ test('V2 candidate authorizes Watch criterion, not exact advertised minute', () 
   const old = candidateCard({ ...candidate, consent: null }, Date.parse('2026-09-28T00:00:00Z'));
   assert.match(old, /data-confirm="workflow_test" disabled/);
 });
+
+test('the candidate has one criterion-bound authorization and no second staged-offer action', () => {
+  const candidate = { id: 'workflow_test', status: 'READY_FOR_CONFIRMATION', expiresAt: '2099-01-01T00:00:00Z',
+    current: { experienceName: 'Expedition Everest', startMinute: 975, endMinute: 1035 },
+    proposed: { experienceName: "Na'vi River Journey", startMinute: 750, endMinute: null },
+    evidenceLabel: 'Broad availability is not reserved.', consent: { version: 2, intentFingerprint: 'sha256:' + 'a'.repeat(64) } };
+  const card = candidateCard(candidate, Date.parse('2026-09-28T15:01:00Z'));
+  assert.match(card, /data-confirm="workflow_test"/);
+  assert.doesNotMatch(card, /data-finalize|separate final approval|temporary selection/i);
+});
+
+test('non-qualifying staged offers are never presented as successful', () => {
+  for (const code of ['NO_IMPROVEMENT', 'STAGED_CRITERION_NOT_MET', 'STAGED_OFFER_UNVERIFIED']) {
+    const result = executionResultPresentation({ status: 'FAILED', result: { status: code, finalSubmissionCount: 0 } });
+    assert.equal(result.title, 'Change not submitted');
+    assert.doesNotMatch(result.message, /successful|changed your booking/i);
+  }
+});

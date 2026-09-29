@@ -41,6 +41,9 @@ export function executionResultPresentation(w) {
     NO_LONGER_AVAILABLE: ['No longer available', 'That Lightning Lane was no longer available when DisneyOS attempted the change. Your booking was not changed and your Watch is still searching.'],
     TARGET_NO_LONGER_AVAILABLE: ['No longer available', 'That Lightning Lane was no longer available when DisneyOS attempted the change. Your booking was not changed and your Watch is still searching.'],
     REVIEW_MISMATCH: ['Change not submitted', 'The Disney review screen did not match the exact approved change. Your booking was not changed and your Watch is still searching.'],
+    NO_IMPROVEMENT: ['Change not submitted', 'Disney staged a time that did not improve your current booking. Your booking was not changed and your Watch is still searching.'],
+    STAGED_CRITERION_NOT_MET: ['Change not submitted', 'Disney staged a time outside your Watch criterion. Your booking was not changed and your Watch is still searching.'],
+    STAGED_OFFER_UNVERIFIED: ['Change not submitted', 'DisneyOS could not safely verify the staged Lightning Lane offer. Your booking was not changed.'],
     EXECUTION_FAILED: ['Change not completed', 'DisneyOS could not complete the approved change. Your booking was not changed and your Watch is still searching.'],
     VERIFIED_SUCCESS: ['Change verified', 'DisneyOS independently verified the updated Lightning Lane booking.'],
     VERIFIED_NOT_CHANGED: ['Booking unchanged', 'DisneyOS independently verified that the original booking remains in place.'],
@@ -211,6 +214,7 @@ if (typeof document !== 'undefined') {
         const id = a.confirm || a.ignore;
         const current = a.confirm ? await api(`/lightning-lane/workflows/${id}`) : null;
         if (a.confirm && (current.status !== 'READY_FOR_CONFIRMATION' || current.consent?.version !== 2)) throw new Error('This option needs a fresh authorization. Refresh and review it again.');
+        if (a.confirm && !window.confirm(`Authorize one attempt to change ${current.current.experienceName} to ${current.proposed.experienceName}? Disney may stage a different time. DisneyOS will submit once only if the actual staged offer meets your Watch criterion.`)) return;
         const result = await api(`/lightning-lane/workflows/${id}/${a.confirm ? 'confirm' : 'cancel'}`, 'POST',
           a.confirm ? { action: 'CONFIRM', authorizationVersion: 2, intentFingerprint: current.consent.intentFingerprint } : { action: 'CANCEL' });
         feedback(a.ignore ? 'Proposal ignored. Search continues.' : result.result?.message || statuses[result.status]);
