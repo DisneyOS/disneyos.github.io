@@ -11,6 +11,20 @@ export const visibleSearches = rows => rows.filter(s => !['CANCELLED', 'SUCCESS'
 export const uniquePlans = rows => [...new Map(rows.map(b => [b.id, b])).values()];
 export const searchablePlans = rows => rows.filter(b => !b.displayOnly);
 export const eligibleExperiences = (rows, parkId, productType) => rows.filter(x => x.parkId === parkId && x.productTypes?.includes(productType));
+export function watchPartyInput({ isNew, partyId, profileIds, booking }) {
+  if (!isNew) return { currentBookingId: booking?.id ?? '' };
+  if (!Array.isArray(profileIds) || !profileIds.length || new Set(profileIds).size !== profileIds.length) throw new Error('Select the people for this Watch.');
+  return { ...(partyId ? { partyId } : {}), profileIds: [...profileIds] };
+}
+export function partyEligibilityText(evidence) {
+  return ({ WAITING_FOR_PARTY_ELIGIBILITY: 'Your Watch is waiting until the full selected party is eligible. Everyone remains in the party.',
+    PARTICIPANT_AUTHORIZATION_LOST: 'Access to someone in your selected party has changed. Restore access or update your Watch before it can act.',
+    PARTICIPANT_IDENTITY_UNRESOLVED: 'Someone in your selected party could not be matched to Disney’s current guest records. Your party has not changed.',
+    PARTICIPANT_IDENTITY_AMBIGUOUS: 'Disney’s current guest records do not uniquely identify everyone in your selected party. Your Watch cannot act yet.',
+    ELIGIBILITY_INCONCLUSIVE: 'Eligibility for the full selected party has not been confirmed yet.',
+    EXACT_PARTY_ELIGIBLE: 'The full selected party was eligible at the last check. Availability is not reserved.',
+    WATCH_CONTEXT_CHANGED: 'Your Watch or current booking has changed. Review the full party before continuing.' })[evidence?.reason] || '';
+}
 export async function refreshPlannerState({ local, request, reload }) {
   await request(local ? '/demo/refresh' : '/planner/refresh', 'POST', {});
   await reload();
@@ -106,7 +120,7 @@ if (typeof document !== 'undefined') {
     if (body != null) headers['Content-Type'] = 'application/json';
     const response = await fetch(apiBase + path, { method, cache: 'no-store', headers, ...(body != null ? { body: JSON.stringify(body) } : {}) });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(({ UNAUTHORIZED: 'Please sign in again.', FORBIDDEN: 'You no longer have access to this profile or party.', ADMIN_REQUIRED: 'Only a DisneyOS administrator can refresh planner data.', CONCURRENT_CHANGE: 'This search changed. Refresh and review the latest option.', WORKFLOW_NOT_ACTIVE: 'This proposal is no longer active.', SERVICE_UNAVAILABLE: 'Lightning Lanes is temporarily unavailable.', NOT_FOUND: 'Lightning Lanes is not enabled in this environment.' })[result.error?.code] || 'The request could not be completed. Refresh and try again.');
+    if (!response.ok || !result.success) throw new Error(({ UNAUTHORIZED: 'Please sign in again.', FORBIDDEN: 'You no longer have access to this profile or party.', PARTY_UNAUTHORIZED: 'Everyone selected for this Watch must have current DisneyOS access.', BOOKING_PARTICIPANT_UNAUTHORIZED: 'The full booking party is not currently authorized in DisneyOS. No one was removed. Restore access before creating this Watch.', BOOKING_UNAVAILABLE: 'The full current booking party could not be resolved. Review your current plans before continuing.', CURRENT_BOOKING_STALE_OR_INCONSISTENT: 'Refresh your current planner before creating a Watch for this booking.', DUPLICATE_PARTICIPANT: 'Select each person only once.', ADMIN_REQUIRED: 'Only a DisneyOS administrator can refresh planner data.', CONCURRENT_CHANGE: 'This search changed. Refresh and review the latest option.', WORKFLOW_NOT_ACTIVE: 'This proposal is no longer active.', SERVICE_UNAVAILABLE: 'Lightning Lanes is temporarily unavailable.', NOT_FOUND: 'Lightning Lanes is not enabled in this environment.' })[result.error?.code] || 'The request could not be completed. Refresh and try again.');
     return result.data;
   }
   function feedback(message, error = false) { $('feedback').textContent = message; $('feedback').className = error ? 'error' : ''; }
@@ -124,11 +138,12 @@ if (typeof document !== 'undefined') {
     $('plans').innerHTML = data.plans.length ? uniquePlans(data.plans).map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p>${b.displayOnly ? '<p class="form-note muted">Booked plan from your planner. Search setup for this experience is not available yet.</p>' : `<div class="actions"><button class="primary" data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div>`}</article>`).join('') : '<div class="empty">No current plans to show.<br>Your Lightning Lane plans will appear here when available.</div>';
     const activeSearches = visibleSearches(searches);
     const renderSearch = s => {
-      const latest = s.workflows.at(-1), party = data.parties.find(p => p.id === s.partyContextId)?.name || 'Your party';
+      const latest = s.workflows.at(-1), context = data.parties.find(p => p.id === s.partyContextId);
+      const party = context?.profileIds?.map(id => data.profiles.find(p => p.id === id)?.name).filter(Boolean).join(', ') || 'Your selected party';
       const current = data.plans.find(b => b.id === s.currentBookingId);
       const terminal = ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
       const waiting = ['AVAILABILITY_REFRESH_REQUIRED', 'WAITING_FOR_AVAILABILITY', 'NO_QUALIFYING_BROAD_OPTION'].includes(s.reason);
-      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status] || s.status)}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)} · ${s.actionMode === 'AUTO_MODIFY' ? 'Automatically modify' : 'Ask before changing'}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${s.reason === 'GUEST_DAY_INELIGIBLE' ? '<p class="muted">Broad availability exists, but current guest/day eligibility blocks this option. Your Watch remains active.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
+      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status] || s.status)}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)} · ${s.actionMode === 'AUTO_MODIFY' ? 'Automatically modify' : 'Ask before changing'}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${partyEligibilityText(s.partyEligibility) ? `<p class="muted">${esc(partyEligibilityText(s.partyEligibility))}</p>` : ''}${s.reason === 'GUEST_DAY_INELIGIBLE' && !partyEligibilityText(s.partyEligibility) ? '<p class="muted">Broad availability exists, but current guest/day eligibility blocks this option. Your Watch remains active.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
     };
     $('searches').innerHTML = activeSearches.length ? activeSearches.map(renderSearch).join('') : '<div class="empty">No active searches.<br>Improve a current plan or create a search.</div>';
     const completed = searches.filter(s => s.status === 'SUCCESS');
@@ -153,11 +168,25 @@ if (typeof document !== 'undefined') {
     if (rows.some(x => x.id === selected)) field('experienceId').value = selected;
     return rows;
   }
+  const partySources = () => data.savedParties
+    ? [...data.savedParties, { id: '', name: 'All authorized people', profileIds: data.profiles.map(p => p.id) }]
+    : data.parties;
+  const selectedPeople = () => [...$('watch-party-people').querySelectorAll('input:checked')].map(x => x.value);
+  function showPartyPeople() {
+    const party = partySources().find(p => p.id === field('partyId').value);
+    $('watch-party-people').innerHTML = (party?.profileIds ?? []).map(id => {
+      const person = data.profiles.find(p => p.id === id);
+      return person ? `<label class="consent-field"><input type="checkbox" value="${esc(id)}" checked> ${esc(person.name)}</label>` : '';
+    }).join('');
+  }
   function syncForm() {
     const type = field('criterionType').value;
     $('start-field').hidden = !['AFTER_TIME', 'BETWEEN_TIMES'].includes(type); $('end-field').hidden = !['BEFORE_TIME', 'BETWEEN_TIMES'].includes(type);
     field('startTime').required = !$('start-field').hidden; field('endTime').required = !$('end-field').hidden;
     const isNew = field('searchType').value === 'NEW_BOOKING'; field('currentBookingId').disabled = isNew;
+    $('party-source-field').hidden = !isNew; $('watch-party-field').hidden = !isNew;
+    $('booking-party').hidden = isNew;
+    $('booking-party').textContent = `Party: ${data.plans.find(x => x.id === field('currentBookingId').value)?.partySummary || 'Current booking participants'} (from current booking)`;
     const autoSupported = ['MODIFY_BOOKING', 'SWAP_BOOKING'].includes(field('searchType').value) && field('productType').value === 'MULTI_PASS';
     field('actionMode').querySelector('[value="AUTO_MODIFY"]').disabled = !autoSupported;
     if (!autoSupported) field('actionMode').value = 'ASK_BEFORE_CHANGING';
@@ -183,12 +212,12 @@ if (typeof document !== 'undefined') {
     }
     for (const k of ['profileId', 'partyContextId', 'serviceDate', 'productType']) field(k).disabled = !isNew;
     field('parkId').disabled = !isNew && !swap;
-    $('save-search').disabled = !editing && (!catalogRows.length || !data.parties.length || isNew && !data.parkDays.length || !isNew && !searchablePlans(data.plans).some(b => b.id === field('currentBookingId').value && !freshness(b).startsWith('Last')));
+    $('save-search').disabled = !editing && (!catalogRows.length || isNew && (!selectedPeople().length || !data.parkDays.length) || !isNew && !searchablePlans(data.plans).some(b => b.id === field('currentBookingId').value && !freshness(b).startsWith('Last')));
   }
   function openForm(bookingId = null, edit = null, change = false) {
     editing = edit; form.reset(); $('form-error').textContent = '';
     field('currentBookingId').innerHTML = options(uniquePlans(searchablePlans(data.plans)).map(b => ({ id: b.id, name: `${b.experienceName} · ${time(b.startMinute)}` })));
-    field('profileId').innerHTML = options(data.profiles); field('partyContextId').innerHTML = options(data.parties);
+    field('partyId').innerHTML = options(partySources()); showPartyPeople();
     field('serviceDate').innerHTML = options(data.parkDays.map(x => ({ id: x.date, name: new Date(`${x.date}T12:00:00`).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' }) })));
     field('parkId').innerHTML = options(data.parks);
     $('identity-fields').hidden = Boolean(edit); $('form-title').textContent = edit ? 'Edit Search' : 'Create Search'; $('save-search').textContent = edit ? 'Save Search' : 'Start Search';
@@ -208,7 +237,7 @@ if (typeof document !== 'undefined') {
     }
     syncForm(); $('search-dialog').showModal(); if (change) field('experienceId').focus();
   }
-  form.addEventListener('change', syncForm); $('close-form').onclick = () => $('search-dialog').close(); $('create').onclick = () => openForm();
+  form.addEventListener('change', event => { if (event.target === field('partyId')) showPartyPeople(); syncForm(); }); $('close-form').onclick = () => $('search-dialog').close(); $('create').onclick = () => openForm();
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (busy) return; busy = true; $('save-search').disabled = true;
     try {
@@ -220,7 +249,20 @@ if (typeof document !== 'undefined') {
       if (!editing && field('searchType').value === 'SWAP_BOOKING' && field('experienceId').value === data.plans.find(b => b.id === field('currentBookingId').value)?.experienceId) throw new Error('Choose a different experience, or select Improve a held booking.');
       if (field('actionMode').value === 'AUTO_MODIFY' && !field('autoModifyConsent').checked) throw new Error('Confirm automatic modification authorization for this Watch.');
       if (editing) await api(`/lightning-lane/searches/${editing.id}`, 'PATCH', { action: 'EDIT', criterion, experienceId: field('experienceId').value, actionMode: field('actionMode').value, ...(field('actionMode').value === 'AUTO_MODIFY' ? { autoModifyConsent: true } : {}) });
-      else { const input = Object.fromEntries(['searchType', 'currentBookingId', 'profileId', 'partyContextId', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value])); input.criterion = criterion; if (input.actionMode === 'AUTO_MODIFY') input.autoModifyConsent = true; if (input.searchType === 'SWAP_BOOKING') input.searchType = 'MODIFY_BOOKING'; await api('/lightning-lane/searches', 'POST', input); }
+      else {
+        const input = Object.fromEntries(['searchType', 'serviceDate', 'productType', 'experienceId', 'actionMode'].map(k => [k, field(k).value]));
+        const isNew = input.searchType === 'NEW_BOOKING';
+        Object.assign(input, watchPartyInput({ isNew, partyId: field('partyId').value, profileIds: selectedPeople(), booking: data.plans.find(b => b.id === field('currentBookingId').value) }));
+        // The synthetic demo still uses its existing prebuilt context contract.
+        if (local && !data.savedParties) {
+          const context = data.parties[0];
+          if (isNew && JSON.stringify([...selectedPeople()].sort()) !== JSON.stringify([...(context?.profileIds ?? [])].sort())) throw new Error('This demo cannot change the selected party.');
+          delete input.partyId; delete input.profileIds; input.profileId = data.profiles[0]?.id; input.partyContextId = context?.id;
+        }
+        input.criterion = criterion; if (input.actionMode === 'AUTO_MODIFY') input.autoModifyConsent = true;
+        if (input.searchType === 'SWAP_BOOKING') input.searchType = 'MODIFY_BOOKING';
+        await api('/lightning-lane/searches', 'POST', input);
+      }
       $('search-dialog').close(); await load(); feedback('Search saved.');
     } catch (e) { $('form-error').textContent = e.message; } finally { busy = false; syncForm(); }
   });

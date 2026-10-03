@@ -54,7 +54,10 @@
         <div id="identity-fields">
           <label>Search goal<select name="searchType"><option value="MODIFY_BOOKING">Improve existing booking</option><option value="SWAP_BOOKING">Swap existing booking</option><option value="NEW_BOOKING">Watch for a new selection</option><option value="MODIFY_UNTIL_STOPPED">Keep improving an existing booking</option><option value="PURCHASE_MULTI" disabled>Buy Multi Pass — coming soon</option><option value="PURCHASE_SINGLE" disabled>Buy Single Pass — coming soon</option></select></label>
           <label>Current booking<select name="currentBookingId"></select></label>
-          <div class="form-grid"><label>Profile<select name="profileId"></select></label><label>Party<select name="partyContextId"></select></label></div>
+          <label id="party-source-field">Party<select name="partyId"></select></label>
+          <fieldset id="watch-party-field"><legend>People for this Watch</legend><div id="watch-party-people"></div><p class="form-note">Your selected party stays together. If anyone is not currently eligible, this Watch waits for the full party.</p></fieldset>
+          <p id="booking-party" class="form-note" hidden></p>
+          <input type="hidden" name="profileId"><input type="hidden" name="partyContextId">
           <div class="form-grid"><label>Park Day<select name="serviceDate" required></select></label><label>Park<select name="parkId" required></select></label></div>
           <label>Pass<select name="productType"><option value="MULTI_PASS">Multi Pass</option><option value="SINGLE_PASS">Single Pass</option></select></label>
         </div>
