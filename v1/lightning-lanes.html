@@ -10,8 +10,8 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="stylesheet" href="css/theme.css?v=2.0.9">
   <link rel="stylesheet" href="css/styles.css?v=3.5.1">
-  <link rel="stylesheet" href="css/lightning-lanes.css?v=7d.3">
-  <script type="module" src="js/lightning-lanes.mjs?r27g-v2-consent=1"></script>
+  <link rel="stylesheet" href="css/lightning-lanes.css?v=20261003-dates">
+  <script type="module" src="js/lightning-lanes.mjs?r27g-v2-consent=1&amp;v=20261003-dates"></script>
 </head>
 <body class="lane-shell">
   <div class="ambient one" aria-hidden="true"></div>
@@ -36,13 +36,8 @@
       <div id="workflow-review-content" class="card"></div>
     </section>
     <section class="lane-section" aria-labelledby="plans-title">
-      <div class="section-heading"><div><p class="eyebrow">YOUR DAY</p><h2 id="plans-title">Current plans</h2></div><button id="refresh" type="button" class="quiet-button">Refresh</button></div>
-      <div id="plans"><div class="empty">Loading your plans…</div></div>
-    </section>
-    <section class="lane-section" aria-labelledby="searches-title">
-      <div class="section-heading"><div><p class="eyebrow">FIND YOUR NEXT OPTION</p><h2 id="searches-title">Your searches</h2></div><button id="create" class="primary" type="button">Create Search</button></div>
-      <div id="searches"></div>
-      <details id="search-history" hidden><summary>Completed searches</summary><div id="history-items"></div></details>
+      <div class="section-heading"><div><p class="eyebrow">YOUR PARK DAYS</p><h2 id="plans-title">Plans &amp; Watches</h2></div><div class="actions"><button id="refresh" type="button" class="quiet-button">Refresh</button><button id="create" class="primary" type="button">Create Search</button></div></div>
+      <div id="lane-dates"><div class="empty">Loading your plans…</div></div>
     </section>
     <p class="footnote">Booking changes are not enabled. Every proposed change requires your review. Times are local to the park.</p>
   </main>

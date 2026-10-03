@@ -9,6 +9,27 @@ export function freshness(b, now = Date.now()) { if (b.refreshRequired || Date.p
 export function criterionText(c) { return ({ EARLIEST_AVAILABLE: 'Earliest available', AFTER_TIME: `At or after ${time(c.startMinute)}`, BEFORE_TIME: `At or before ${time(c.endMinute)}`, BETWEEN_TIMES: `${time(c.startMinute)} – ${time(c.endMinute)}` })[c.type]; }
 export const visibleSearches = rows => rows.filter(s => !['CANCELLED', 'SUCCESS'].includes(s.status));
 export const uniquePlans = rows => [...new Map(rows.map(b => [b.id, b])).values()];
+const validServiceDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+  && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+const inactiveSearchStatuses = new Set(['CANCELLED', 'SUCCESS', 'EXPIRED', 'PAUSED', 'STALE', 'FAILED']);
+export const parkToday = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+export const serviceDateLabel = date => validServiceDate(date)
+  ? new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Date unavailable';
+export function groupLaneDates(plans, searches, today = parkToday()) {
+  const groups = new Map();
+  const group = date => { const key = validServiceDate(date) ? date : ''; if (!groups.has(key)) groups.set(key, { date: key, plans: [], watches: [], history: [], historical: !key || key < today }); return groups.get(key); };
+  // Booking identity is scoped to its service date, even when a source reuses IDs.
+  for (const b of [...new Map(plans.map(b => [JSON.stringify([b.serviceDate,b.id]),b])).values()]) group(b.serviceDate).plans.push(b);
+  for (const s of searches) {
+    const g = group(s.serviceDate);
+    (g.historical || inactiveSearchStatuses.has(s.status) || s.workflows?.some(w => w.result?.dryRun === true) ? g.history : g.watches).push(s);
+  }
+  const ordered = [...groups.values()].sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+  for (const g of ordered) g.plans.sort((a,b) => (a.startMinute ?? 1440) - (b.startMinute ?? 1440));
+  const expanded = ordered.find(g => !g.historical && (g.plans.length || g.watches.length));
+  return ordered.map(g => ({ ...g, defaultOpen: g === expanded }));
+}
+export const broadAvailabilityText = 'Earliest known availability — other times may exist. This time is not reserved.';
 export const searchablePlans = rows => rows.filter(b => !b.displayOnly);
 export const eligibleExperiences = (rows, parkId, productType) => rows.filter(x => x.parkId === parkId && x.productTypes?.includes(productType));
 export function watchPartyInput({ isNew, partyId, profileIds, booking }) {
@@ -99,7 +120,7 @@ export function candidateCard(w, now = Date.now()) {
   const expired = Date.parse(w.expiresAt) <= now;
   const delta = w.current.startMinute - w.proposed.startMinute;
   const consentReady = w.consent?.version === 2 && /^sha256:[a-f0-9]{64}$/.test(w.consent.intentFingerprint ?? '');
-  return `<section class="candidate"><p class="eyebrow">BETTER LIGHTNING LANE FOUND</p><h3>${esc(w.proposed.experienceName)}</h3><div class="comparison"><div><span>Current · ${esc(w.current.experienceName)}</span><strong>${esc(windowText(w.current))}</strong></div><div><span>Currently advertised around</span><strong>${esc(windowText(w.proposed))}</strong></div></div>${delta > 0 ? `<p class="earlier">${delta} minutes earlier</p>` : ''}<p class="muted">${esc(w.evidenceLabel)} Disney may stage a different time; it must still satisfy your Watch before any change is submitted.</p><p class="muted">${expired ? 'Expired — search again' : 'Confirmation expires at ' + esc(new Date(w.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }))}</p><div class="actions"><button class="primary" data-confirm="${esc(w.id)}" ${expired || !consentReady ? 'disabled' : ''}>Authorize change if it meets my Watch</button><button data-ignore="${esc(w.id)}">Ignore</button></div></section>`;
+  return `<section class="candidate"><p class="eyebrow">BETTER LIGHTNING LANE FOUND</p><h3>${esc(w.proposed.experienceName)}</h3><div class="comparison"><div><span>Booked · ${esc(w.current.experienceName)}</span><strong>${esc(windowText(w.current))}</strong></div><div><span>Earliest known availability</span><strong>${esc(windowText(w.proposed))}</strong></div></div>${delta > 0 ? `<p class="earlier">${delta} minutes earlier</p>` : ''}<p class="muted">${broadAvailabilityText}</p><p class="muted">${esc(w.evidenceLabel)} Disney may stage a different time; it must still satisfy your Watch before any change is submitted.</p><p class="muted">${expired ? 'Expired — search again' : 'Confirmation expires at ' + esc(new Date(w.expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }))}</p><div class="actions"><button class="primary" data-confirm="${esc(w.id)}" ${expired || !consentReady ? 'disabled' : ''}>Authorize change if it meets my Watch</button><button data-ignore="${esc(w.id)}">Ignore</button></div></section>`;
 }
 
 if (typeof document !== 'undefined') {
@@ -134,21 +155,25 @@ if (typeof document !== 'undefined') {
     $('workflow-review').hidden = false;
     $('workflow-review').scrollIntoView({ block: 'start' });
   }
+  const disclosureState = new Map();
+  $('lane-dates').addEventListener('toggle', event => { const key = event.target.dataset?.disclosure; if (key) disclosureState.set(key,event.target.open); },true);
   function render() {
-    $('plans').innerHTML = data.plans.length ? uniquePlans(data.plans).map(b => `<article class="card"><div class="card-top"><h3>${esc(b.experienceName)}</h3><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time">${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'} · ${esc(b.serviceDate)}</p>${b.displayOnly ? '<p class="form-note muted">Booked plan from your planner. Search setup for this experience is not available yet.</p>' : `<div class="actions"><button class="primary" data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div>`}</article>`).join('') : '<div class="empty">No current plans to show.<br>Your Lightning Lane plans will appear here when available.</div>';
-    const activeSearches = visibleSearches(searches);
-    const renderSearch = s => {
+    const renderBooking = b => `<article class="card booked-plan"><div class="card-top"><h4>${esc(b.experienceName)}</h4><span class="badge ${freshness(b).startsWith('Last') ? 'warning' : 'good'}">${freshness(b)}</span></div><p class="plan-time"><span class="time-label">Booked return window</span>${windowText(b)}</p><p class="muted">${esc(b.partySummary)} · ${b.productType === 'MULTI_PASS' ? 'Multi Pass' : 'Single Pass'}</p>${b.displayOnly ? '<p class="form-note muted">Booked plan from your planner. Search setup for this experience is not available yet.</p>' : `<div class="actions"><button class="primary" data-improve="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Improve Time</button><button data-change="${esc(b.id)}" ${freshness(b).startsWith('Last') ? 'disabled' : ''}>Change Experience</button></div>`}</article>`;
+    const renderSearch = (s, historical = false) => {
       const latest = s.workflows.at(-1), context = data.parties.find(p => p.id === s.partyContextId);
       const party = context?.profileIds?.map(id => data.profiles.find(p => p.id === id)?.name).filter(Boolean).join(', ') || 'Your selected party';
       const current = data.plans.find(b => b.id === s.currentBookingId);
-      const terminal = ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
+      const terminal = historical && (s.serviceDate < parkToday() || s.status !== 'PAUSED') || ['CANCELLED', 'SUCCESS', 'CONFIRMED_AWAITING_EXECUTION'].includes(s.status);
       const waiting = ['AVAILABILITY_REFRESH_REQUIRED', 'WAITING_FOR_AVAILABILITY', 'NO_QUALIFYING_BROAD_OPTION'].includes(s.reason);
-      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status] || s.status)}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)} · ${s.actionMode === 'AUTO_MODIFY' ? 'Automatically modify' : 'Ask before changing'}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${partyEligibilityText(s.partyEligibility) ? `<p class="muted">${esc(partyEligibilityText(s.partyEligibility))}</p>` : ''}${s.reason === 'GUEST_DAY_INELIGIBLE' && !partyEligibilityText(s.partyEligibility) ? '<p class="muted">Broad availability exists, but current guest/day eligibility blocks this option. Your Watch remains active.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
+      return `<article class="card"><div class="card-top"><h3>${esc(s.experienceName)}</h3><span class="badge">${esc(statuses[s.status] || s.status)}</span></div><p class="muted">${esc(searchTypeLabel(s, current))} · ${esc(party)} · ${s.actionMode === 'AUTO_MODIFY' ? 'Automatically modify' : 'Ask before changing'}</p><p>Goal: ${esc(criterionText(s.criterion))}</p>${current ? `<p class="muted">Current: ${windowText(current)}</p>` : ''}${waiting ? '<p class="muted">Searching — waiting for availability.</p>' : ''}${partyEligibilityText(s.partyEligibility) ? `<p class="muted">${esc(partyEligibilityText(s.partyEligibility))}</p>` : ''}${s.reason === 'GUEST_DAY_INELIGIBLE' && !partyEligibilityText(s.partyEligibility) ? '<p class="muted">Broad availability exists, but current guest/day eligibility blocks this option. Your Watch remains active.</p>' : ''}${s.reason === 'TARGETED_DETAIL_REQUIRED' ? '<p class="muted">A possible match was observed. Detailed availability is required before any candidate can be offered.</p>' : ''}${s.reason === 'INCONCLUSIVE' ? '<p class="muted">No matching option observed yet. Availability coverage is incomplete.</p>' : ''}${latest && (!historical || latest.result) ? candidateCard(latest) : ''}${!terminal ? `<div class="actions"><button data-pause="${esc(s.id)}">${s.status === 'PAUSED' ? 'Resume' : 'Pause'}</button><button data-edit="${esc(s.id)}">Edit</button><button data-evaluate="${esc(s.id)}" ${s.status === 'PAUSED' ? 'disabled' : ''}>Search again</button><button class="danger" data-cancel="${esc(s.id)}">Cancel</button></div>` : ''}</article>`;
     };
-    $('searches').innerHTML = activeSearches.length ? activeSearches.map(renderSearch).join('') : '<div class="empty">No active searches.<br>Improve a current plan or create a search.</div>';
-    const completed = searches.filter(s => s.status === 'SUCCESS');
-    $('search-history').hidden = !completed.length;
-    $('history-items').innerHTML = completed.map(renderSearch).join('');
+    const disclosure = (key, title, content, defaultOpen = false) => `<details class="date-group" data-disclosure="${esc(key)}" ${disclosureState.get(key) ?? defaultOpen ? 'open' : ''}><summary>${title}</summary><div class="date-content">${content}</div></details>`;
+    const renderDate = g => disclosure(`date:${g.date}`, esc(serviceDateLabel(g.date)),
+      `<section class="booked-section"><h3>Booked Lightning Lanes</h3>${g.plans.length ? g.plans.map(renderBooking).join('') : '<p class="muted">No booked Lightning Lanes for this date.</p>'}</section>`
+      + `<section class="watch-section"><h3>Active Watches</h3>${g.watches.length ? g.watches.map(s => renderSearch(s)).join('') : '<p class="muted">No active Watches for this date.</p>'}</section>`
+      + (g.history.length ? disclosure(`history:${g.date}`, `Search History (${g.history.length})`, g.history.map(s => renderSearch(s,true)).join('')) : ''),g.defaultOpen);
+    const groups = groupLaneDates(data.plans,searches), upcoming = groups.filter(g => !g.historical), historical = groups.filter(g => g.historical);
+    $('lane-dates').innerHTML = upcoming.map(renderDate).join('') + (historical.length ? disclosure('past','Past / Historical',historical.map(renderDate).join('')) : '') || '<div class="empty">No Lightning Lane plans or Watches to show.</div>';
   }
   async function load() {
     try {
@@ -298,8 +323,9 @@ if (typeof document !== 'undefined') {
       busy = false; button.disabled = false;
     }
   });
-  load().then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('plans').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
+  load().then(refreshWorkflowReview).catch(e => { feedback(e.message, true); $('lane-dates').innerHTML = '<div class="empty">Plans unavailable — refresh required.</div>'; $('create').disabled = true; });
   installResumeRefresh(document, window, () => {
     if (!busy && !$('search-dialog').open) return load().then(refreshWorkflowReview).catch(e => { feedback(e.message, true); document.querySelectorAll('[data-confirm]').forEach(b => { b.disabled = true; }); });
   });
 }
+
